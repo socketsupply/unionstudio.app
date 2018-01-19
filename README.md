@@ -13,5 +13,10 @@ You can also evaluate multiple scripts in tandem. The text in the editor is
 split on `\n\n\n` (three new lines). The evaluated result will be positioned
 (approximately) accross from the source.
 
+
+![docwindow](document.png)
+
+Includes a dark mode and a document window to play with.
+
 # TODO
 Needs an icon.
