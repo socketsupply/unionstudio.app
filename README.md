@@ -9,8 +9,7 @@ APIs.
 
 # HOW IT WORKS
 Your script will get evaluated when you stop typing. Use `console.log('hello')`
-to get output in the right-hand panel. The final expression is also evalutated
-to the right-hand panel.
+to get output in the right-hand panel.
 
 ![screenshot](screenshot.png)
 
