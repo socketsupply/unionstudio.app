@@ -11,12 +11,12 @@ APIs.
 Your script will get evaluated when you stop typing. Use `console.log('hello')`
 to get output in the right-hand panel.
 
-![screenshot](screenshot.png)
+![screenshot](docs/light.png)
 
 
 Includes a dark mode and a document window to play with.
 
-![docwindow](document.png)
+![docwindow](docs/dark.png)
 
 
 # TODO
