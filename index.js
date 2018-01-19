@@ -2,6 +2,7 @@
 
 const path = require('path')
 const electron = require('electron')
+const ipc = require('electron').ipcMain
 
 const {
   app,
@@ -51,6 +52,10 @@ function ready () {
   mainWindow = new BrowserWindow(windowOptions)
 
   mainWindow.loadURL(`file://${__dirname}/static/index.html`)
+
+  ipc.on('console-send', (event, args) => {
+    mainWindow.webContents.send('console-log', args)
+  })
 
   mainWindow.on('closed', () => {
     mainWindow = null

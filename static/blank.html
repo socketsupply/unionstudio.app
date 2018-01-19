@@ -1,0 +1,17 @@
+<script>
+
+  //
+  // Hijack the log function and make it write to a
+  // global cache that we will use later to populate
+  // the output window.
+  //
+  const util = require('util')
+
+  const log = console.log
+
+  console.log = (...args) => {
+    log(...args)
+    window.__output.push(util.format(...args))
+  }
+
+</script>
