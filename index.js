@@ -1,5 +1,9 @@
 'use strict'
 
+process.on('uncaughtException', err => {
+  console.log(err)
+})
+
 function main () {
   const path = require('path')
   const electron = require('electron')
