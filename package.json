@@ -1,0 +1,65 @@
+{
+  "name": "Scratches",
+  "productName": "Scratches",
+  "main": "index.js",
+  "version": "0.0.1",
+  "description": "Read, Evaluate, Print, Loop with a nicer editor",
+  "repository": {
+    "url": "git@github.com:0x00a/scratches.git",
+    "type": "git"
+  },
+  "dependencies": {
+    "codemirror": "^5.33.0"
+  },
+  "devDependencies": {
+    "cross-spawn": "^5.1.0",
+    "electron": "^1.7.10",
+    "electron-builder": "^19.46.1",
+    "electron-icon-maker": "0.0.4",
+    "electron-publisher-s3": "^19.46.0",
+    "standard": "^10.0.2"
+  },
+  "scripts": {
+    "test": "npm run lint",
+    "lint": "standard \"**/*.js\"",
+    "pack": "build",
+    "dist": "build --publish=onTagOrDraft"
+  },
+  "author": "Voltra Co. <hello@voltra.co>",
+  "license": "MIT",
+  "build": {
+    "appId": "com.scratches",
+    "asar": true,
+    "npmRebuild": false,
+    "files": [
+      "**/*",
+      "src",
+      "!keys",
+      "!test",
+      "!*.pug",
+      "!src/node_modules/test",
+      "!release",
+      "!.DS_Store",
+      "!webpack.config.js",
+      "!cmake-js",
+      "!pkg",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__,tests,powered-test,example,examples,*.d.ts}",
+      "!**/*.{o,hprof,orig,pyc,pyo,rbc}",
+      "!**/node_modules/.bin",
+      "!**/{.DS_Store,.git,.gitignore}"
+    ],
+    "linux": {
+      "icon": "../static/icons",
+      "executableName": "scratches",
+      "target": [
+        "AppImage",
+        "tar.gz",
+        "deb",
+        "rpm"
+      ]
+    },
+    "mac": {
+      "icon": "./static/icon.icns"
+    }
+  }
+}
