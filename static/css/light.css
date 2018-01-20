@@ -25,10 +25,10 @@ body[data-theme="light"] .sep {
 
 .cm-s-light span.cm-error { background: #db2d20; color: #ff0000; }
 
-.cm-s-light .CodeMirror-matchingbracket { color: #01bafe !important; }
+.cm-s-light .CodeMirror-matchingbracket { color: #6ed2ed !important; }
 
 
-/* #01bafe */
+/* #6ed2ed */
 
 /* Editor styling */
 
@@ -51,7 +51,7 @@ body[data-theme="light"] .sep {
 .cm-s-light .CodeMirror-cursor {
   width: auto;
   border: 0;
-  background: #01bafe;
+  background: #6ed2ed;
   z-index: 1;
 }
 

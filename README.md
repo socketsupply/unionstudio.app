@@ -1,5 +1,7 @@
-# SYNOPSIS
+![screenshot](docs/js-logo.png)
 A javascript/node.js scratchpad.
+
+Download the latest release [here](https://github.com/0x00A/scratches/releases).
 
 # DESCRIPTION
 If you've ever tried to code a proof-of-concept in the node repl or the chrome
@@ -18,6 +20,3 @@ Includes a dark mode and a document window to play with.
 
 ![docwindow](docs/dark.png)
 
-
-# TODO
-Needs an icon.
