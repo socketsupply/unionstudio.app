@@ -17,6 +17,10 @@ app.on('window-all-closed', () => {
   }
 })
 
+app.on('before-quit', () => {
+  global.quitting = true
+})
+
 function ready () {
   const display = electron.screen.getPrimaryDisplay()
 

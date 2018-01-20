@@ -8,6 +8,14 @@
 
 */
 
+body[data-theme="dark"] {
+  background: #222;
+}
+
+body[data-theme="dark"] .sep {
+  border-left: 1px solid #313131;
+}
+
 .cm-s-dark.CodeMirror { background: #222; color: #e0e0e0; }
 .cm-s-dark div.CodeMirror-selected { background: #303030; }
 .cm-s-dark .CodeMirror-line::selection, .cm-s-dark .CodeMirror-line > span::selection, .cm-s-dark .CodeMirror-line > span > span::selection { background: rgba(48, 48, 48, .99); }

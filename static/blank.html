@@ -1,4 +1,13 @@
 <script>
+  const { remote } = require('electron')
+
+  //
+  // Prevent this window from closing, it's our sandbox
+  // and if it closes, we wont be able to eval any code.
+  //
+  window.onbeforeunload = function (e) {
+    if (!remote.getGlobal('quitting')) return false
+  }
 
   //
   // Hijack the log function and make it write to a

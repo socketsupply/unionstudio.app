@@ -2,11 +2,20 @@
 
 /* Color scheme */
 
+
+
+body[data-theme="light"] .sep {
+  border-left: 1px solid #f1f1f1;
+}
+
 .cm-s-light.CodeMirror {
   background-color:#ffffff;
   color:#2e383c;
   line-height:1.4375;
 }
+
+
+.cm-s-light .CodeMirror-gutters { background: #fff; border-right: 0px; }
 .cm-s-light .cm-comment { color:#aaa; }
 .cm-s-light .cm-keyword, .cm-s-light .cm-property { color: #999; }
 .cm-s-light .cm-atom,.cm-s-light .cm-number { color:#111; }
@@ -36,6 +45,7 @@
 .cm-s-light .CodeMirror-linenumber {
   padding:0;
   color:#e0e2e5;
+  background: white;
 }
 
 .cm-s-light .CodeMirror-cursor {
