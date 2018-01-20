@@ -2,15 +2,23 @@
   "name": "Scratches",
   "productName": "Scratches",
   "main": "index.js",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Read, Evaluate, Print, Loop with a nicer editor",
   "repository": {
     "url": "git@github.com:0x00a/scratches.git",
     "type": "git"
   },
   "dependencies": {
+    "babel-core": "^6.26.0",
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
+    "babel-preset-es2016": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
     "codemirror": "^5.33.0",
-    "marked": "^0.3.12"
+    "marked": "^0.3.12",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "redux": "^3.7.2"
   },
   "devDependencies": {
     "cross-spawn": "^5.1.0",
@@ -21,6 +29,7 @@
     "standard": "^10.0.2"
   },
   "scripts": {
+    "start": "electron .",
     "test": "npm run lint",
     "lint": "standard \"**/*.js\"",
     "pack": "build",
