@@ -1,4 +1,5 @@
 ![screenshot](docs/logos/256x256.png)
+
 A javascript/node.js scratchpad.
 
 Download the latest release [here](https://github.com/0x00A/scratches/releases).
