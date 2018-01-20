@@ -2,7 +2,7 @@
   "name": "Scratches",
   "productName": "Scratches",
   "main": "index.js",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Read, Evaluate, Print, Loop with a nicer editor",
   "repository": {
     "url": "git@github.com:0x00a/scratches.git",
