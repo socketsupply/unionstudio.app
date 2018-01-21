@@ -1,5 +1,13 @@
 <script>
-  const { remote } = require('electron')
+  const { remote, ipcRenderer: ipc } = require('electron')
+  const module = require('module')
+
+  // check if the user specified a require path.
+  module.globalPaths[1] = remote.getGlobal('cwd')
+
+  ipc.on('cwd', (event, p) => {
+    module.globalPaths[1] = p
+  })
 
   //
   // Prevent this window from closing, it's our sandbox

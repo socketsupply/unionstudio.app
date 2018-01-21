@@ -17,6 +17,9 @@ app.on('window-all-closed', () => {
   }
 })
 
+const cwd = path.join(process.argv[1], 'node_modules')
+global.cwd = path.resolve(cwd)
+
 app.on('before-quit', () => {
   global.quitting = true
 })
@@ -56,10 +59,6 @@ function ready () {
   mainWindow = new BrowserWindow(windowOptions)
 
   mainWindow.loadURL(`file://${__dirname}/static/index.html`)
-
-  ipc.on('console-send', (event, args) => {
-    mainWindow.webContents.send('console-log', args)
-  })
 
   mainWindow.on('closed', () => {
     mainWindow = null

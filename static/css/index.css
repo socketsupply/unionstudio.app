@@ -38,7 +38,7 @@ header {
 
 .wrapper {
   position: absolute;
-  top: 30px;
+  top: 45px;
   bottom: 0;
   width: 50%;
 }
@@ -61,6 +61,16 @@ header {
   left: 50%;
   background: black;
   z-index: 100;
+}
+
+body.hide-output .sep {
+  display: none;
+}
+
+body.hide-output .wrapper.editor {
+  right: 0;
+  width: initial;
+  z-index: 10;
 }
 
 #output + .CodeMirror .CodeMirror-line::selection,
