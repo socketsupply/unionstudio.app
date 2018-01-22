@@ -17,8 +17,10 @@ app.on('window-all-closed', () => {
   }
 })
 
-const cwd = path.join(process.argv[1], 'node_modules')
-global.cwd = path.resolve(cwd)
+if (process.argv[1]) {
+  const cwd = path.join(process.argv[1], 'node_modules')
+  global.cwd = path.resolve(cwd)
+}
 
 app.on('before-quit', () => {
   global.quitting = true
