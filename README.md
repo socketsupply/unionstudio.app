@@ -19,3 +19,26 @@ Includes a dark mode and a document window to play with.
 
 ![docwindow](docs/dark.png)
 
+To use modules from npm, just set your working directory to a place where
+those modules are installed. For example you can create a directory (call
+it whatever you want)...
+
+```bash
+mkdir ~/sandbox
+cd sandbox
+npm install preact
+```
+
+Then you can set your `Working Directory` to `~/sandbox` from the `Options`
+menu...
+
+![image](https://user-images.githubusercontent.com/136109/35237999-7f5bafd0-ffac-11e7-8533-e74e2279725e.png)
+
+
+You can also start `Scratches` from the command line. You could create
+a symbolic link to the binary if you often start it from the commandline...
+
+```
+/Applications/Scratches.app/Contents/MacOS/Scratches .
+```
+
