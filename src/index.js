@@ -5,7 +5,11 @@ window.events = new events.EventEmitter()
 
 window.onbeforeunload = function (e) {
   if (process.platform === 'win32') return true
-  if (!remote.getGlobal('quitting')) return false
+  if (!remote.getGlobal('quitting')) {
+    const win = remote.getCurrentWindow()
+    win.minimize()
+    return false
+  }
 }
 
 function ready () {
