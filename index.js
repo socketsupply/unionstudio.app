@@ -2,7 +2,6 @@
 
 const path = require('path')
 const electron = require('electron')
-const ipc = require('electron').ipcMain
 
 const {
   app,
