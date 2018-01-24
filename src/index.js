@@ -13,8 +13,8 @@ window.onbeforeunload = function (e) {
 }
 
 function ready () {
-  require('editor')
-  require('menu')
+  require('./editor')
+  require('./menu')
 }
 
 document.addEventListener('DOMContentLoaded', ready)
