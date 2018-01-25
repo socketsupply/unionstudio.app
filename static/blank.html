@@ -32,9 +32,7 @@
 
   console.log = (...args) => {
     log(...args)
-    setTimeout(() => {
-      ipc.send('log', util.format(...args))
-    }, 128)
+    ipc.send('log', util.format(...args))
   }
 
 </script>
