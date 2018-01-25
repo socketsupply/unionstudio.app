@@ -27,12 +27,12 @@
   // the output window.
   //
   const util = require('util')
-
   const log = console.log
+  const win = remote.getCurrentWindow()
 
   console.log = (...args) => {
     log(...args)
-    window.__output.push(util.format(...args))
+    ipc.send('log', util.format(...args))
   }
 
 </script>
