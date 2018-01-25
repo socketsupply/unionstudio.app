@@ -5,7 +5,8 @@ const electron = require('electron')
 
 const {
   app,
-  BrowserWindow
+  BrowserWindow,
+  ipcMain
 } = electron
 
 let mainWindow = null
@@ -23,6 +24,10 @@ if (process.argv[1]) {
 
 app.on('before-quit', () => {
   global.quitting = true
+})
+
+ipcMain.on('log', (event, value) => {
+  mainWindow.webContents.send('log', value)
 })
 
 function ready () {
