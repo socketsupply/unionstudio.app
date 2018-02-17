@@ -68,6 +68,7 @@ function ready () {
 
   mainWindow.on('closed', () => {
     mainWindow = null
+    app.quit()
   })
 }
 
