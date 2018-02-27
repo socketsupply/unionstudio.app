@@ -5,7 +5,8 @@
 
 
 body[data-theme="light"] .sep {
-  border-left: 1px solid #f1f1f1;
+  background-color: #f1f1f1;
+  border: 2px solid white;
 }
 
 .cm-s-light.CodeMirror {

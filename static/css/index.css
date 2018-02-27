@@ -56,20 +56,25 @@ header {
 .sep {
   position: absolute;
   top: 0;
-  width: 1px;
+  width: 5px;
   bottom: 0;
   left: 50%;
   background: black;
   z-index: 100;
+  cursor: ew-resize;
 }
 
 body.hide-output .sep {
   display: none;
 }
 
+body.hide-output .wrapper.output {
+  display: none;
+}
+
 body.hide-output .wrapper.editor {
   right: 0;
-  width: initial;
+  width: 100% !important;
   z-index: 10;
 }
 

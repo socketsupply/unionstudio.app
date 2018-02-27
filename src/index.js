@@ -13,6 +13,7 @@ window.onbeforeunload = function (e) {
 }
 
 function ready () {
+  require('splitter')
   require('editor')
   require('menu')
 }
