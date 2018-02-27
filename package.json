@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "cross-spawn": "^5.1.0",
-    "electron": "^1.7.10",
+    "electron": "^1.8.2",
     "electron-builder": "^19.54.0",
     "electron-icon-maker": "0.0.4",
     "electron-publisher-s3": "^19.46.0",
