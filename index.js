@@ -8,6 +8,7 @@ const {
   BrowserWindow,
   ipcMain
 } = electron
+app.commandLine.appendSwitch('js-flags', '--harmony')
 
 let mainWindow = null
 
