@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "codemirror": "^5.33.0",
-    "marked": "^0.3.12"
+    "marked": "^0.3.12",
+    "typescript": "2.7.2"
   },
   "devDependencies": {
     "cross-spawn": "^5.1.0",
