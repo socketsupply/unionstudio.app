@@ -35,6 +35,7 @@
   "license": "MIT",
   "build": {
     "appId": "com.scratches",
+    "icon": "./static/icon.ico",
     "asar": true,
     "npmRebuild": false,
     "files": [
