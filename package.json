@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "cross-spawn": "^5.1.0",
-    "electron": "^1.8.2",
+    "electron": "^1.8.4",
     "electron-builder": "^20.2.0",
     "electron-icon-maker": "0.0.4",
     "electron-publisher-s3": "^20.2.0",
@@ -30,7 +30,10 @@
     "pack": "build",
     "dist": "build --publish=onTagOrDraft"
   },
-  "pre-commit": [ "precommit-msg", "lint" ],
+  "pre-commit": [
+    "precommit-msg",
+    "lint"
+  ],
   "author": "Voltra Co. <hello@voltra.co>",
   "license": "MIT",
   "build": {
