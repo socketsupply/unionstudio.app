@@ -8,6 +8,7 @@ const {
   BrowserWindow,
   ipcMain
 } = electron
+
 app.commandLine.appendSwitch('js-flags', '--harmony')
 
 let mainWindow = null
@@ -52,9 +53,6 @@ function ready () {
     icon,
     minWidth: 800,
     minHeight: 450,
-    center: true,
-    vibrancy: 'light',
-    background: '#ffffff',
     textAreasAreResizable: false,
     titleBarStyle: 'hiddenInset',
     webPreferences: {

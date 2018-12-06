@@ -1,8 +1,9 @@
-let dragging = false
 const sep = document.querySelector('body > .sep')
 const editor = document.querySelector('article.editor')
 const output = document.querySelector('article.output')
 const body = document.body
+
+let dragging = false
 
 const cancel = () => (dragging = false)
 const start = () => (dragging = true)

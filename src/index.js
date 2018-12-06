@@ -12,10 +12,11 @@ window.onbeforeunload = function (e) {
   }
 }
 
+require('./menu')
+
 function ready () {
-  require('splitter')
-  require('editor')
-  require('menu')
+  require('./splitter')
+  require('./editor')
 }
 
 document.addEventListener('DOMContentLoaded', ready)

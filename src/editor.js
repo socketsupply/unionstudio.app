@@ -1,8 +1,10 @@
-const CodeMirror = require('codemirror')
-const { remote, ipcRenderer: ipc } = require('electron')
-const path = require('path')
 const fs = require('fs')
+const path = require('path')
+const { remote, ipcRenderer: ipc } = require('electron')
+
+const CodeMirror = require('codemirror')
 const ts = require('typescript')
+
 require('codemirror/mode/javascript/javascript')
 require('codemirror/addon/edit/matchbrackets')
 require('codemirror/keymap/vim')
@@ -43,6 +45,7 @@ async function clearDocumentWindow () {
     }
   `)
 }
+
 const clearEditorPanes = () => {
   editor.setValue('')
   output.setValue('')
@@ -56,7 +59,7 @@ setTimeout(() => {
   output.refresh()
 }, 128)
 
-let sandbox = new remote.BrowserWindow({
+const sandbox = new remote.BrowserWindow({
   show: !!window.localStorage.sandbox,
   width: 450,
   height: 400,
