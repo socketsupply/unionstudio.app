@@ -2,8 +2,7 @@
 
 const path = require('path')
 const electron = require('electron')
-
-require('./menu')
+const createMenu = require('./menu')
 
 const {
   app,
@@ -25,13 +24,9 @@ if (process.argv[1]) {
   global.cwd = path.resolve(cwd)
 }
 
-// app.on('before-quit', () => {
-//   global.quitting = true
-// })
-
-// ipcMain.on('log', (event, value) => {
-//  mainWindow.webContents.send('log', value)
-// })
+app.on('before-quit', () => {
+  global.quitting = true
+})
 
 function ready () {
   const display = electron.screen.getPrimaryDisplay()
@@ -46,7 +41,7 @@ function ready () {
   if (height > 900) height = 900
 
   const iconfiletype = process.platform === 'win32' ? 'ico' : 'png'
-  const icon = path.resolve(__dirname, `static/icon.${iconfiletype}`)
+  const icon = path.resolve(__dirname, `../static/icon.${iconfiletype}`)
 
   const windowOptions = {
     width,
@@ -57,13 +52,28 @@ function ready () {
     textAreasAreResizable: false,
     titleBarStyle: 'hiddenInset',
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
+      contextIsolation: false,
+      webviewTag: true,
+      preload: path.join(__dirname, 'preload.js')
     }
   }
 
   mainWindow = new BrowserWindow(windowOptions)
-  const loc = `file://${path.join(__dirname, 'static', 'index.html')}`
+  const loc = `file://${path.join(__dirname, '..', 'static', 'index.html')}`
   mainWindow.loadURL(loc)
+
+  createMenu({}, (arg, ...values) => {
+    switch (arg) {
+      case 'inspect': {
+        mainWindow.inspectElement(50, 50)
+        break
+      }
+
+      default:
+        mainWindow.send('message', arg, ...values)
+    }
+  })
 
   mainWindow.on('closed', () => {
     mainWindow = null

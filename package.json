@@ -1,29 +1,31 @@
 {
   "name": "Scratches",
   "productName": "Scratches",
-  "main": "index.js",
+  "main": "src/main.js",
   "version": "0.0.7",
   "description": "Read, Evaluate, Print, Loop with a nicer editor",
   "repository": {
-    "url": "git@github.com:0x00a/scratches.git",
+    "url": "git@github.com:heapwolf/scratches.git",
     "type": "git"
   },
   "dependencies": {
+    "@optoolco/components": "^12.2.1",
+    "@optoolco/tonic": "^13.1.4",
     "codemirror": "^5.33.0",
-    "marked": "^0.3.12",
+    "marked": "^1.2.7",
     "typescript": "2.7.2"
   },
   "devDependencies": {
     "cross-spawn": "^5.1.0",
-    "electron": "^3.0.10",
-    "electron-builder": "^20.2.0",
-    "electron-icon-maker": "0.0.4",
-    "electron-publisher-s3": "^20.2.0",
+    "electron": "^11.2.1",
+    "electron-builder": "^22.9.1",
+    "electron-icon-maker": "0.0.5",
+    "electron-publisher-s3": "^20.17.2",
     "pre-commit": "^1.2.2",
-    "standard": "^10.0.2"
+    "standard": "^16.0.3"
   },
   "scripts": {
-    "start": "electron .",
+    "start": "electron src/main.js",
     "test": "npm run lint",
     "lint": "standard \"**/*.js\"",
     "precommit-msg": "echo 'Pre-commit checks...' && exit 0",

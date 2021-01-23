@@ -1,81 +1,80 @@
 @font-face {
-  font-family: 'Ubuntu Mono';
+  font-family: 'FiraCode-Retina';
   font-style: normal;
   font-weight: 400;
-  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url(../fonts/Ubuntu-Mono.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2212, U+2215;
+  src: local('FiraCode-Retina'), local('FiraCode-Retina'), url(../fonts/FiraCode-Retina.ttf) format('ttf');
 }
 
 * {
   -webkit-user-select: none;
   box-sizing: border-box;
+  font-family: 'FiraCode-Retina';
 }
 
 body {
   margin: 0;
   background-color: white;
   height: calc(100vh);
-  font-family: 'Ubuntu Mono';
+  font-size: 14px;
+}
+
+body.no-labels section {
+  top: 0;
+}
+
+body.no-labels label {
+  display: none;
 }
 
 header {
   position: absolute;
   top: 0;
-  height: 30px;
+  height: 38px;
   left: 0;
   right: 0;
   -webkit-app-region: drag;
+  border-bottom: 1px solid var(--tonic-border);
+  text-align: center;
+  line-height: 40px;
+  background-color: var(--tonic-window);
+  color: var(--tonic-info);
 }
 
-.CodeMirror {
-  height: 100%;
-}
-
-* {
-  font-family: 'Ubuntu Mono';
-  font-size: 12px;
-}
-
-.wrapper {
+section {
   position: absolute;
-  top: 45px;
-  bottom: 0;
-  width: 50%;
-}
-
-.wrapper.editor {
+  top: 20px;
   left: 0;
-  padding-left: 20px;
-}
-
-.wrapper.output {
   right: 0;
-  padding-left: 20px;
+  bottom: 0;
+  background-color: var(--tonic-background);
 }
 
-.sep {
+label {
   position: absolute;
   top: 0;
-  width: 5px;
-  bottom: 0;
-  left: 50%;
-  background: black;
-  z-index: 100;
-  cursor: ew-resize;
-}
-
-body.hide-output .sep {
-  display: none;
-}
-
-body.hide-output .wrapper.output {
-  display: none;
-}
-
-body.hide-output .wrapper.editor {
+  left: 0;
   right: 0;
-  width: 100% !important;
-  z-index: 10;
+  height: 20px;
+  color: var(--tonic-info);
+  font-size: 10px;
+  border-bottom: 1px solid var(--tonic-border);
+  background: var(--tonic-window);
+  padding: 4px 8px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+iframe {
+  border: none;
+}
+
+main-component > main {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 #output + .CodeMirror .CodeMirror-line::selection,

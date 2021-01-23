@@ -1,209 +1,143 @@
-const { app, Menu, dialog } = require('electron').remote
+const { app, Menu } = require('electron')
 
-const setLabel = e => {
-  window.localStorage.theme = e.label
-  window.events.emit('editor:theme', e.label)
-}
-
-const template = [
-  {
-    label: 'Edit',
-    submenu: [
-      {
-        label: 'Load File',
-        accelerator: 'CmdOrCtrl+L',
-        click: () => {
-          window.events.emit('file:load')
-        }
-      },
-      {
-        label: 'Save File',
-        accelerator: 'CmdOrCtrl+S',
-        click: () => {
-          window.events.emit('file:save')
-        }
-      },
-      {
-        label: 'Save As',
-        accelerator: 'Shift+CmdOrCtrl+S',
-        click: () => {
-          window.events.emit('file:saveAs')
-        }
-      },
-      {type: 'separator'},
-      {role: 'undo'},
-      {role: 'redo'},
-      {type: 'separator'},
-      {role: 'cut'},
-      {role: 'copy'},
-      {role: 'paste'},
-      {role: 'pasteandmatchstyle'},
-      {role: 'delete'},
-      {role: 'selectall'}
-    ]
-  },
-  {
-    label: 'View',
-    submenu: [
-      {role: 'toggledevtools'},
-      {
-        label: 'View Library Versions',
-        click: () => {
-          const opts = {
-            type: 'info',
-            title: 'Versions',
-            message: 'Included library versions.',
-            detail: Object.keys(process.versions).map(k => {
-              return `${k} ${process.versions[k]}`
-            }).join('\n')
+module.exports = (args, modifier) => {
+  const t = [
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'pasteandmatchstyle' },
+        { role: 'delete' },
+        { role: 'selectall' }
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        {
+          label: 'JavaScript',
+          accelerator: 'CmdOrCtrl+Shift+J',
+          checked: false,
+          click: e => {
+            modifier('javascript')
           }
+        },
+        {
+          label: 'JavaScript Output',
+          accelerator: 'CmdOrCtrl+J',
+          checked: false,
+          click: e => {
+            modifier('javascript-output')
+          }
+        },
+        {
+          label: 'HTML',
+          accelerator: 'CmdOrCtrl+Shift+H',
+          checked: false,
+          click: () => {
+            modifier('html')
+          }
+        },
+        {
+          label: 'CSS',
+          accelerator: 'CmdOrCtrl+Shift+C',
+          checked: false,
+          click: () => {
+            modifier('css')
+          }
+        },
+        {
+          label: 'Labels',
+          accelerator: 'CmdOrCtrl+Shift+L',
+          checked: false,
+          click: () => {
+            modifier('labels')
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Dark Mode',
+          type: 'checkbox',
+          checked: false,
+          click: () => {
+            modifier('theme')
+          }
+        },
+        { role: 'togglefullscreen' },
+        {
+          label: 'Labels',
+          accelerator: 'CmdOrCtrl+Shift+I',
+          click: () => {
+            modifier('inspect')
+          }
+        }
+      ]
+    },
+    {
+      role: 'window',
+      submenu: [
+        { role: 'minimize' }
+      ]
+    },
+    {
+      label: 'Options',
+      submenu: [
+        {
+          label: 'Vim Mode',
+          type: 'checkbox',
+          checked: false,
+          click: () => {
+            modifier('vim')
+          }
+        },
+        {
+          label: 'Enable Typescript Support',
+          type: 'checkbox',
+          checked: false,
+          click: () => {
+            modifier('typescript')
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Clear All Panels',
+          accelerator: 'CommandOrControl+`',
+          click: () => {
+            modifier('clear')
+          }
+        },
+        {
+          label: 'Set Working Directory',
+          click: () => {
+            modifier('cwd')
+          }
+        }
+      ]
+    }
+  ]
 
-          dialog.showMessageBox(opts)
-        }
-      },
-      {type: 'separator'},
-      {role: 'resetzoom'},
-      {role: 'zoomin'},
-      {role: 'zoomout'},
-      {type: 'separator'},
-      {role: 'togglefullscreen'}
-    ]
-  },
-  {
-    role: 'window',
-    submenu: [
-      {role: 'minimize'}
-    ]
-  },
-  {
-    label: 'Options',
-    submenu: [
-      {
-        label: 'Document Window Show',
-        type: 'checkbox',
-        checked: JSON.parse(window.localStorage.sandbox || false),
-        click: () => {
-          window.events.emit('sandbox:toggle')
-        }
-      },
-      {
-        label: 'Document Window On Top',
-        type: 'checkbox',
-        checked: JSON.parse(window.localStorage.sanboxOnTop || false),
-        click: () => {
-          window.events.emit('sandbox:ontop')
-        }
-      },
-      {type: 'separator'},
-      {
-        label: 'Vim Mode',
-        type: 'checkbox',
-        checked: JSON.parse(window.localStorage.vimMode || false),
-        click: () => {
-          window.events.emit('vimMode:toggle')
-        }
-      },
-      {
-        label: 'Enable Typescript Support',
-        type: 'checkbox',
-        checked: JSON.parse(window.localStorage.typescript || false),
-        click: () => {
-          window.events.emit('editor:typescript')
-        }
-      },
-      {type: 'separator'},
-      {
-        label: 'Auto-Evaluate Source',
-        type: 'checkbox',
-        checked: JSON.parse(window.localStorage.autoeval || true),
-        click: () => {
-          window.events.emit('editor:autoeval')
-        }
-      },
-      {
-        label: 'Evaluate Source',
-        accelerator: 'CommandOrControl+R',
-        click: () => {
-          window.events.emit('editor:eval')
-        }
-      },
-      { type: 'separator' },
-      {
-        label: 'Clear',
-        accelerator: 'CommandOrControl+`',
-        click: () => {
-          window.events.emit('editor:clear')
-        }
-      },
-      {type: 'separator'},
-      {
-        label: 'Hide output panel',
-        type: 'checkbox',
-        checked: JSON.parse(window.localStorage.hideOutput || false),
-        click: () => {
-          window.events.emit('output:toggle')
-        }
-      },
-      {
-        label: 'Line Numbers',
-        type: 'checkbox',
-        checked: JSON.parse(window.localStorage.lineNumbers || false),
-        click: () => {
-          window.events.emit('editor:linenumbers')
-        }
-      },
-      {
-        label: 'Try Matching Lines',
-        type: 'checkbox',
-        checked: JSON.parse(window.localStorage.matchingLines || false),
-        click: () => {
-          window.events.emit('matchinglines')
-        }
-      },
-      {type: 'separator'},
-      {
-        label: 'Set Working Directory',
-        click: () => {
-          window.events.emit('cwd')
-        }
-      }
-    ]
-  },
-  {
-    label: 'Theme',
-    submenu: [
-      {
-        label: 'Light',
-        type: 'radio',
-        checked: window.localStorage.theme === 'Liight',
-        click: setLabel
-      },
-      {
-        label: 'Dark',
-        type: 'radio',
-        checked: window.localStorage.theme === 'Dark',
-        click: setLabel
-      }
-    ]
+  if (process.platform === 'darwin') {
+    t.unshift({
+      label: app.getName(),
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services', submenu: [] },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideothers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    })
   }
-]
 
-if (process.platform === 'darwin') {
-  template.unshift({
-    label: app.getName(),
-    submenu: [
-      {role: 'about'},
-      {type: 'separator'},
-      {role: 'services', submenu: []},
-      {type: 'separator'},
-      {role: 'hide'},
-      {role: 'hideothers'},
-      {role: 'unhide'},
-      {type: 'separator'},
-      {role: 'quit'}
-    ]
-  })
+  const menu = Menu.buildFromTemplate(t)
+  Menu.setApplicationMenu(menu)
 }
-
-const menu = Menu.buildFromTemplate(template)
-Menu.setApplicationMenu(menu)
