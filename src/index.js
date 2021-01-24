@@ -72,7 +72,7 @@ class MainComponent extends Tonic {
       }
 
       case 'theme': {
-        this.setTheme()
+        this.setTheme(true)
         break
       }
 
@@ -92,15 +92,13 @@ class MainComponent extends Tonic {
       }
 
       case 'typescript': {
-        window.__typescript = !window.__typescript
-
-        if (window.__typescript) {
+        if (!window.localStorage.ts) {
           window.localStorage.ts = true
         } else {
           delete window.localStorage.ts
         }
 
-        this.eval(true)
+        this.eval()
       }
     }
   }
@@ -133,10 +131,17 @@ class MainComponent extends Tonic {
 
     if (src) {
       window.localStorage.js = src
+      window.localStorage.html = this.editors.html.getValue()
+      window.localStorage.css = this.editors.css.getValue()
     }
 
     if (window.localStorage.ts) {
-      src = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText
+      src = ts.transpileModule(src, {
+        compilerOptions: {
+          target: 'ES6',
+          module: 'CommonJS'
+        }
+      }).outputText
     }
 
     src += '/*EOF*/'
@@ -145,15 +150,20 @@ class MainComponent extends Tonic {
     if (src.match(/while\s*\([^{]*\/\*EOF\*\//g)) return
 
     const script = `
+      const log = console.log
+      const error = console.error
       console.error = console.log = function (...args) {
+        log(...args)
         global.ipc.send('response', JSON.stringify(args))
       }
 
-      try {
-        ${src}
-      } catch (err) {
-        console.error(err.message)
-      }
+      document.addEventListener('DOMContentLoaded', () => {
+        try {
+          ${src}
+        } catch (err) {
+          console.error(err.message)
+        }
+      })
     `
 
     const doc = this.editors.html.getValue()
@@ -173,8 +183,6 @@ class MainComponent extends Tonic {
         ${doc}
     `
 
-    console.log(html)
-
     const url = `data:text/html;base64,${window.btoa(html)}`
     global.ipc.send('message', 'preview', url)
   }
@@ -186,38 +194,39 @@ class MainComponent extends Tonic {
   connected () {
     this.editors.scriptInput = CodeMirror.fromTextArea(
       this.querySelector('#js-in'),
-      Object.assign({}, opts, { mode: 'javascript' })
+      { ...opts, mode: 'javascript' }
     )
 
     this.editors.scriptOutput = CodeMirror.fromTextArea(
       this.querySelector('#js-out'),
-      Object.assign({}, opts, {
+      {
+        ...opts,
         mode: 'javascript',
         readOnly: true,
         lineWrapping: true,
         wrap: true
-      })
+      }
     )
 
     this.editors.scriptInput.on('change', e => this.bouncedEval(true))
 
     this.editors.html = CodeMirror.fromTextArea(
       this.querySelector('#html'),
-      Object.assign({}, opts, { mode: 'html' })
+      { ...opts, mode: 'html' }
     )
 
     this.editors.html.on('change', e => this.bouncedEval(true))
 
     this.editors.css = CodeMirror.fromTextArea(
       this.querySelector('#css'),
-      Object.assign({}, opts, { mode: 'css' })
+      { ...opts, mode: 'css' }
     )
 
     this.editors.css.on('change', e => this.bouncedEval(true))
 
     setTimeout(() => {
-      this.setTheme(true)
-      this.eval(true)
+      this.setTheme(false)
+      this.eval()
 
       for (const editor of Object.values(this.editors)) {
         editor.on('focus', () => editor.refresh())
@@ -226,11 +235,11 @@ class MainComponent extends Tonic {
     }, 512)
   }
 
-  setTheme (isSelf) {
-    let theme = window.localStorage.theme
+  setTheme (isToggling) {
+    let theme = window.localStorage.theme || 'light'
 
-    if (!isSelf) {
-      if (!theme || theme === 'light') {
+    if (isToggling) {
+      if (theme === 'light') {
         theme = window.localStorage.theme = 'dark'
       } else {
         theme = window.localStorage.theme = 'light'
@@ -248,7 +257,7 @@ class MainComponent extends Tonic {
   render () {
     return this.html`
       <header>
-        Scratch
+        Scratches
       </header>
 
       <main>

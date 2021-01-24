@@ -8,7 +8,7 @@ body {
 body, *[theme="light"] {
   --tonic-background: rgba(245, 245, 245, 1);
   --tonic-window: rgba(255, 255, 255, 1);
-  --tonic-accent: rgb(110, 210, 237);
+  --tonic-accent: rgba(110, 210, 237, 1);
   --tonic-primary: rgba(54, 57, 61, 1);
   --tonic-secondary: rgba(232, 232, 228, 1);
   --tonic-light: rgba(153, 157, 160, 1);
@@ -34,12 +34,13 @@ body, *[theme="light"] {
   --tonic-warning: rgba(249, 169, 103, 1);
   --tonic-info: rgba(153, 157, 160, 1);
   --tonic-overlay: rgba(255, 255, 255, 0.75);
+  --tonic-selected: rgba(236, 236, 236, 1);
 }
 
 *[theme="dark"] {
   --tonic-background: rgba(45, 45, 45, 1);
   --tonic-window: rgba(49, 49, 49, 1);
-  --tonic-accent: rgb(110, 210, 237);
+  --tonic-accent: rgba(110, 210, 237, 1);
   --tonic-primary: rgba(255, 255, 255, 1);
   --tonic-secondary: rgba(195, 195, 195, 1);
   --tonic-medium: rgba(153, 157, 160, 1);
@@ -63,6 +64,7 @@ body, *[theme="light"] {
   --tonic-success: rgba(133, 178, 116, 1);
   --tonic-warn: rgba(249, 169, 103, 1);
   --tonic-overlay: rgba(0, 0, 0, 0.40);
+  --tonic-selected: rgba(20, 20, 20, 1);
 }
 
 tonic-split .tonic--split-horizontal {

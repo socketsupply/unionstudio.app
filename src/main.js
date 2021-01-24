@@ -63,7 +63,7 @@ function ready () {
   const loc = `file://${path.join(__dirname, '..', 'static', 'index.html')}`
   mainWindow.loadURL(loc)
 
-  const previewWindow = new BrowserWindow({
+  let previewWindow = new BrowserWindow({
     icon,
     closable: false,
     webPreferences: {
@@ -91,6 +91,7 @@ function ready () {
     switch (arg) {
       case 'inspect': {
         mainWindow.openDevTools()
+        previewWindow.openDevTools()
         break
       }
 
@@ -100,6 +101,8 @@ function ready () {
   })
 
   mainWindow.on('closed', () => {
+    previewWindow.destroy()
+    previewWindow = null
     mainWindow = null
     app.quit()
   })
