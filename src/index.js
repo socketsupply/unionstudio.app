@@ -150,11 +150,21 @@ class MainComponent extends Tonic {
     if (src.match(/while\s*\([^{]*\/\*EOF\*\//g)) return
 
     const script = `
-      const log = console.log
-      const error = console.error
-      console.error = console.log = function (...args) {
-        log(...args)
+      const clog = console.log
+      const cerror = console.error
+
+      const send = args => {
         global.ipc.send('response', JSON.stringify(args))
+      }
+
+      console.log = function (...args) {
+        clog(...args)
+        send(args)
+      }
+
+      console.error = function (...args) {
+        cerror(...args)
+        send(args)
       }
 
       document.addEventListener('DOMContentLoaded', () => {

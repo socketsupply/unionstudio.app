@@ -90,7 +90,6 @@ function ready () {
   createMenu({}, (arg, ...values) => {
     switch (arg) {
       case 'inspect': {
-        mainWindow.openDevTools()
         previewWindow.openDevTools()
         break
       }
