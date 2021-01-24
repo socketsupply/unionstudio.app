@@ -2,7 +2,7 @@
   "name": "Scratches",
   "productName": "Scratches",
   "main": "src/main.js",
-  "version": "0.0.7",
+  "version": "1.0.0",
   "description": "Read, Evaluate, Print, Loop with a nicer editor",
   "repository": {
     "url": "git@github.com:heapwolf/scratches.git",
