@@ -72,15 +72,17 @@ class MainComponent extends Tonic {
       }
 
       case 'theme': {
-        let theme = window.localStorage.theme
+        this.setTheme()
+        break
+      }
 
-        if (!theme || theme === 'light') {
-          theme = window.localStorage.theme = 'dark'
-        } else {
-          theme = window.localStorage.theme = 'light'
-        }
+      case 'clear-output': {
+        this.clearOutput()
+        break
+      }
 
-        document.body.setAttribute('theme', theme)
+      case 'eval': {
+        this.evaluateScript(true)
         break
       }
 
@@ -99,7 +101,7 @@ class MainComponent extends Tonic {
   }
 
   evaluateScript (isSelf) {
-    let src = this.editors.jsInput.getValue()
+    let src = this.editors.scriptInput.getValue()
 
     if (src) {
       window.localStorage.js = src
@@ -110,70 +112,77 @@ class MainComponent extends Tonic {
     }
 
     if (isSelf) {
-      this.evaluateMarkup()
       this.evaluateStyles()
+      this.evaluateMarkup()
     }
 
     const iframe = this.querySelector('iframe')
 
-    const s = src.replace(/`/g, '\\`')
-
-    iframe.contentWindow.document.body.innerHTML = this.editors.html.getValue()
-
     const script = `
-      let msg = ''
-
-      try {
-        msg = (() => { ${s} })()
-      } catch (err) {
-        msg = err.message
+      console.error = console.warn = console.log = function (...args) {
+        window.parent.postMessage(JSON.stringify(args), '*')
       }
 
-      window.parent.postMessage(JSON.stringify(msg), '*')
+      try {
+        ${src}
+      } catch (err) {
+        console.error(err.message)
+      }
     `
 
-    console.log(script)
-
-    iframe.contentWindow.eval(script)
+    try {
+      console.log(iframe.contentWindow.eval(script))
+    } catch (err) {
+      this.editors.scriptOutput.setValue(err.message)
+    }
   }
 
   evaluateStyles (isSelf) {
-    if (isSelf) {
-      this.evaluateScript()
-      this.evaluateMarkup()
-    }
-
     const src = this.editors.css.getValue()
-    const iframe = this.querySelector('iframe')
+    const iframe = document.getElementById('sandbox')
     window.localStorage.css = src
     iframe.contentWindow.document.head.innerHTML = `
       <style>${src}</style>
     `
+
+    if (isSelf) {
+      this.evaluateMarkup()
+      this.evaluateScript()
+    }
   }
 
   evaluateMarkup (isSelf) {
-    if (isSelf) {
-      this.evaluateScript()
-      this.evaluateStyles()
-    }
-
     const src = this.editors.html.getValue()
-    const iframe = this.querySelector('iframe')
+    const iframe = document.getElementById('sandbox')
     window.localStorage.html = src
     iframe.contentWindow.document.body.innerHTML = src
+
+    if (isSelf) {
+      this.evaluateStyles()
+      this.evaluateScript()
+    }
+  }
+
+  clearOutput () {
+    this.editors.scriptOutput.setValue('')
   }
 
   connected () {
     window.addEventListener('message', e => {
-      this.editors.jsOutput.setValue(String(e.data || ''))
+      const editor = this.editors.scriptOutput
+      const oldValue = editor.getValue()
+      const newValue = e.data ? JSON.parse(e.data) : []
+
+      editor.setValue(oldValue + '\n' + newValue.join(' '))
+      editor.scrollIntoView({ line: editor.doc.lineCount() - 1 })
     })
 
-    this.editors.jsInput = CodeMirror.fromTextArea(
+    this.editors.scriptInput = CodeMirror.fromTextArea(
       this.querySelector('#js-in'),
       Object.assign({}, opts, { mode: 'javascript' })
     )
 
-    this.editors.jsOutput = CodeMirror.fromTextArea(
+    this.editors.scriptOutput = CodeMirror.fromTextArea(
       this.querySelector('#js-out'),
       Object.assign({}, opts, {
         mode: 'javascript',
@@ -183,7 +192,7 @@ class MainComponent extends Tonic {
       })
     )
 
-    this.editors.jsInput.on('change', e => this.evaluateScript())
+    this.editors.scriptInput.on('change', e => this.evaluateScript(true))
 
     this.editors.html = CodeMirror.fromTextArea(
       this.querySelector('#html'),
@@ -202,8 +211,33 @@ class MainComponent extends Tonic {
     this.editors.css.on('change', e => this.evaluateStyles(true))
 
     setTimeout(() => {
+      this.setTheme(true)
       this.evaluateScript(true)
+
+      for (const editor of Object.values(this.editors)) {
+        editor.on('focus', () => editor.refresh())
+        editor.refresh()
+      }
     }, 512)
+  }
+
+  setTheme (isSelf) {
+    let theme = window.localStorage.theme
+
+    if (!isSelf) {
+      if (!theme || theme === 'light') {
+        theme = window.localStorage.theme = 'dark'
+      } else {
+        theme = window.localStorage.theme = 'light'
+      }
+    }
+
+    document.body.setAttribute('theme', theme)
+
+    for (const editor of Object.values(this.editors)) {
+      editor.setOption('theme', theme)
+      editor.refresh()
+    }
   }
 
   renderSandboxDocument (s) {
@@ -232,7 +266,7 @@ class MainComponent extends Tonic {
               <tonic-split-left width="40%">
                 <tonic-split id="split-js" type="horizontal">
                   <tonic-split-top height="60%">
-                    <label>JS FUNCTION BODY</label>
+                    <label>SCRIPT</label>
                     <section>
                       <textarea id="js-in">${window.localStorage.js || ''}</textarea>
                     </section>

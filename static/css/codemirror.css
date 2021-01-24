@@ -11,6 +11,7 @@
   left: 0;
   right: 0;
   padding: 10px;
+  backgorund: var(--tonic-backgorund);
 }
 
 /* PADDING */
@@ -138,7 +139,7 @@
 .cm-s-default .cm-qualifier {color: #555;}
 .cm-s-default .cm-builtin {color: #30a;}
 .cm-s-default .cm-bracket {color: #997;}
-.cm-s-default .cm-tag {color: #170;}
+.cm-s-default .cm-tag {color: var(--tonic-accent);}
 .cm-s-default .cm-attribute {color: #00c;}
 .cm-s-default .cm-hr {color: #999;}
 .cm-s-default .cm-link {color: #00c;}
@@ -162,7 +163,6 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #a22;}
 
 .CodeMirror {
   overflow: hidden;
-  background: white;
 }
 
 .CodeMirror-scroll {

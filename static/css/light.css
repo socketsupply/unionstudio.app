@@ -2,21 +2,11 @@
 
 /* Color scheme */
 
-
-
-body[data-theme="light"] .sep {
-  background-color: #f1f1f1;
-  border: 2px solid white;
-}
-
 .cm-s-light.CodeMirror {
-  background-color:#ffffff;
-  color:#2e383c;
-  line-height:1.4375;
+  color: #2e383c;
 }
 
-
-.cm-s-light .CodeMirror-gutters { background: #fff; border-right: 0px; }
+.cm-s-light .CodeMirror-gutters { border-right: 0px; }
 .cm-s-light .cm-comment { color:#aaa; }
 .cm-s-light .cm-keyword, .cm-s-light .cm-property { color: #999; }
 .cm-s-light .cm-atom,.cm-s-light .cm-number { color:#111; }
@@ -24,7 +14,7 @@ body[data-theme="light"] .sep {
 .cm-s-light .cm-string { color:#aaa; }
 .cm-s-light .cm-variable,.cm-s-light .cm-qualifier { color:#111; }
 
-.cm-s-light span.cm-error { background: #db2d20; color: #ff0000; }
+.cm-s-light span.cm-error { background: var(--tonic-danger); color: white; }
 
 .cm-s-light .CodeMirror-matchingbracket { color: #6ed2ed !important; }
 
@@ -52,7 +42,7 @@ body[data-theme="light"] .sep {
 .cm-s-light .CodeMirror-cursor {
   width: auto;
   border: 0;
-  background: #6ed2ed;
+  background: var(--tonic-accent);
   z-index: 1;
 }
 

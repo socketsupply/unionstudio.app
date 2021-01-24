@@ -2,13 +2,21 @@
   font-family: 'FiraCode-Retina';
   font-style: normal;
   font-weight: 400;
-  src: local('FiraCode-Retina'), local('FiraCode-Retina'), url(../fonts/FiraCode-Retina.ttf) format('ttf');
+  src: local('FiraCode-Retina'), local('FiraCode-Retina'), url(../fonts/FiraMono-Regular.ttf) format('ttf');
+}
+
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url(../fonts/Ubuntu-Mono.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2212, U+2215;
 }
 
 * {
   -webkit-user-select: none;
   box-sizing: border-box;
-  font-family: 'FiraCode-Retina';
+  font-family: 'Ubuntu Mono';
 }
 
 body {
@@ -42,11 +50,11 @@ header {
 
 section {
   position: absolute;
-  top: 20px;
+  top: 22px;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--tonic-background);
+  background-color: var(--tonic-window);
 }
 
 label {
@@ -54,18 +62,18 @@ label {
   top: 0;
   left: 0;
   right: 0;
-  height: 20px;
+  height: 22px;
   color: var(--tonic-info);
   font-size: 10px;
   border-bottom: 1px solid var(--tonic-border);
-  background: var(--tonic-window);
+  background: var(--tonic-background);
   padding: 4px 8px;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
 }
 
-iframe {
+iframe, iframe html {
   border: none;
 }
 

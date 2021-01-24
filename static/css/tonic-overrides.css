@@ -8,7 +8,7 @@ body {
 body, *[theme="light"] {
   --tonic-background: rgba(245, 245, 245, 1);
   --tonic-window: rgba(255, 255, 255, 1);
-  --tonic-accent: rgba(56, 185, 255, 1);
+  --tonic-accent: rgb(110, 210, 237);
   --tonic-primary: rgba(54, 57, 61, 1);
   --tonic-secondary: rgba(232, 232, 228, 1);
   --tonic-light: rgba(153, 157, 160, 1);
@@ -37,9 +37,9 @@ body, *[theme="light"] {
 }
 
 *[theme="dark"] {
-  --tonic-background: rgba(40, 40, 40, 1);
+  --tonic-background: rgba(45, 45, 45, 1);
   --tonic-window: rgba(49, 49, 49, 1);
-  --tonic-accent: rgba(56, 185, 255, 1);
+  --tonic-accent: rgb(110, 210, 237);
   --tonic-primary: rgba(255, 255, 255, 1);
   --tonic-secondary: rgba(195, 195, 195, 1);
   --tonic-medium: rgba(153, 157, 160, 1);

@@ -51,6 +51,7 @@ module.exports = (args, modifier) => {
             modifier('css')
           }
         },
+        { type: 'separator' },
         {
           label: 'Labels',
           accelerator: 'CmdOrCtrl+Shift+L',
@@ -59,10 +60,9 @@ module.exports = (args, modifier) => {
             modifier('labels')
           }
         },
-        { type: 'separator' },
         {
-          label: 'Dark Mode',
-          type: 'checkbox',
+          label: 'Toggle Theme',
+          accelerator: 'CmdOrCtrl+T',
           checked: false,
           click: () => {
             modifier('theme')
@@ -70,8 +70,8 @@ module.exports = (args, modifier) => {
         },
         { role: 'togglefullscreen' },
         {
-          label: 'Labels',
-          accelerator: 'CmdOrCtrl+Shift+I',
+          label: 'Inspect',
+          accelerator: 'CmdOrCtrl+I',
           click: () => {
             modifier('inspect')
           }
@@ -106,9 +106,23 @@ module.exports = (args, modifier) => {
         { type: 'separator' },
         {
           label: 'Clear All Panels',
-          accelerator: 'CommandOrControl+`',
+          accelerator: 'CmdOrCtrl+Shift+K',
           click: () => {
-            modifier('clear')
+            modifier('clear-all')
+          }
+        },
+        {
+          label: 'Evaluate All',
+          accelerator: 'CmdOrCtrl+R',
+          click: () => {
+            modifier('eval')
+          }
+        },
+        {
+          label: 'Clear Script Output',
+          accelerator: 'CmdOrCtrl+K',
+          click: () => {
+            modifier('clear-output')
           }
         },
         {
