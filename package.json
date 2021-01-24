@@ -29,8 +29,8 @@
     "test": "npm run lint",
     "lint": "standard \"**/*.js\"",
     "precommit-msg": "echo 'Pre-commit checks...' && exit 0",
-    "pack": "build",
-    "dist": "build --publish=onTagOrDraft"
+    "pack": "electron-builder",
+    "dist": "electron-builder --publish=onTagOrDraft"
   },
   "pre-commit": [
     "precommit-msg",

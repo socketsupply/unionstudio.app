@@ -6,7 +6,8 @@ const createMenu = require('./menu')
 
 const {
   app,
-  BrowserWindow
+  BrowserWindow,
+  ipcMain: ipc
 } = electron
 
 let mainWindow = null
@@ -47,14 +48,13 @@ function ready () {
     width,
     height,
     icon,
-    minWidth: 800,
-    minHeight: 450,
+    minWidth: 400,
+    minHeight: 250,
     textAreasAreResizable: false,
     titleBarStyle: 'hiddenInset',
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      webviewTag: true,
       preload: path.join(__dirname, 'preload.js')
     }
   }
@@ -63,10 +63,34 @@ function ready () {
   const loc = `file://${path.join(__dirname, '..', 'static', 'index.html')}`
   mainWindow.loadURL(loc)
 
+  const previewWindow = new BrowserWindow({
+    icon,
+    closable: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+      preload: path.join(__dirname, 'preload.js')
+    }
+  })
+
+  previewWindow.loadURL('data:text/html,')
+
+  ipc.on('message', (_, arg, ...values) => {
+    switch (arg) {
+      case 'preview': {
+        previewWindow.loadURL(values[0])
+      }
+    }
+  })
+
+  ipc.on('response', (_, ...values) => {
+    mainWindow.send('message', 'response', ...values)
+  })
+
   createMenu({}, (arg, ...values) => {
     switch (arg) {
       case 'inspect': {
-        mainWindow.inspectElement(50, 50)
+        mainWindow.openDevTools()
         break
       }
 

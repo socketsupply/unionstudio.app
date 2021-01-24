@@ -7,5 +7,4 @@ process.once('loaded', () => {
   global.setImmediate = _setImmediate
   global.clearImmediate = _clearImmediate
   global.ipc = ipcRenderer
-  global.process = process
 })
