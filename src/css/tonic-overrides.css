@@ -1,0 +1,29 @@
+tonic-split .tonic--split-horizontal {
+  margin-top: -5px;
+  z-index: 9;
+}
+
+.tonic--split-handle.tonic--split-horizontal {
+  z-index: 10;
+}
+
+tonic-split-top {
+  padding-bottom: 1px;
+}
+
+tonic-toggle {
+  display: grid;
+  align-content: center;
+}
+
+tonic-range {
+  padding: 8px 0 !important;
+}
+
+tonic-toggle .tonic--toggle--wrapper {
+  height: 24px !important;
+}
+
+tonic-button[type="icon"] tonic-icon {
+  margin-top: 2px;
+}

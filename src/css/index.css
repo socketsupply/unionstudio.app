@@ -1,0 +1,119 @@
+@import 'fonts.css';
+@import 'theme.css';
+@import 'codemirror.css';
+@import 'tonic-overrides.css';
+
+* {
+  -webkit-user-select: none;
+  box-sizing: border-box;
+  font-family: 'FiraMono';
+}
+
+body {
+  margin: 0;
+  height: calc(100vh);
+  font-size: 14px;
+  overflow: hidden;
+  background-color: var(--tonic-window);
+}
+
+body.no-labels section {
+  top: 0;
+}
+
+body.no-labels label {
+  display: none;
+}
+
+app-container {
+  position: absolute;
+  top: 0px;
+  left: 0;
+  right: 0;
+  bottom: 00;
+}
+
+section > div,
+section {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+section {
+  top: 22px;
+}
+
+label.title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 22px;
+  color: var(--tonic-primary);
+  font-size: 10px;
+  border-bottom: 1px solid var(--tonic-border);
+  padding: 4px 8px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+iframe {
+  width: 1170px !important;
+  height: 2532px !important;
+  margin: auto;
+  transform: scale(.35);
+  transform-origin: 50px 50px;
+  border-radius: 150px;
+  box-shadow: 0px 30px 140px -50px;
+  border: transparent;
+}
+
+section.render {
+  padding: 10%;
+  text-align: center;
+  overflow: auto;
+}
+
+main-component {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+header {
+  display: grid;
+  grid-template-columns: 34px 34px 250px 150px 1fr 150px;
+  gap: 12px;
+  grid-template-rows: auto;
+  align-content: center;
+  height: 62px;
+  padding: 0 12px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#split-main {
+  top: 60px;
+  border-top: 1px solid var(--tonic-border);
+}
+
+#output + .CodeMirror .CodeMirror-line::selection,
+#output + .CodeMirror .CodeMirror-line > span::selection,
+#output + .CodeMirror .CodeMirror-line > span > span::selection {
+  background: #01bafe;
+}
+
+.CodeMirror-line::selection,
+.CodeMirror-line > span::selection,
+.CodeMirror-line > span > span::selection {
+  background: #01bafe;
+}

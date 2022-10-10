@@ -1,81 +1,43 @@
 {
   "name": "Scratches",
   "productName": "Scratches",
-  "main": "src/main.js",
   "version": "1.0.0",
-  "description": "Read, Evaluate, Print, Loop with a nicer editor",
+  "type": "module",
+  "description": "A local-first scrachpad for experimenting with JavaScript, HTML, and CSS",
   "repository": {
-    "url": "git@github.com:heapwolf/scratches.git",
+    "url": "git@github.com:socketsupply/scratches.git",
     "type": "git"
   },
   "dependencies": {
-    "@optoolco/components": "^12.2.1",
-    "@optoolco/tonic": "^13.1.4",
-    "codemirror": "^5.33.0",
+    "@codemirror/basic-setup": "^0.20.0",
+    "@codemirror/lang-css": "^6.0.0",
+    "@codemirror/lang-html": "^6.1.2",
+    "@codemirror/lang-javascript": "^6.1.0",
+    "@lezer/highlight": "^1.1.1",
+    "@socketsupply/components": "^13.2.22",
+    "@socketsupply/io": "^0.1.22",
+    "@socketsupply/tonic": "^14.3.0",
+    "codemirror": "^6.0.1",
     "marked": "^1.2.7",
     "typescript": "2.7.2"
   },
   "devDependencies": {
+    "clean-css": "^5.3.1",
     "cross-spawn": "^5.1.0",
-    "electron": "^11.2.1",
-    "electron-builder": "^22.9.1",
-    "electron-icon-maker": "0.0.5",
-    "electron-publisher-s3": "^20.17.2",
+    "esbuild": "^0.15.10",
     "pre-commit": "^1.2.2",
-    "standard": "^16.0.3"
+    "standard": "^16.0.4"
   },
   "scripts": {
-    "start": "electron src/main.js",
+    "start": "ssc compile -r -o",
     "test": "npm run lint",
     "lint": "standard \"**/*.js\"",
-    "precommit-msg": "echo 'Pre-commit checks...' && exit 0",
-    "pack": "electron-builder",
-    "dist": "electron-builder --publish=onTagOrDraft"
+    "precommit-msg": "echo 'Pre-commit checks...' && exit 0"
   },
   "pre-commit": [
     "precommit-msg",
     "lint"
   ],
-  "author": "Voltra Co. <hello@voltra.co>",
-  "license": "MIT",
-  "build": {
-    "appId": "com.scratches",
-    "icon": "./static/icon.ico",
-    "asar": true,
-    "npmRebuild": false,
-    "files": [
-      "**/*",
-      "src",
-      "!keys",
-      "!test",
-      "!*.pug",
-      "!src/node_modules/test",
-      "!release",
-      "!.DS_Store",
-      "!webpack.config.js",
-      "!cmake-js",
-      "!pkg",
-      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__,tests,powered-test,example,examples,*.d.ts}",
-      "!**/*.{o,hprof,orig,pyc,pyo,rbc}",
-      "!**/node_modules/.bin",
-      "!**/{.DS_Store,.git,.gitignore}"
-    ],
-    "linux": {
-      "executableName": "scratches",
-      "target": [
-        "AppImage",
-        "tar.gz",
-        "deb",
-        "rpm"
-      ]
-    },
-    "mac": {
-      "icon": "./static/icon.icns"
-    },
-    "publish": [
-      {
-        "provider": "github"
-      }
-    ]
-  }
+  "author": "Voltra Co. <hello@socketsupply.co>",
+  "license": "MIT"
 }
