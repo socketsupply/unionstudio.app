@@ -1,9 +1,10 @@
 import fs from 'socket:fs'
+import path from 'socket:path'
 import process from 'socket:process'
 import application from 'socket:application'
 import vm from 'socket:vm'
 import { format } from 'socket:util'
-// import { spawn } from 'socket:child_process'
+import { spawn } from 'socket:child_process'
 
 import Tonic from '@socketsupply/tonic'
 import components from '@socketsupply/components'
@@ -20,6 +21,12 @@ class AppView extends Tonic {
   constructor () {
     super()
     this.editors = {}
+    this.init()
+  }
+
+  async init () {
+    this.cwd = path.join(process.env.HOME, '.local', 'share', 'socket-scratches')
+    await fs.promises.mkdir(path.join(this.cwd, 'src'), { recursive: true })
   }
 
   //
@@ -27,10 +34,39 @@ class AppView extends Tonic {
   //
   async exportProject () {
     const project = document.querySelector('app-project')
-    
-    project.walk(project.state.tree, node => {
-      
+    const node = project.getNodeByProperty('id', 'project')
+
+    let paths = {}
+    project.walk(project.state.tree.children[0], child => {
+      if (child.children.length === 0) {
+        const dest = child.id.replace('templates', 'src')
+        paths[path.join(this.cwd, dest)] = child.data
+      }
     })
+
+    for (const [path, data] of Object.entries(paths)) {
+      await fs.promises.writeFile(path, data)
+    }
+
+    const args = [
+      'build',
+      '-r',
+      '-w'
+    ]
+
+    const term = document.querySelector('app-terminal')
+    const c = this.childprocess = await spawn('ssc', args, { cwd: this.cwd })
+
+    c.stdout.on('data', data => {
+      term.writeln(Buffer.from(data).toString())
+    })
+
+    c.stderr.on('data', data => {
+      term.writeln(Buffer.from(data).toString())
+    })
+
+    c.on('exit', (code) => term.writeln(`OK! ${code}`))
+    c.on('error', (code) => console.log(`NOT OK! ${code}`))
   }
 
   async setupWindow () {
@@ -113,7 +149,7 @@ class AppView extends Tonic {
     })
   }
 
-  onMenuSelection (command) {
+  async onMenuSelection (command) {
     switch (command) {
       case 'Toggle Properties': {
         document.querySelector('#split-main').toggle('right')
@@ -130,8 +166,8 @@ class AppView extends Tonic {
         break
       }
 
-      case 'Run': {
-        this.eval()
+      case 'Evaluate Editor Source': {
+        this.eval().catch(err => console.log(err))
         break
       }
 
@@ -156,11 +192,12 @@ class AppView extends Tonic {
 
     const editorVM = await vm.runInContext(`
       export * from '${globalThis.origin}/vm.js'
-    `)
+    `, { context: {} })
+
+    const value = editor.selection || editor.value
 
     try {
       await editorVM.init({ port: channel.port2 })
-      const value = editor.selection || editor.value
       await editorVM.evaluate(value)
     } catch (err) {
       term.writeln(err.message)
@@ -176,7 +213,11 @@ class AppView extends Tonic {
     const { event } = el.dataset
 
     if (event === 'eval') {
-      this.eval()
+      this.eval().catch(err => console.log(err))
+    }
+
+    if (event === 'run') {
+      this.exportProject()
     }
   }
 

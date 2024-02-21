@@ -268,6 +268,11 @@ class AppEditor extends Tonic {
     return slice
   }
 
+  async writeToDisk (projectNode) {
+    const dest = projectNode.id.replacae('templates', 'src')
+    await fs.promises.writeFile(dest, projectNode.data)
+  }
+
   async loadProjectNode (projectNode) {
     let str
 
@@ -281,7 +286,14 @@ class AppEditor extends Tonic {
     if (fileName.endsWith('.cc')) language = cpp()
 
     const onChange = EditorView.updateListener.of(v => {
-      if (v.docChanged) projectNode.data = this.state.editorView.state.doc.toString()
+      if (v.docChanged) {
+        projectNode.data = this.state.editorView.state.doc.toString()
+
+        clearTimeout(this.writeDebounce)
+        this.writeDebounce = setTimeout(() => {
+          this.writeToDisk(projectNode)
+        }, 256)
+      }
     })
 
     if (!this.state.editorView) {
@@ -299,19 +311,6 @@ class AppEditor extends Tonic {
       }))
     }
   }
-
-  /* append (code) {
-    const EOF = editor.state.doc.toString().length
-    const len = code.length
-
-    this.state.editorView.dispatch({
-      changes: {
-        from: EOF,
-        to: EOF + len,
-        insert: code,
-      }
-    })
-  } */
 
   render () {
     return this.html`
