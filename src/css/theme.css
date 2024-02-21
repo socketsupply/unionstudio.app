@@ -15,7 +15,7 @@ body {
     --tonic-light: rgba(153, 157, 160, 1);
     --tonic-medium: rgba(153, 157, 160, 1);
     --tonic-shadow: rgba(150, 150, 150, 0.25);
-    --tonic-dark: rgba(54, 57, 61, 1);
+    --tonic-dark: rgba(224, 224, 224, 1);
     --tonic-disabled: rgba(152, 161, 175, 1);
     --tonic-button-text: rgba(54, 57, 61, 1);
     --tonic-button-shadow: rgba(0, 0, 0, 33%);
@@ -37,6 +37,7 @@ body {
     --tonic-warning: rgba(249, 169, 103, 1);
     --tonic-info: rgba(153, 157, 160, 1);
     --tonic-overlay: rgba(255, 255, 255, 0.75);
+    --tonic-selection: #eceff4;
   }
 }
 
@@ -48,7 +49,7 @@ body {
     --tonic-primary: rgba(255, 255, 255, 1);
     --tonic-secondary: rgba(195, 195, 195, 1);
     --tonic-medium: rgba(153, 157, 160, 1);
-    --tonic-dark: rgba(41, 41, 41, 1);
+    --tonic-dark: rgba(28, 28, 28, 1);
     --tonic-shadow: rgba(0, 0, 0, 0.3);
     --tonic-disabled: rgba(170, 170, 170, 1);
     --tonic-button-text: rgba(255, 255, 255, 1);
@@ -69,6 +70,8 @@ body {
     --tonic-caution: rgba(240, 102, 83, 1);
     --tonic-success: rgba(133, 178, 116, 1);
     --tonic-warn: rgba(249, 169, 103, 1);
+    --tonic-info: rgba(134, 134, 134, 1);
     --tonic-overlay: rgba(0, 0, 0, 0.40);
+    --tonic-selection: #000000;
   }
 }

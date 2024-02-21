@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        connect-src https: file: ipc: socket: ws://localhost:*;
+        script-src https: socket: http://localhost:* 'unsafe-eval';
+        img-src https: data: file: http://localhost:*;
+        child-src 'none';
+        object-src 'none';
+      "
+    >
+  </head>  
+  <script charset="utf-8" type="module" src="index.js"></script>
+  <link rel="stylesheet" href="index.css"/>
+  <body>
+    <h1>Hello, World.</h1>
+  </body>
+</html>

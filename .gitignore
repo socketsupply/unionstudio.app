@@ -13,6 +13,9 @@ node_modules/
 
 # Default output directory
 dist/
+build/
+
+package-lock.json
 
 # Provisioning profile
 *.mobileprovision

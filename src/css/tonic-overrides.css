@@ -3,6 +3,28 @@ tonic-split .tonic--split-horizontal {
   z-index: 9;
 }
 
+tonic-split .tonic--split-handle {
+  z-index: 20 !important;
+}
+
+.tonic--accordion-panel {
+  display: grid;
+}
+
+tonic-accordion-section:not(:last-of-type) {
+  border: none !important;
+}
+
+tonic-accordion-section .tonic--accordion-header button .tonic--label {
+  font-family: var(--tonic-body);
+  color: var(--tonic-primary);
+  font-weight: 100;
+}
+
+tonic-accordion-section .tonic--accordion-panel {
+  padding: 10px 30px 20px 20px !important;
+}
+
 .tonic--split-handle.tonic--split-horizontal {
   z-index: 10;
 }
@@ -14,6 +36,15 @@ tonic-split-top {
 tonic-toggle {
   display: grid;
   align-content: center;
+}
+
+tonic-accordion {
+  border: none !important;
+}
+
+tonic-accordion-section .tonic--accordion-header .tonic--arrow:before {
+  width: 6px !important;
+  height: 6px !important;
 }
 
 tonic-range {

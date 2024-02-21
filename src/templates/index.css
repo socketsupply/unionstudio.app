@@ -1,0 +1,10 @@
+html, body {
+  height: 100%;
+}
+
+body {
+  display: grid;
+  justify-content: center;
+  align-content: center;
+  font-family: helvetica;
+}
