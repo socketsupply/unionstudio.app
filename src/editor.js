@@ -269,11 +269,13 @@ class AppEditor extends Tonic {
   }
 
   async writeToDisk (projectNode) {
-    const dest = projectNode.id.replacae('templates', 'src')
+    const app = document.querySelector('app-view')
+    const dest = path.join(app.state.cwd, projectNode.id)
     await fs.promises.writeFile(dest, projectNode.data)
   }
 
   async loadProjectNode (projectNode) {
+    if (!projectNode) return
     let str
 
     const fileName = projectNode.label
@@ -290,6 +292,7 @@ class AppEditor extends Tonic {
         projectNode.data = this.state.editorView.state.doc.toString()
 
         clearTimeout(this.writeDebounce)
+
         this.writeDebounce = setTimeout(() => {
           this.writeToDisk(projectNode)
         }, 256)

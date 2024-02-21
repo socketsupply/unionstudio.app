@@ -8,6 +8,7 @@
       content="
         connect-src data: socket://* http://localhost:8081 ipc://*;
         img-src 'self' https: data: file: blob:;
+        worker-src blob: socket: 'unsafe-eval' 'unsafe-inline';
         object-src 'self' blob:;
       "
     >

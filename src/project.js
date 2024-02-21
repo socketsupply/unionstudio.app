@@ -150,39 +150,49 @@ class AppProject extends Tonic {
 
     const node = {
       id: 'project',
-      selected: 1,
+      selected: 0,
       state: 1,
+      type: 'dir',
       label: 'Project',
       children: [
         {
-          id: 'templates/index.css',
-          label: 'index.css',
-          data: await fs.promises.readFile('templates/index.css', 'utf8'),
-          icon: 'file',
+          id: 'src',
           selected: 0,
-          state: 0,
-          children: []
-        },
-        {
-          id: 'templates/index.html',
-          label: 'index.html',
-          data: await fs.promises.readFile('templates/index.html', 'utf8'),
-          icon: 'file',
-          selected: 0,
-          state: 0,
-          children: []
-        },
-        {
-          id: 'templates/index.js',
-          label: 'index.js',
-          data: await fs.promises.readFile('templates/index.js', 'utf8'),
-          icon: 'file',
-          selected: 1,
           state: 1,
-          children: []
+          type: 'dir',
+          label: 'src',
+          children: [
+            {
+              id: 'src/index.css',
+              label: 'index.css',
+              data: await fs.promises.readFile('templates/index.css', 'utf8'),
+              icon: 'file',
+              selected: 0,
+              state: 0,
+              children: []
+            },
+            {
+              id: 'src/index.html',
+              label: 'index.html',
+              data: await fs.promises.readFile('templates/index.html', 'utf8'),
+              icon: 'file',
+              selected: 0,
+              state: 0,
+              children: []
+            },
+            {
+              id: 'src/index.js',
+              label: 'index.js',
+              data: await fs.promises.readFile('templates/index.js', 'utf8'),
+              icon: 'file',
+              selected: 1,
+              state: 1,
+              children: []
+            },
+          ],
         },
         {
-          id: 'templates/socket.ini',
+          id: 'socket.ini',
           label: 'socket.ini',
           data: await fs.promises.readFile('templates/socket.ini', 'utf8'),
           icon: 'file',
@@ -250,7 +260,7 @@ class AppProject extends Tonic {
     })
 
     const editor = document.querySelector('app-editor')
-    editor.loadProjectNode(node.children[2])
+    editor.loadProjectNode(node.children[0].children[2])
 
     this.load(tree)
   }

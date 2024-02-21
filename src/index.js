@@ -25,8 +25,8 @@ class AppView extends Tonic {
   }
 
   async init () {
-    this.cwd = path.join(process.env.HOME, '.local', 'share', 'socket-scratches')
-    await fs.promises.mkdir(path.join(this.cwd, 'src'), { recursive: true })
+    this.state.cwd = path.join(process.env.HOME, '.local', 'share', 'socket-scratches')
+    await fs.promises.mkdir(path.join(this.state.cwd, 'src'), { recursive: true })
   }
 
   //
@@ -38,10 +38,8 @@ class AppView extends Tonic {
 
     let paths = {}
     project.walk(project.state.tree.children[0], child => {
-      if (child.children.length === 0) {
-        const dest = child.id.replace('templates', 'src')
-        paths[path.join(this.cwd, dest)] = child.data
-      }
+      if (child.type === 'dir') return
+      paths[path.join(this.state.cwd, child.id)] = child.data
     })
 
     for (const [path, data] of Object.entries(paths)) {
@@ -55,7 +53,7 @@ class AppView extends Tonic {
     ]
 
     const term = document.querySelector('app-terminal')
-    const c = this.childprocess = await spawn('ssc', args, { cwd: this.cwd })
+    const c = this.childprocess = await spawn('ssc', args, { cwd: this.state.cwd })
 
     c.stdout.on('data', data => {
       term.writeln(Buffer.from(data).toString())
