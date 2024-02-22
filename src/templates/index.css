@@ -2,6 +2,20 @@ html, body {
   height: 100%;
 }
 
+@media (prefers-color-scheme: light) {
+  body {
+    background: rgba(255, 255, 255, 1);
+    colory: rgba(54, 57, 61, 1);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: rgba(52, 52, 52, 1);
+    color: rgba(255, 255, 255, 1);
+  }
+}
+
 body {
   display: grid;
   justify-content: center;

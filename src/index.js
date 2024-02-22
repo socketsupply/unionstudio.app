@@ -53,37 +53,37 @@ class AppView extends Tonic {
     ]
 
     const term = document.querySelector('app-terminal')
-    const c = this.childprocess = await spawn('ssc', args, { cwd: this.state.cwd })
+
+    if (this.childprocess) {
+      this.childprocess.kill('SIGKILL')
+      term.info('Terminating existing app')
+
+      await new Promise(resolve => {
+        this.childprocess.once('close', () => {
+          setTimeout(() => {
+            resolve()
+          }, 1200)
+        })
+      })
+    }
+
+    term.info('Running new instance of app')
+    const c = this.childprocess = await spawn('ssc', args, { stdin: false, cwd: this.state.cwd })
 
     c.stdout.on('data', data => {
-      term.writeln(Buffer.from(data).toString())
+      term.writeln(Buffer.from(data).toString().trim())
     })
 
     c.stderr.on('data', data => {
-      term.writeln(Buffer.from(data).toString())
+      term.writeln(Buffer.from(data).toString().trim())
     })
 
     c.on('exit', (code) => term.writeln(`OK! ${code}`))
-    c.on('error', (code) => console.log(`NOT OK! ${code}`))
+    c.on('error', (code) => term.writeln(`NOT OK! ${code}`))
   }
 
   async setupWindow () {
     document.title = 'Scratches'
-
-    /* const len = this.editors.output.state.doc.length
-    this.editors.output.dispatch({
-      effects: EditorView.scrollIntoView(len)
-    })
-
-    window.log = (...args) => {
-      const content = args.join(' ') + '\n'
-      const len = this.editors.output.state.doc.length
-
-      this.editors.output.dispatch({
-        changes: { from: len, insert: content },
-        effects: EditorView.scrollIntoView(len + content)
-      })
-    } */
 
     let itemsMac = ''
 
@@ -230,21 +230,11 @@ class AppView extends Tonic {
         </tonic-button>
 
         <tonic-select id="device" value="${process.platform}" title="Build Target Platform">
-          <optgroup label="iOS">
-            <option value="ios">iOS Preview</option>
-            <option value="ios-simulator">iOS Simulator</option>
-          </optgroup>
-
-          <optgroup label="Android">
-            <option value="android">Android Preview</option>
-            <option value="android-emulator">Android Emulator</option>
-          </optgroup>
-
-          <optgroup label="Desktop">
-            <option value="linux" disabled>Linux</option>
-            <option value="darwin">MacOS</option>
-            <option value="win32" disabled>Windows</option>
-          </optgroup>
+          <option value="ios-simulator">iOS Simulator</option>
+          <option value="android-emulator">Android Emulator</option>
+          <option value="linux" disabled>Linux</option>
+          <option value="darwin">MacOS</option>
+          <option value="win32" disabled>Windows</option>
         </tonic-select>
 
         <tonic-button type="icon" size="18px" symbol-id="refresh" title="Evalulate The Current Code In The Editor" data-event="eval">

@@ -265,9 +265,9 @@ class AppProject extends Tonic {
     this.load(tree)
   }
 
-  async insert (node, parent) {
+  async insert ({ source, node, parent }) {
     node = {
-      data: await fs.promises.readFile(node.id, 'utf8'),
+      data: await fs.promises.readFile(source, 'utf8'),
       icon: 'file',
       selected: 0,
       state: 0,

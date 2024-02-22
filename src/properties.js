@@ -2,6 +2,40 @@ import Tonic from '@socketsupply/tonic'
 import fs from 'socket:fs'
 import ini from 'ini'
 
+const isNumber = s => !isNaN(parseInt(s, 10))
+
+const getObjectValue = (o = {}, path = '') => {
+  const parts = path.split('.')
+  let value = o
+
+  for (const p of parts) {
+    if (!value) return false
+    value = value[p]
+  }
+
+  return value
+}
+
+const setObjectValue = (o = {}, path = '', v) => {
+  const parts = path.split('.')
+  let value = o
+
+  let last = parts.pop()
+  if (!last) return
+
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i]
+
+    if (!value[p]) {
+      value[p] = isNumber(parts[i + 1]) ? [] : {}
+    }
+    value = value[p]
+  }
+
+  value[last] = v
+  return o
+}
+
 function trim (string) {
   const lines = string.split(/\r?\n/)
 
@@ -25,22 +59,24 @@ function trim (string) {
 class AppProperties extends Tonic {
   constructor () {
     super()
-    this.setup()
-  }
-
-  async setup () {
-    const data = await fs.promises.readFile('./templates/socket.ini', 'utf8')
-    this.data = ini.parse(data)
   }
 
   async click (e) {
     const el = Tonic.match(e.target, '[data-event]')
     if (!el) return
 
-    const { event } = el.dataset
+    const { event, propertyPath, propertyValue } = el.dataset
 
     const editor = document.querySelector('app-editor')
     const project = document.querySelector('app-project')
+
+
+    if (event === 'property') {
+      const project = document.querySelector('app-project')
+      const node = project.getNodeByProperty('id', 'socket.ini')
+      const data = ini.parse(node.data)
+      setObjectValue(propertyPath, propertyValue)
+    }
 
     if (event === 'insert-native-extension') {
       await project.insert({
@@ -85,15 +121,18 @@ class AppProperties extends Tonic {
     }
 
     if (event === 'insert-worker-thread') {
-      const exists = project.getNodeByProperty('id', 'templates/worker-thread.js')
+      const exists = project.getNodeByProperty('id', 'src/worker-thread.js')
       if (exists) return
 
       await project.insert({
-        label: 'worker-thread.js',
-        id: 'templates/worker-thread.js'
+        source: 'templates/worker-thread.js',
+        node: {
+          label: 'worker-thread.js',
+          id: 'src/worker-thread.js'
+        }
       })
 
-      const node = project.getNodeByProperty('id', 'templates/index.js')
+      const node = project.getNodeByProperty('id', 'src/index.js')
 
       if (!node.data.includes('socket:worker_threads')) {
         node.data = trim(`
@@ -111,16 +150,20 @@ class AppProperties extends Tonic {
         //
         // Create a worker from the new file
         //
+
+        // send some initial data through to the worker
+        const sampleData = new TextEncoder().encode('hello world')
+
+        // create the worker
         const worker = new Worker('./worker-thread.js', {
-          workerData: { data },
-          env: SHARE_ENV,
+          workerData: { sampleData },
           stdin: true,
           stdout: true
         })
 
+        // listen to messages from the worker
         worker.on('message', console.log)
         worker.on('error', console.error)
-
         worker.stdout.on('data', console.log)
       `)
 
@@ -135,7 +178,22 @@ class AppProperties extends Tonic {
     }
   }
 
+  connected () {
+    // this.updated()
+  }
+
+  /* updated () {
+    let data = {}
+    if (project) {
+      const project = document.querySelector('app-project')
+      const node = project.getNodeByProperty('id', 'socket.ini')
+      data = ini.parse(node.data)
+    }
+  } */
+
   render () {
+    const { data } = this.props
+
     return this.html`
       <tonic-accordion id="options">
         <tonic-accordion-section

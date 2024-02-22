@@ -44,7 +44,7 @@ body {
 @media (prefers-color-scheme: dark) {
   body {
     --tonic-background: rgba(40, 40, 40, 1);
-    --tonic-window: rgba(49, 49, 49, 1);
+    --tonic-window: rgba(46, 46, 46, 1);
     --tonic-accent: rgba(56, 185, 255, 1);
     --tonic-primary: rgba(255, 255, 255, 1);
     --tonic-secondary: rgba(195, 195, 195, 1);
