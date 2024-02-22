@@ -178,97 +178,97 @@ class AppProperties extends Tonic {
     }
   }
 
-  connected () {
-    // this.updated()
-  }
+  async render () {
+    let data
 
-  /* updated () {
-    let data = {}
-    if (project) {
-      const project = document.querySelector('app-project')
-      const node = project.getNodeByProperty('id', 'socket.ini')
-      data = ini.parse(node.data)
+    if (!this.state.data) {
+      //
+      // If we don't have any state data, read it from the template
+      //
+      const str = await fs.promises.readFile('templates/socket.ini', 'utf8')
+      data = this.state.data = ini.parse(str)
+    } else {
+      //
+      // This state data may be written locally or by the editor
+      //
+      data = this.state.data
     }
-  } */
-
-  render () {
-    const { data } = this.props
 
     return this.html`
       <tonic-accordion id="options">
         <tonic-accordion-section
-          name="bucket-test-1"
-          id="bucket-test-1"
-          data="preview"
+          name="application"
+          id="application"
           label="Desktop Features"
         >
           <div class="option">
-            <tonic-checkbox id="build_headless" checked="false" label="Headless" title="Headless"></tonic-checkbox>
-            <p>The app's primary window is initially hidden.</p> 
+            <tonic-checkbox id="build.headless" checked="${data.build.headless ? 'true' : 'false'}" data-event="property" label="Headless" title="Headless"></tonic-checkbox>
+            <p>The app's primary window is initially hidden.</p>
           </div>
 
           <div class="option">
-            <tonic-checkbox id="tray" checked="false" label="Tray" title="Tray"></tonic-checkbox>
+            <tonic-checkbox id="application.tray" checked="${data.application.tray ? 'true' : 'false'}" label="Tray" data-event="property" title="Tray"></tonic-checkbox>
             <p>An icon is placed in the omni-present system menu (aka Tray). Clicking it triggers an event.</p>
           </div>
 
           <div class="option">
-            <tonic-checkbox id="application_agent" checked="false" label="Agent" title="Agent"></tonic-checkbox>
+            <tonic-checkbox id="application.agent" checked="${data.application.agent ? 'true' : 'false'}" data-event="property" label="Agent" title="Agent"></tonic-checkbox>
             <p>Apps do not appear in the task switcher or on the Dock.</p>
           </div>
         </tonic-accordion-section>
         <tonic-accordion-section
-          name="bucket-test-2"
-          id="bucket-test-2"
-          label="Permissions">
-            <div class="option">
-              <tonic-checkbox id="permissions_allow_fullscreen" checked="false" label="Full Screen"></tonic-checkbox>
-              <p>Allow/Disallow fullscreen in application</p>
-            </div>
-            <div class="option">
-              <tonic-checkbox id="permissions_allow_microphone" label="Microphone" checked="false"></tonic-checkbox>
-              <p>Allow/Disallow microphone in application</p>
-            </div>
-            <div class="option">
-              <tonic-checkbox id="permissions_allow_camera" checked="false" label="Camera"></tonic-checkbox>
-              <p>Allow/Disallow camera in application</p>
-            </div>
-            <div class="option">
-              <tonic-checkbox id="permissions_allow_user_media" checked="false" label="User Media"></tonic-checkbox>
-              <p>Allow/Disallow user media (microphone + camera) in application</p>
-            </div>
-            <div class="option">
-              <tonic-checkbox id="permissions_allow_geolocation" checked="false" label="Geolocation"></tonic-checkbox>
-              <p>Allow/Disallow geolocation in application</p>
-            </div>
-            <div class="option">
-              <tonic-checkbox id="permissions_allow_notifications" checked="false" label="Notifications"></tonic-checkbox>
-              <p>Allow/Disallow notifications in application</p>
-            </div>
-            <div class="option">
-              <tonic-checkbox id="permissions_allow_sensors" checked="false" label="Sensors"></tonic-checkbox>
-              <p>Allow/Disallow sensors in application</p>
-            </div>
-            <div class="option">
-              <tonic-checkbox id="permissions_allow_clipboard" checked="false" label="Clipboard"></tonic-checkbox>
-              <p>Allow/Disallow clipboard in application</p>
-            </div>
-            <div class="option">
-              <tonic-checkbox id="permissions_allow_bluetooth" checked="false" label="Bluetooth"></tonic-checkbox>
-              <p>Allow/Disallow bluetooth in application</p>
-            </div>
-            <div class="option">
-              <tonic-checkbox id="permissions_allow_data_access" checked="false" label="Data Access"></tonic-checkbox>
-              <p>Allow/Disallow data access in application</p>
-            </div>
-            <div class="option">
-              <tonic-checkbox id="permissions_allow_airplay" checked="false" label="AirPlay"></tonic-checkbox>
-              <p>Allow/Disallow AirPlay access in application (macOS/iOS) only</p>
-            </div>
-            <div class="option">
-              <tonic-checkbox id="permissions_allow_hotkeys" checked="false" label="AirPlay"></tonic-checkbox>
-              <p>Allow/Disallow HotKey binding registration (desktop only)</p>
-            </div>
+          name="permissions"
+          id="permissions"
+          label="Permissions"
+        >
+          <div class="option">
+            <tonic-checkbox id="permissions.allow_fullscreen" checked="${data.permissions.allow_fullscreen ? 'true' : 'false'}" data-event="property" label="Full Screen"></tonic-checkbox>
+            <p>Allow/Disallow fullscreen in application</p>
+          </div>
+          <div class="option">
+            <tonic-checkbox id="permissions.allow_microphone" checked="${data.permissions.allow_microphone ? 'true' : 'false'}" data-event="property" label="Microphone"></tonic-checkbox>
+            <p>Allow/Disallow microphone in application</p>
+          </div>
+          <div class="option">
+            <tonic-checkbox id="permissions.allow_camera" checked="${data.permissions.allow_camera ? 'true' : 'false'}" data-event="property" label="Camera"></tonic-checkbox>
+            <p>Allow/Disallow camera in application</p>
+          </div>
+          <div class="option">
+            <tonic-checkbox id="permissions.allow_user_media" checked="${data.permissions.allow_user_media ? 'true' : 'false'}" data-event="property" label="User Media"></tonic-checkbox>
+            <p>Allow/Disallow user media (microphone + camera) in application</p>
+          </div>
+          <div class="option">
+            <tonic-checkbox id="permissions.allow_geolocation" checked="${data.permissions.allow_geolocation ? 'true' : 'false'}" data-event="property" label="Geolocation"></tonic-checkbox>
+            <p>Allow/Disallow geolocation in application</p>
+          </div>
+          <div class="option">
+            <tonic-checkbox id="permissions.allow_notifications" checked="${data.permissions.allow_notifications ? 'true' : 'false'}" data-event="property" label="Notifications"></tonic-checkbox>
+            <p>Allow/Disallow notifications in application</p>
+          </div>
+          <div class="option">
+            <tonic-checkbox id="permissions.allow_sensors" checked="${data.permissions.allow_sensors ? 'true' : 'false'}" data-event="property" label="Sensors"></tonic-checkbox>
+            <p>Allow/Disallow sensors in application</p>
+          </div>
+          <div class="option">
+            <tonic-checkbox id="permissions.allow_clipboard" checked="${data.permissions.allow_clipboard ? 'true' : 'false'}" data-event="property" label="Clipboard"></tonic-checkbox>
+            <p>Allow/Disallow clipboard in application</p>
+          </div>
+          <div class="option">
+            <tonic-checkbox id="permissions.allow_bluetooth" checked="${data.permissions.allow_bluetooth ? 'true' : 'false'}" data-event="property" label="Bluetooth"></tonic-checkbox>
+            <p>Allow/Disallow bluetooth in application</p>
+          </div>
+          <div class="option">
+            <tonic-checkbox id="permissions.allow_data_access" checked="${data.permissions.allow_data_access ? 'true' : 'false'}" data-event="property" label="Data Access"></tonic-checkbox>
+            <p>Allow/Disallow data access in application</p>
+          </div>
+          <div class="option">
+            <tonic-checkbox id="permissions.allow_airplay" checked="${data.permissions.allow_airplay ? 'true' : 'false'}" data-event="property" label="AirPlay"></tonic-checkbox>
+            <p>Allow/Disallow AirPlay access in application (macOS/iOS) only</p>
+          </div>
+          <div class="option">
+            <tonic-checkbox id="permissions.allow_hotkeys" checked="${data.permissions.allow_hotkeys ? 'true' : 'false'}" data-event="property" label="AirPlay"></tonic-checkbox>
+            <p>Allow/Disallow HotKey binding registration (desktop only)</p>
+          </div>
         </tonic-accordion-section>
         <tonic-accordion-section
           name="bucket-test-3"

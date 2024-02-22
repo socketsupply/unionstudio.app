@@ -8,6 +8,7 @@ import { spawn } from 'socket:child_process'
 
 import Tonic from '@socketsupply/tonic'
 import components from '@socketsupply/components'
+import ini from 'ini'
 
 import { AppTerminal } from './terminal.js'
 import { AppProject } from './project.js'
@@ -236,6 +237,130 @@ class AppView extends Tonic {
 
   async connected () {
     this.setupWindow()
+
+    const tree = {
+      id: 'root',
+      children: []
+    }
+
+    const node = {
+      id: 'project',
+      selected: 0,
+      state: 1,
+      type: 'dir',
+      label: 'Project',
+      children: [
+        {
+          id: 'src',
+          selected: 0,
+          state: 1,
+          type: 'dir',
+          label: 'src',
+          children: [
+            {
+              id: 'src/index.css',
+              label: 'index.css',
+              data: await fs.promises.readFile('templates/index.css', 'utf8'),
+              icon: 'file',
+              selected: 0,
+              state: 0,
+              children: []
+            },
+            {
+              id: 'src/index.html',
+              label: 'index.html',
+              data: await fs.promises.readFile('templates/index.html', 'utf8'),
+              icon: 'file',
+              selected: 0,
+              state: 0,
+              children: []
+            },
+            {
+              id: 'src/index.js',
+              label: 'index.js',
+              data: await fs.promises.readFile('templates/index.js', 'utf8'),
+              icon: 'file',
+              selected: 1,
+              state: 1,
+              children: []
+            },
+          ],
+        },
+        {
+          id: 'socket.ini',
+          label: 'socket.ini',
+          data: await fs.promises.readFile('templates/socket.ini', 'utf8'),
+          icon: 'file',
+          selected: 0,
+          state: 0,
+          children: []
+        }
+      ]
+    }
+
+    tree.children.push(node)
+
+    tree.children.push({
+      id: 'examples',
+      selected: 0,
+      state: 0,
+      label: 'Examples',
+      children: [
+        {
+          id: 'examples/buffers.js',
+          label: 'buffers.js',
+          data: await fs.promises.readFile('examples/buffers.js', 'utf8'),
+          icon: 'file',
+          selected: 0,
+          state: 0,
+          children: []
+        },
+        {
+          id: 'examples/child_process.js',
+          label: 'child_process.js',
+          data: await fs.promises.readFile('examples/child_process.js', 'utf8'),
+          icon: 'file',
+          selected: 0,
+          state: 0,
+          children: []
+        },
+        {
+          id: 'examples/network.js',
+          label: 'network.js',
+          data: await fs.promises.readFile('examples/network.js', 'utf8'),
+          icon: 'file',
+          selected: 0,
+          state: 0,
+          children: []
+        },
+        {
+          id: 'examples/path.js',
+          label: 'path.js',
+          data: await fs.promises.readFile('examples/path.js', 'utf8'),
+          icon: 'file',
+          selected: 0,
+          state: 0,
+          children: []
+        },
+        {
+          id: 'examples/require.js',
+          label: 'require.js',
+          data: await fs.promises.readFile('examples/require.js', 'utf8'),
+          icon: 'file',
+          selected: 0,
+          state: 0,
+          children: []
+        },
+      ]
+    })
+
+    this.state.tree = tree
+
+    const project = document.querySelector('app-project')
+    project.load(tree)
+
+    const editor = document.querySelector('app-editor')
+    editor.loadProjectNode(node.children[0].children[2])
   }
 
   render () {

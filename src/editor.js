@@ -3,13 +3,12 @@ import path from 'socket:path'
 
 import Tonic from '@socketsupply/tonic'
 import { EditorView } from 'codemirror'
-import { tags as t } from '@lezer/highlight'
+import { styleTags, tags as t } from '@lezer/highlight'
 import { defaultKeymap } from '@codemirror/commands'
 import { EditorState, Compartment } from '@codemirror/state'
 import { drawSelection, keymap, lineNumbers } from '@codemirror/view'
 
-import { syntaxHighlighting, defaultHighlightStyle, HighlightStyle } from '@codemirror/language'
-
+import { syntaxHighlighting, defaultHighlightStyle, HighlightStyle, StreamLanguage } from '@codemirror/language'
 import { html } from '@codemirror/lang-html'
 import { css } from '@codemirror/lang-css'
 import { cpp } from '@codemirror/lang-cpp'
@@ -299,18 +298,108 @@ class AppEditor extends Tonic {
       }
     })
 
+    const extras = []
+
+    if (fileName.endsWith('.ini')) {
+      extras.push(StreamLanguage.define({
+        name: "ini",
+        startState: function () {
+          return {
+            inString: false,
+            stringType: "",
+            lhs: true,
+            inArray: 0
+          };
+        },
+        token: function (stream, state) {
+          //check for state changes
+          if (!state.inString && ((stream.peek() == '"') || (stream.peek() == "'"))) {
+            state.stringType = stream.peek();
+            stream.next(); // Skip quote
+            state.inString = true; // Update state
+          }
+          if (stream.sol() && state.inArray === 0) {
+            state.lhs = true;
+          }
+
+          let ch = stream.peek()
+
+          if (ch == ";" && (stream.pos == 0 || /\s/.test(stream.string.charAt(stream.pos - 1)))) {
+            stream.skipToEnd()
+            return "comment"
+          }
+
+          if (stream.match(/^('([^']|\\.)*'?|"([^"]|\\.)*"?)/)) {
+              return "string"
+          }
+
+          //return state
+          if (state.inString) {
+            while (state.inString && !stream.eol()) {
+              if (stream.peek() === state.stringType) {
+                stream.next(); // Skip quote
+                state.inString = false; // Clear flag
+              } else if (stream.peek() === '\\') {
+                stream.next();
+                stream.next();
+              } else {
+                stream.match(/^.[^\\\"\']*/);
+              }
+            }
+            return state.lhs ? "property" : "string"; // Token style
+          } else if (state.inArray && stream.peek() === ']') {
+            stream.next();
+            state.inArray--;
+            return 'bracket';
+          } else if (state.lhs && stream.peek() === '[' && stream.skipTo(']')) {
+            stream.next();//skip closing ]
+            // array of objects has an extra open & close []
+            if (stream.peek() === ']') stream.next();
+            return "number";
+          } else if (stream.peek() === ";") {
+            stream.skipToEnd();
+            return "comment";
+          } else if (stream.eatSpace()) {
+            return null;
+          } else if (state.lhs && stream.eatWhile(function (c) { return c != '=' && c != ' '; })) {
+            return "property";
+          } else if (state.lhs && stream.peek() === "=") {
+            stream.next();
+            state.lhs = false;
+            return null;
+          } else if (!state.lhs && stream.match(/^\d\d\d\d[\d\-\:\.T]*Z/)) {
+            return 'atom'; //date
+          } else if (!state.lhs && (stream.match('true') || stream.match('false'))) {
+            return 'atom';
+          } else if (!state.lhs && stream.peek() === '[') {
+            state.inArray++;
+            stream.next();
+            return 'bracket';
+          } else if (!state.lhs && stream.match(/^\-?\d+(?:\.\d+)?/)) {
+            return 'number';
+          } else if (!stream.eatSpace()) {
+            stream.next();
+          }
+          return null;
+        },
+        languageData: {
+          commentTokens: { line: ';' },
+        },
+      }))
+    }
+
     if (!this.state.editorView) {
       this.state.editorView = new EditorView({
         state: EditorState.create({
           doc: projectNode.data,
-          extensions: [...extensions, onChange, language]
+          extensions: [...extensions, ...extras, onChange, language]
         }),
         parent: this.firstElementChild
       })
     } else {
       this.state.editorView.setState(EditorState.create({
         doc: projectNode.data,
-        extensions: [...extensions, onChange, language]
+        extensions: [...extensions, ...extras, onChange, language]
       }))
     }
   }

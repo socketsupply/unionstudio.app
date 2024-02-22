@@ -141,13 +141,6 @@ class AppProject extends Tonic {
       children: []
     }
 
-    let headers = []
-    const modules = [...document.querySelectorAll('.collectable')]
-
-    for (const module of modules) {
-      headers = [...headers, ...module.querySelectorAll('h1, h2, h3, h4')]
-    }
-
     const node = {
       id: 'project',
       selected: 0,
