@@ -165,7 +165,7 @@ class AppView extends Tonic {
       }
 
       case 'Evaluate Editor Source': {
-        this.eval().catch(err => console.log(err))
+        this.eval().catch(err => console.error(err))
         break
       }
 
@@ -186,20 +186,28 @@ class AppView extends Tonic {
       if (data.method === 'console.log') {
         term.writeln(format(...data.args))
       }
+
+      if (data.method === 'console.error') {
+        term.writeln(format(...data.args))
+      }
+
+      if (data.method === 'console.debug') {
+        term.writeln(format(...data.args))
+      }
     }
 
-    const editorVM = await vm.runInContext(`
-      export * from '${globalThis.origin}/vm.js'
-    `, { context: {} })
-
-    const value = editor.selection || editor.value
-
     try {
+      // TODO(@jwerle,@heapwolf): should this be in a new context every time?
+      const editorVM = await vm.runInContext(`
+        export * from '${globalThis.origin}/vm.js'
+      `, { context: {} })
+
+      const value = editor.selection || editor.value
+
       await editorVM.init({ port: channel.port2 })
       await editorVM.evaluate(value)
     } catch (err) {
-      term.writeln(err.message)
-      term.writeln(err.stack.split('\n').join('\r\n'))
+      term.writeln(format(err))
       return
     }
   }
@@ -211,7 +219,7 @@ class AppView extends Tonic {
     const { event } = el.dataset
 
     if (event === 'eval') {
-      this.eval().catch(err => console.log(err))
+      this.eval().catch(err => console.error(err))
     }
 
     if (event === 'run') {
