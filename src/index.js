@@ -54,7 +54,7 @@ class AppView extends Tonic {
 
     const term = document.querySelector('app-terminal')
 
-    if (this.childprocess) {
+    if (this.childprocess && !this.childprocess.killed && this.childprocess.exitCode !== null) {
       this.childprocess.kill('SIGKILL')
       term.info('Terminating existing app')
 
@@ -78,8 +78,15 @@ class AppView extends Tonic {
       term.writeln(Buffer.from(data).toString().trim())
     })
 
-    c.on('exit', (code) => term.writeln(`OK! ${code}`))
-    c.on('error', (code) => term.writeln(`NOT OK! ${code}`))
+    c.on('exit', (code) => {
+      term.writeln(`OK! ${code}`)
+      this.childprocess = null
+    })
+
+    c.on('error', (code) => {
+      term.writeln(`NOT OK! ${code}`)
+      this.childprocess = null
+    })
   }
 
   async setupWindow () {
