@@ -2,269 +2,101 @@ import fs from 'socket:fs'
 import path from 'socket:path'
 
 import Tonic from '@socketsupply/tonic'
-import { EditorView } from 'codemirror'
-import { styleTags, tags as t } from '@lezer/highlight'
-import { defaultKeymap } from '@codemirror/commands'
-import { EditorState, Compartment } from '@codemirror/state'
-import { drawSelection, keymap, lineNumbers } from '@codemirror/view'
+import { resizePNG } from './icon/index.js'
 
-import { syntaxHighlighting, defaultHighlightStyle, HighlightStyle, StreamLanguage } from '@codemirror/language'
-import { html } from '@codemirror/lang-html'
-import { css } from '@codemirror/lang-css'
-import { cpp } from '@codemirror/lang-cpp'
-import { yaml } from '@codemirror/lang-yaml'
-import { javascript } from '@codemirror/lang-javascript'
+import * as monaco from 'monaco-editor'
 
-const base00 = 'var(--tonic-primary)', // black
-  base01 = 'var(--tonic-info)', // dark grey
-  base02 = '#434c5e',
-  base03 = 'var(--tonic-secondary)' // grey
+function rgbaToHex(rgbaString) {
+  const rgbaValues = rgbaString.match(/\d+/g);
+  
+  const r = parseInt(rgbaValues[0]);
+  const g = parseInt(rgbaValues[1]);
+  const b = parseInt(rgbaValues[2]);
+  
+  const a = Math.round(parseFloat(rgbaValues[3]) * 255);
 
-// Snow Storm
-const base04 = '#d8dee9', // grey
-  base05 = '#e5e9f0', // off white
-  base06 = '#eceff4' // white
+  const rHex = r.toString(16).padStart(2, '0');
+  const gHex = g.toString(16).padStart(2, '0');
+  const bHex = b.toString(16).padStart(2, '0');
+  const aHex = a.toString(16).padStart(2, '0');
 
-// Frost
-const base07 = '#8fbcbb', // moss green
-  base08 = '#88c0d0', // ice blue
-  base09 = '#81a1c1', // water blue
-  base0A = '#5e81ac' // deep blue
+  return `#${rHex}${gHex}${bHex}${aHex}`;
+}
 
-// Aurora
-const base0b = 'var(--tonic-accent)',
-  base0C = 'var(--tonic-info)',
-  base0D = 'var(--tonic-primary)',
-  base0E = 'var(--tonic-success)',
-  base0F = 'var(--tonic-accent)'
-
-const invalid = '#d30102',
-  darkBackground = base06,
-  highlightBackground = darkBackground,
-  background = 'transparent',
-  tooltipBackground = base05,
-  selection = darkBackground,
-  cursor = 'var(--tonic-accent)'
-
-/// The editor theme styles for Basic Light.
-export const basicLightTheme = EditorView.theme(
-  {
-    '&': {
-      color: base00,
-      backgroundColor: background
-    },
-
-    '.cm-content': {
-      caretColor: cursor
-    },
-
-    '&.cm-editor': {
-      height: '100%'
-    },
-
-    '.cm-scroller': {
-      overflow: 'auto'
-    },
-
-    '&.cm-focused': {
-      outline: 'none !important'
-    },
-
-    '&.cm-focused .cm-cursor, .cm-dropCursor': {
-      border: '1px solid var(--tonic-accent)',
-      width: '8px',
-      background: 'var(--tonic-accent) !important'
-    },
-
-    '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection':
-      { backgroundColor: 'var(--tonic-selection)' },
-
-    '.cm-panels': { backgroundColor: darkBackground, color: base03 },
-    '.cm-panels.cm-panels-top': { borderBottom: '2px solid black' },
-    '.cm-panels.cm-panels-bottom': { borderTop: '2px solid black' },
-
-    '.cm-searchMatch': {
-      backgroundColor: '#72a1ff59',
-      outline: `1px solid ${base03}`
-    },
-    '.cm-searchMatch.cm-searchMatch-selected': {
-      backgroundColor: base05
-    },
-
-    '.cm-activeLine': { backgroundColor: highlightBackground },
-    '.cm-selectionMatch': { backgroundColor: base05 },
-
-    '&.cm-focused .cm-matchingBracket, &.cm-focused .cm-nonmatchingBracket': {
-      outline: `1px solid ${base03}`
-    },
-
-    '&.cm-focused .cm-matchingBracket': {
-      backgroundColor: base06
-    },
-
-    '.cm-gutters': {
-      backgroundColor: 'var(--tonic-background)',
-      color: 'var(--tonic-border-accent)',
-      paddingRight: '4px',
-      paddingLeft: '12px',
-      border: 'none',
-      borderRight: '1px solid var(--tonic-border)'
-    },
-
-    '.cm-activeLineGutter': {
-      backgroundColor: highlightBackground
-    },
-
-    '.cm-foldPlaceholder': {
-      backgroundColor: 'transparent',
-      border: 'none',
-      color: '#ddd'
-    },
-
-    '.cm-tooltip': {
-      border: 'none',
-      backgroundColor: tooltipBackground
-    },
-    '.cm-tooltip .cm-tooltip-arrow:before': {
-      borderTopColor: 'transparent',
-      borderBottomColor: 'transparent'
-    },
-    '.cm-tooltip .cm-tooltip-arrow:after': {
-      borderTopColor: tooltipBackground,
-      borderBottomColor: tooltipBackground
-    },
-    '.cm-tooltip-autocomplete': {
-      '& > ul > li[aria-selected]': {
-        backgroundColor: highlightBackground,
-        color: base03
-      }
+globalThis.MonacoEnvironment = {
+  getWorkerUrl: function (moduleId, label) {
+    if (label === 'json') {
+      return 'vs/language/json/json.worker.js';
     }
-  },
-  { dark: false }
-)
 
-/// The highlighting style for code in the Basic Light theme.
-export const basicLightHighlightStyle = HighlightStyle.define([
-  { tag: t.keyword, color: base0A },
-  {
-    tag: [t.name, t.deleted, t.character, t.propertyName, t.macroName],
-    color: base0C
-  },
-  { tag: [t.variableName], color: base0C },
-  { tag: [t.function(t.variableName)], color: base0A },
-  { tag: [t.labelName], color: base09 },
-  {
-    tag: [t.color, t.constant(t.name), t.standard(t.name)],
-    color: base0A
-  },
-  { tag: [t.definition(t.name), t.separator], color: base0E },
-  { tag: [t.brace], color: base07 },
-  {
-    tag: [t.annotation],
-    color: invalid
-  },
-  {
-    tag: [t.number, t.changed, t.annotation, t.modifier, t.self, t.namespace],
-    color: base08
-  },
-  {
-    tag: [t.typeName, t.className],
-    color: base0D
-  },
-  {
-    tag: [t.operator, t.operatorKeyword],
-    color: base0E
-  },
-  {
-    tag: [t.tagName],
-    color: base0F
-  },
-  {
-    tag: [t.squareBracket],
-    color: base0b
-  },
-  {
-    tag: [t.angleBracket],
-    color: base0C
-  },
-  {
-    tag: [t.attributeName],
-    color: base0D
-  },
-  {
-    tag: [t.regexp],
-    color: base0A
-  },
-  {
-    tag: [t.quote],
-    color: base01
-  },
-  { tag: [t.string], color: base0C },
-  {
-    tag: t.link,
-    color: base07,
-    textDecoration: 'underline',
-    textUnderlinePosition: 'under'
-  },
-  {
-    tag: [t.url, t.escape, t.special(t.string)],
-    color: base0C
-  },
-  { tag: [t.meta], color: base08 },
-  { tag: [t.comment], color: base02, fontStyle: 'italic' },
-  { tag: t.strong, fontWeight: 'bold', color: base0A },
-  { tag: t.emphasis, fontStyle: 'italic', color: base0A },
-  { tag: t.strikethrough, textDecoration: 'line-through' },
-  { tag: t.heading, fontWeight: 'bold', color: base0A },
-  { tag: t.special(t.heading1), fontWeight: 'bold', color: base0A },
-  { tag: t.heading1, fontWeight: 'bold', color: base0A },
-  {
-    tag: [t.heading2, t.heading3, t.heading4],
-    fontWeight: 'bold',
-    color: base0A
-  },
-  {
-    tag: [t.heading5, t.heading6],
-    color: base0A
-  },
-  { tag: [t.atom, t.bool, t.special(t.variableName)], color: base0C },
-  {
-    tag: [t.processingInstruction, t.inserted],
-    color: base07
-  },
-  {
-    tag: [t.contentSeparator],
-    color: base0D
-  },
-  { tag: t.invalid, color: base02 }
-])
+    if (label === 'css' || label === 'scss' || label === 'less') {
+      return 'vs/language/css/css.worker.js';
+    }
 
-const extensions = [
-  drawSelection(),
-  lineNumbers(),
-  keymap.of(defaultKeymap),
-  basicLightTheme,
-  syntaxHighlighting(basicLightHighlightStyle)
-]
+    if (label === 'html' || label === 'handlebars' || label === 'razor') {
+      return 'vs/language/html/html.worker.js';
+    }
+
+    if (label === 'typescript' || label === 'javascript') {
+      return 'vs/language/typescript/ts.worker.js';
+    }
+
+    return 'vs/editor/editor.worker.js';
+  }
+}
 
 class AppEditor extends Tonic {
   get value () {
-    return this.state.editorView.state.doc.toString()
+    return this.editor.getValue()
+  }
+
+  async click (e) {
+    const el = Tonic.match(e.target, '[data-event]')
+    if (!el) return
+
+    const { event, value } = el.dataset
+
+    const pickerOpts = {
+      types: [
+        {
+          description: "Images",
+          accept: {
+            "image/*": ['.png'],
+          },
+        },
+      ],
+      excludeAcceptAllOption: true,
+      multiple: false,
+    }
+
+    if (event === 'size') {
+      const [fileHandle] = await window.showOpenFilePicker(pickerOpts)
+
+      /* const kFileSystemHandleFullName = Object
+          .getOwnPropertySymbols(data)
+          .find(s => s.description === 'kFileSystemHandleFullName')
+         const pathToFile = fileHandle[kFileSystemHandleFullName]
+      */
+
+      const file = fileHandle.getFile()
+      const buf = await file.arrayBuffer()
+
+      if (value === 'all') {
+        const imagePreview = this.querySelector('.image-preview')
+        const blob = new Blob([buf], { type: 'image/png' })
+        const url = URL.createObjectURL(blob)
+        ;[...imagePreview.querySelectorAll('img')].forEach(img => (img.src = url))
+        return
+      }
+
+      const blob = await resizePNG(buf, parseInt(value))
+
+      el.src = URL.createObjectURL(blob)
+    }
   }
 
   get selection () {
-    const noRanges = this.state.editorView.state.selection.ranges.length === 0
-    const first = this.state.editorView.state.selection.ranges[0]
-    const len = this.value.length
-
-    const nonRange = (
-      (first.from === 0 && first.to === 0) ||
-      (first.from === len && first.to === len)
-    )
-
-    if (nonRange || noRanges) return this.value
-    const slice = this.state.editorView.state.sliceDoc(first.from, first.to)
-    return slice
+    this.editor.getModel().getValueInRange(this.editor.getSelection())
   }
 
   async writeToDisk (projectNode) {
@@ -275,137 +107,130 @@ class AppEditor extends Tonic {
 
   async loadProjectNode (projectNode) {
     if (!projectNode) return
-    let str
+
+    this.projectNode = projectNode
 
     const fileName = projectNode.label
-    let language
+    const imagePreview = this.querySelector('.image-preview')
 
-    if (fileName.endsWith('.css')) language = css()
-    if (fileName.endsWith('.html')) language = html()
-    if (fileName.endsWith('.js')) language = javascript()
-    if (fileName.endsWith('.ini')) language = []
-    if (fileName.endsWith('.cc')) language = cpp()
+    if (fileName.endsWith('.assets')) {
+      const blob = new Blob([projectNode.data], { type: 'image/png' })
+      const url = URL.createObjectURL(blob)
+      ;[...imagePreview.querySelectorAll('img')].forEach(img => (img.src = url))
+      imagePreview.classList.add('show')
+      return
+    }
 
-    const onChange = EditorView.updateListener.of(v => {
-      if (v.docChanged) {
-        projectNode.data = this.state.editorView.state.doc.toString()
+    imagePreview.classList.remove('show')
 
-        clearTimeout(this.writeDebounce)
+    if (this.editor) {
+      monaco.editor.setModelLanguage(this.editor.getModel(), projectNode.language)
+      this.editor.setValue(projectNode.data)
+    }
+  }
 
-        this.writeDebounce = setTimeout(() => {
-          this.writeToDisk(projectNode)
-        }, 256)
+  refreshColors (theme) {
+    const styles = window.getComputedStyle(document.body)
+
+    const colors = {
+      background: rgbaToHex(styles.getPropertyValue('--tonic-background').trim()),
+      primary: rgbaToHex(styles.getPropertyValue('--tonic-primary').trim()),
+      info: rgbaToHex(styles.getPropertyValue('--tonic-info').trim()),
+      dark: rgbaToHex(styles.getPropertyValue('--tonic-dark').trim()),
+      accent: rgbaToHex(styles.getPropertyValue('--tonic-accent').trim()),
+      error: rgbaToHex(styles.getPropertyValue('--tonic-error').trim()),
+      success: rgbaToHex(styles.getPropertyValue('--tonic-success').trim())
+    }
+
+    const base = `vs${theme.includes('dark') ? '-dark' : ''}`
+    monaco.editor.defineTheme(theme, {
+      base,
+      inherit: true,
+      rules: [
+        {
+          token: "identifier",
+          foreground: colors.primary
+        },
+        {
+          token: "comment",
+          foreground: colors.info
+        },
+        {
+          token: "keyword",
+          foreground: colors.accent
+        },
+        {
+          token: "string",
+          foreground: colors.info
+        }
+      ],
+      colors: {
+        'editor.background': colors.background
       }
     })
 
-    const extras = []
+    monaco.editor.setTheme(theme)
+  }
 
-    if (fileName.endsWith('.ini')) {
-      extras.push(StreamLanguage.define({
-        name: "ini",
-        startState: function () {
-          return {
-            inString: false,
-            stringType: "",
-            lhs: true,
-            inArray: 0
-          };
-        },
-        token: function (stream, state) {
-          //check for state changes
-          if (!state.inString && ((stream.peek() == '"') || (stream.peek() == "'"))) {
-            state.stringType = stream.peek();
-            stream.next(); // Skip quote
-            state.inString = true; // Update state
-          }
-          if (stream.sol() && state.inArray === 0) {
-            state.lhs = true;
-          }
+  connected () {
+    let theme
 
-          let ch = stream.peek()
+    this.editor = monaco.editor.create(this.querySelector('.editor'), {
+      value: '',
+      minimap: {
+        enabled: false
+      },
+      theme,
+      automaticLayout: true,
+      language: 'javascript',
+      renderLineHighlight: 'none'
+    })
 
-          if (ch == ";" && (stream.pos == 0 || /\s/.test(stream.string.charAt(stream.pos - 1)))) {
-            stream.skipToEnd()
-            return "comment"
-          }
+    this.editor.getModel().onDidChangeContent(() => {
+      clearTimeout(this.writeDebounce)
 
-          if (stream.match(/^('([^']|\\.)*'?|"([^"]|\\.)*"?)/)) {
-              return "string"
-          }
+      if (!this.projectNode) return
+      this.projectNode.data = this.editor.getValue()
 
-          //return state
-          if (state.inString) {
-            while (state.inString && !stream.eol()) {
-              if (stream.peek() === state.stringType) {
-                stream.next(); // Skip quote
-                state.inString = false; // Clear flag
-              } else if (stream.peek() === '\\') {
-                stream.next();
-                stream.next();
-              } else {
-                stream.match(/^.[^\\\"\']*/);
-              }
-            }
-            return state.lhs ? "property" : "string"; // Token style
-          } else if (state.inArray && stream.peek() === ']') {
-            stream.next();
-            state.inArray--;
-            return 'bracket';
-          } else if (state.lhs && stream.peek() === '[' && stream.skipTo(']')) {
-            stream.next();//skip closing ]
-            // array of objects has an extra open & close []
-            if (stream.peek() === ']') stream.next();
-            return "number";
-          } else if (stream.peek() === ";") {
-            stream.skipToEnd();
-            return "comment";
-          } else if (stream.eatSpace()) {
-            return null;
-          } else if (state.lhs && stream.eatWhile(function (c) { return c != '=' && c != ' '; })) {
-            return "property";
-          } else if (state.lhs && stream.peek() === "=") {
-            stream.next();
-            state.lhs = false;
-            return null;
-          } else if (!state.lhs && stream.match(/^\d\d\d\d[\d\-\:\.T]*Z/)) {
-            return 'atom'; //date
-          } else if (!state.lhs && (stream.match('true') || stream.match('false'))) {
-            return 'atom';
-          } else if (!state.lhs && stream.peek() === '[') {
-            state.inArray++;
-            stream.next();
-            return 'bracket';
-          } else if (!state.lhs && stream.match(/^\-?\d+(?:\.\d+)?/)) {
-            return 'number';
-          } else if (!stream.eatSpace()) {
-            stream.next();
-          }
-          return null;
-        },
-        languageData: {
-          commentTokens: { line: ';' },
-        },
-      }))
-    }
+      this.writeDebounce = setTimeout(() => {
+        this.writeToDisk(this.projectNode)
+      }, 256)
+    })
 
-    if (!this.state.editorView) {
-      this.state.editorView = new EditorView({
-        state: EditorState.create({
-          doc: projectNode.data,
-          extensions: [...extensions, ...extras, onChange, language]
-        }),
-        parent: this.firstElementChild
-      })
-    } else {
-      this.state.editorView.setState(EditorState.create({
-        doc: projectNode.data,
-        extensions: [...extensions, ...extras, onChange, language]
-      }))
-    }
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+      this.refreshColors(event.matches ? 'tonic-dark' : 'tonic-light')
+    })
+
+    const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    this.refreshColors(isDark ? 'tonic-dark' : 'tonic-light')
   }
 
   render () {
     return this.html`
+      <div class="image-preview">
+        <div class="top">
+          <h1>Icon Preview</h1>
+          <tonic-button data-event="size" data-value="all">Update</tonic-button>
+        </div>
+        <div class="bottom">
+          <div class="size size-128">
+            <img data-event="size" data-value="128">
+            <label>128x128</label>
+          </div>
+          <div class="size size-64">
+            <img data-event="size" data-value="64">
+            <label>64x64</label>
+          </div>
+          <div class="size size-32">
+            <img data-event="size" data-value="32">
+            <label>32x32</label>
+          </div>
+          <div class="size size-16">
+            <img data-event="size" data-value="16">
+            <label>16x16</label>
+          </div>
+        </div>
+      </div>
       <div class="editor"></div>
     `
   }

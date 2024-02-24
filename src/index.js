@@ -37,7 +37,7 @@ class AppView extends Tonic {
     const project = document.querySelector('app-project')
     const node = project.getNodeByProperty('id', 'project')
 
-    let paths = {}
+    const paths = {}
     project.walk(project.state.tree.children[0], child => {
       if (child.type === 'dir') return
       paths[path.join(this.state.cwd, child.id)] = child.data
@@ -216,7 +216,6 @@ class AppView extends Tonic {
       await editorVM.evaluate(value)
     } catch (err) {
       term.writeln(format(err))
-      return
     }
   }
 
@@ -262,6 +261,7 @@ class AppView extends Tonic {
               label: 'index.css',
               data: await fs.promises.readFile('templates/index.css', 'utf8'),
               icon: 'file',
+              language: 'css',
               selected: 0,
               state: 0,
               children: []
@@ -271,6 +271,7 @@ class AppView extends Tonic {
               label: 'index.html',
               data: await fs.promises.readFile('templates/index.html', 'utf8'),
               icon: 'file',
+              language: 'html',
               selected: 0,
               state: 0,
               children: []
@@ -279,18 +280,29 @@ class AppView extends Tonic {
               id: 'src/index.js',
               label: 'index.js',
               data: await fs.promises.readFile('templates/index.js', 'utf8'),
+              language: 'javascript',
               icon: 'file',
               selected: 1,
               state: 1,
               children: []
-            },
-          ],
+            }
+          ]
+        },
+        {
+          id: 'icon.assets',
+          label: 'icon.assets',
+          data: await fs.promises.readFile('templates/icons/icon.png'),
+          icon: 'file',
+          selected: 0,
+          state: 0,
+          children: []
         },
         {
           id: 'socket.ini',
           label: 'socket.ini',
           data: await fs.promises.readFile('templates/socket.ini', 'utf8'),
           icon: 'file',
+          language: 'ini',
           selected: 0,
           state: 0,
           children: []
@@ -310,6 +322,7 @@ class AppView extends Tonic {
           id: 'examples/buffers.js',
           label: 'buffers.js',
           data: await fs.promises.readFile('examples/buffers.js', 'utf8'),
+          language: 'javascript',
           icon: 'file',
           selected: 0,
           state: 0,
@@ -319,6 +332,7 @@ class AppView extends Tonic {
           id: 'examples/child_process.js',
           label: 'child_process.js',
           data: await fs.promises.readFile('examples/child_process.js', 'utf8'),
+          language: 'javascript',
           icon: 'file',
           selected: 0,
           state: 0,
@@ -328,6 +342,7 @@ class AppView extends Tonic {
           id: 'examples/network.js',
           label: 'network.js',
           data: await fs.promises.readFile('examples/network.js', 'utf8'),
+          language: 'javascript',
           icon: 'file',
           selected: 0,
           state: 0,
@@ -337,6 +352,7 @@ class AppView extends Tonic {
           id: 'examples/path.js',
           label: 'path.js',
           data: await fs.promises.readFile('examples/path.js', 'utf8'),
+          language: 'javascript',
           icon: 'file',
           selected: 0,
           state: 0,
@@ -346,18 +362,19 @@ class AppView extends Tonic {
           id: 'examples/require.js',
           label: 'require.js',
           data: await fs.promises.readFile('examples/require.js', 'utf8'),
+          language: 'javascript',
           icon: 'file',
           selected: 0,
           state: 0,
           children: []
-        },
+        }
       ]
     })
 
     this.state.tree = tree
 
     const project = document.querySelector('app-project')
-    project.load(tree)
+    project.load(this.state.tree)
 
     const editor = document.querySelector('app-editor')
     editor.loadProjectNode(node.children[0].children[2])

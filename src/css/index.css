@@ -1,5 +1,4 @@
 * {
-  -webkit-user-select: none;
   box-sizing: border-box;
   font-family: 'FiraMono';
 }
@@ -83,6 +82,96 @@ tonic-split-top {
   bottom: 2px;
   right: 2px;
   background-color: var(--tonic-background);
+}
+
+.image-preview {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1;
+  opacity: 0;
+  transition: all .2s ease;
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  grid-template-rows: 1fr 1fr;
+  grid-template-columns: 1fr;
+  background-color: var(--tonic-background);
+}
+
+.image-preview * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.image-preview .top {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-preview .bottom {
+  display: grid;
+  grid-template-columns: 1.5fr 1.3fr 1.1fr 1fr;
+  padding: 10%;
+  gap: 10px;
+  align-items: end;
+  justify-content: center;
+}
+
+.image-preview tonic-button {
+  margin: auto;
+}
+
+.image-preview h1 {
+  color: var(--tonic-border);
+  font-size: 28px;
+  font-family: var(--tonic-body);
+}
+
+.image-preview img {
+  margin: auto;
+  width: 50%;
+}
+
+.image-preview .size {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-preview .size label {
+  text-align: center;
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--tonic-primary);
+}
+
+.image-preview .size icon {
+  cursor: pointer;
+}
+
+.image-preview .size-128 img {
+  width: 128px;
+  height: 128px;
+}
+
+.image-preview .size-64 img {
+  width: 64px;
+  height: 64px;
+}
+
+.image-preview .size-32 img {
+  width: 32px;
+  height: 32px;
+}
+
+.image-preview .size-16 img {
+  width: 16px;
+  height: 16px;
+}
+
+.image-preview.show {
+  opacity: 1;
+  z-index: 1;
 }
 
 tonic-tab-panel {
@@ -187,19 +276,16 @@ header {
   overflow: auto;
 }
 
-.CodeMirror {
-  width: 100% !important;
-  height: 100% !important;
-} 
-
-.CodeMirror .CodeMirror-line::selection,
-.CodeMirror .CodeMirror-line > span::selection,
-.CodeMirror .CodeMirror-line > span > span::selection {
-  background: #01bafe;
+.monaco-editor .margin:after {
+  content: ' ';
+  position: absolute;
+  right: 4px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  border-right: 1px solid var(--tonic-border);
 }
 
-.CodeMirror-line::selection,
-.CodeMirror-line > span::selection,
-.CodeMirror-line > span > span::selection {
-  background: #01bafe;
+.monaco-editor .scroll-decoration {
+  box-shadow: var(--vscode-scrollbar-shadow) 0 6px 10px -12px inset;
 }

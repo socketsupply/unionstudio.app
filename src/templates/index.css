@@ -5,7 +5,7 @@ html, body {
 @media (prefers-color-scheme: light) {
   body {
     background: rgba(255, 255, 255, 1);
-    colory: rgba(54, 57, 61, 1);
+    color: rgba(54, 57, 61, 1);
   }
 }
 
