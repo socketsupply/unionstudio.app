@@ -134,11 +134,13 @@ class AppView extends Tonic {
         Toggle Properties: p + CommandOrControl
         Toggle Output: o + CommandOrControl
         ---
+        Find: f + CommandOrControl
+        ---
         Clear Output: n + CommandOrControl
       ;
 
       Build & Run:
-        Evaluate Editor Source: e + CommandOrControl
+        Evaluate Editor Source: E + CommandOrControl + Shift
         ---
         Android: s + CommandOrControl
         iOS: s + CommandOrControl
@@ -157,6 +159,23 @@ class AppView extends Tonic {
 
   async onMenuSelection (command) {
     switch (command) {
+      case 'Clear Output': {
+        const term = document.querySelector('app-terminal')
+        term.clear()
+        break
+      }
+
+      case 'Evaluate Editor Source': {
+        this.eval().catch(err => console.error(err))
+        break
+      }
+
+      case 'Find': {
+        const coEditor = document.querySelector('app-editor')
+        coEditor.editor.getAction('actions.find').run()
+        break
+      }
+
       case 'Toggle Properties': {
         document.querySelector('#split-main').toggle('right')
         break
@@ -169,17 +188,6 @@ class AppView extends Tonic {
 
       case 'Toggle Output': {
         document.querySelector('#split-input').toggle('bottom')
-        break
-      }
-
-      case 'Evaluate Editor Source': {
-        this.eval().catch(err => console.error(err))
-        break
-      }
-
-      case 'Clear Output': {
-        const term = document.querySelector('app-terminal')
-        term.clear()
         break
       }
     }
