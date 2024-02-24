@@ -1,5 +1,6 @@
 import Tonic from '@socketsupply/tonic'
 import fs from 'socket:fs'
+import path from 'socket:path'
 import ini from 'ini'
 
 const isNumber = s => !isNaN(parseInt(s, 10))
@@ -61,22 +62,47 @@ class AppProperties extends Tonic {
     super()
   }
 
+  async change (e) {
+    const el = Tonic.match(e.target, '[data-event]')
+    if (!el) return
+
+    const { event } = el.dataset
+
+    const app = document.querySelector('app-view')
+    const notifications = document.querySelector('#notifications')
+    const editor = document.querySelector('app-editor')
+    const project = document.querySelector('app-project')
+
+    if (event === 'property') {
+      const node = project.getNodeByProperty('id', 'socket.ini')
+      const data = ini.parse(node.data)
+
+      setObjectValue(data, el.id, el.value)
+      node.data = ini.stringify(data)
+
+      const dest = path.join(app.state.cwd, node.id)
+      await fs.promises.writeFile(dest, node.data)
+
+      editor.loadProjectNode(node)
+
+      notifications?.create({
+        type: 'info',
+        title: 'Note',
+        message: 'A restart of the app your building may be required.'
+      })
+    }
+  }
+
   async click (e) {
     const el = Tonic.match(e.target, '[data-event]')
     if (!el) return
 
-    const { event, propertyPath, propertyValue } = el.dataset
+    const { event, propertyValue } = el.dataset
 
+    const app = document.querySelector('app-view')
+    const notifications = document.querySelector('#notifications')
     const editor = document.querySelector('app-editor')
     const project = document.querySelector('app-project')
-
-
-    if (event === 'property') {
-      const project = document.querySelector('app-project')
-      const node = project.getNodeByProperty('id', 'socket.ini')
-      const data = ini.parse(node.data)
-      setObjectValue(propertyPath, propertyValue)
-    }
 
     if (event === 'insert-native-extension') {
       await project.insert({
@@ -268,34 +294,6 @@ class AppProperties extends Tonic {
           <div class="option">
             <tonic-checkbox id="permissions.allow_hotkeys" checked="${data.permissions.allow_hotkeys ? 'true' : 'false'}" data-event="property" label="AirPlay"></tonic-checkbox>
             <p>Allow/Disallow HotKey binding registration (desktop only)</p>
-          </div>
-        </tonic-accordion-section>
-        <tonic-accordion-section
-          name="bucket-test-3"
-          id="bucket-test-3"
-          label="Web Workers"
-        >
-          <div class="option">
-            <p>
-              Inserts a JavaScript snippet for building a Web Worker. A Web Worker is a seperate thread (aka a local-backend), that you can communicate with using JavaScript.
-              <tonic-button
-                data-event="insert-web-worker"
-              >Insert</tonic-button>
-            </p>
-          </div>
-        </tonic-accordion-section>
-        <tonic-accordion-section
-          name="insert-worker-thread"
-          id="insert-worker-thread-section"
-          label="Worker Threads"
-        >
-          <div class="option">
-            <p>
-              Inserts a JavaScript snippet for building a Web Worker. A Web Worker is a seperate thread (aka a local-backend), that you can communicate with using JavaScript.
-              <tonic-button
-                data-event="insert-worker-thread"
-              >Insert</tonic-button>
-            </p>
           </div>
         </tonic-accordion-section>
         <tonic-accordion-section

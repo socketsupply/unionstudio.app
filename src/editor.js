@@ -172,6 +172,35 @@ class AppEditor extends Tonic {
     monaco.editor.setTheme(theme)
   }
 
+ async loadAPIs(directoryPath = './socket') {
+    const readDir = async (dirPath) => {
+      const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
+
+      entries.forEach(async (entry) => {
+        const fullPath = path.join(dirPath, entry.name);
+
+        if (entry.isDirectory()) {
+          readDir(fullPath).catch(err => console.error(`Error reading directory ${fullPath}:`, err));
+        } else {
+          if (path.extname(fullPath) === '.ts') {
+            fs.promises.readFile(fullPath, 'utf8')
+              .then(sourceText => {
+                monaco.languages.typescript.javascriptDefaults.addExtraLib(sourceText, `socket/${fullPath}`);
+                monaco.languages.typescript.typescriptDefaults.addExtraLib(sourceText, `socket/${fullPath}`);
+              })
+              .catch(err => console.error(`Error reading file ${fullPath}:`, err));
+          }
+        }
+      });
+    };
+
+    try {
+      await readDir(directoryPath);
+    } catch (err) {
+      console.error('Error initiating read directory operation:', err);
+    }
+  }
+
   connected () {
     let theme
 
@@ -203,6 +232,7 @@ class AppEditor extends Tonic {
 
     const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
     this.refreshColors(isDark ? 'tonic-dark' : 'tonic-light')
+    this.loadAPIs()
   }
 
   render () {

@@ -1,6 +1,8 @@
 * {
   box-sizing: border-box;
   font-family: 'FiraMono';
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 body {
@@ -95,11 +97,6 @@ tonic-split-top {
   grid-template-rows: 1fr 1fr;
   grid-template-columns: 1fr;
   background-color: var(--tonic-background);
-}
-
-.image-preview * {
-  user-select: none;
-  -webkit-user-select: none;
 }
 
 .image-preview .top {
@@ -200,6 +197,7 @@ tonic-tab-panel {
 
 #options .option p tonic-button {
   margin-top: 10px;
+  display: block;
 }
 
 app-container {
@@ -274,6 +272,11 @@ header {
 
 #split-main tonic-split-right {
   overflow: auto;
+}
+
+.monaco-editor, .monaco-editor * {
+  -webkit-user-select: initial;
+  user-select: initial;
 }
 
 .monaco-editor .margin:after {
