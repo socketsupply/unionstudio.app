@@ -53,7 +53,11 @@ class AppView extends Tonic {
       '-w'
     ]
 
+    const coDevice = document.querySelector('#device')
+    if (coDevice.option.dataset.value) args.push(coDevice.option.dataset.value)
+
     const term = document.querySelector('app-terminal')
+    term.info(`ssc ${args.join(' ')}`)
 
     if (this.childprocess && !this.childprocess.killed && this.childprocess.exitCode !== null) {
       this.childprocess.kill('SIGKILL')
@@ -395,11 +399,11 @@ class AppView extends Tonic {
         </tonic-button>
 
         <tonic-select id="device" value="${process.platform}" title="Build Target Platform">
-          <option value="ios-simulator">iOS Simulator</option>
-          <option value="android-emulator">Android Emulator</option>
-          <option value="linux" disabled>Linux</option>
-          <option value="darwin">MacOS</option>
-          <option value="win32" disabled>Windows</option>
+          <option value="ios-simulator" data-value="--platform=ios-simulator">iOS Simulator</option>
+          <option value="android-emulator" data-value="--platform=android-emulator">Android Emulator</option>
+          <option value="linux" data-value="" disabled>Linux</option>
+          <option value="darwin" data-value="">MacOS</option>
+          <option value="win32" data-value="" disabled>Windows</option>
         </tonic-select>
 
         <tonic-button type="icon" size="18px" symbol-id="refresh" title="Evalulate The Current Code In The Editor" data-event="eval">
