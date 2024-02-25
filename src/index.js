@@ -39,11 +39,25 @@ class AppView extends Tonic {
     const paths = {}
     project.walk(project.state.tree.children[0], child => {
       if (child.type === 'dir') return
-      paths[path.join(this.state.cwd, child.id)] = child.data
+
+      let dir = child.id
+      let data = child.data
+
+      if (child.id.includes('icon.assets')) {
+        if (process.platform === 'win') {
+          data = convertToICO(node.data)
+          dir = path.join('icons', 'icon.ico')
+        } else {
+          dir = path.join('icons', 'icon.png')
+        }       
+      }
+
+      paths[path.join(this.state.cwd, dir)] = data
     })
 
-    for (const [path, data] of Object.entries(paths)) {
-      await fs.promises.writeFile(path, data)
+    for (const [pathToFile, data] of Object.entries(paths)) {
+      await fs.promises.mkdir(path.dirname(pathToFile), { recursive: true })
+      await fs.promises.writeFile(pathToFile, data)
     }
 
     const args = [

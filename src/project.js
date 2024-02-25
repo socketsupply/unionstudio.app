@@ -1,6 +1,7 @@
 import fs from 'socket:fs'
 import path from 'socket:path'
 import Tonic from '@socketsupply/tonic'
+import { convertToICO } from './icon/index.js' 
 
 const EXPANDED_STATE = 1
 const CLOSED_STATE = 0
@@ -81,14 +82,6 @@ class AppProject extends Tonic {
       if (node.children.length === 0) {
         node.state = CLOSED_STATE
       }
-    })
-  }
-
-  exportData (prefix) {
-    this.walk(this.state.tree, node => {
-      const p = path.join(prefix, node.id)
-      fs.mkdir(path.dirname(p), { recursive: true })
-      fs.promises.writeFile(p, node.data)
     })
   }
 

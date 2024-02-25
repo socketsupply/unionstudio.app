@@ -51,9 +51,8 @@ export function resizePNG (imageArrayBuffer, size) {
 /**
  * Converts a PNG file to an ICO file.
  * @param {string} pngFilePath Path to the source PNG file.
- * @param {string} icoFilePath Path where the ICO file will be saved.
  */
-export async function convertToICO (bytes, icoFilePath) {
+export async function convertToICO (bytes) {
   const icoHeader = Buffer.alloc(6)
   icoHeader.writeUInt16LE(0, 0) // Reserved
   icoHeader.writeUInt16LE(1, 2) // Type (1 = ICO)
