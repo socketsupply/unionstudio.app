@@ -24,5 +24,8 @@
     "lint": "standard \"**/*.js\""
   },
   "author": "Socket Supply Co. <hello@socketsupply.co>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@socketsupply/socket": "^0.5.4"
+  }
 }
