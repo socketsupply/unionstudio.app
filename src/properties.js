@@ -1,41 +1,7 @@
 import Tonic from '@socketsupply/tonic'
 import fs from 'socket:fs'
 import path from 'socket:path'
-import ini from 'ini'
-
-const isNumber = s => !isNaN(parseInt(s, 10))
-
-const getObjectValue = (o = {}, path = '') => {
-  const parts = path.split('.')
-  let value = o
-
-  for (const p of parts) {
-    if (!value) return false
-    value = value[p]
-  }
-
-  return value
-}
-
-const setObjectValue = (o = {}, path = '', v) => {
-  const parts = path.split('.')
-  let value = o
-
-  let last = parts.pop()
-  if (!last) return
-
-  for (let i = 0; i < parts.length; i++) {
-    const p = parts[i]
-
-    if (!value[p]) {
-      value[p] = isNumber(parts[i + 1]) ? [] : {}
-    }
-    value = value[p]
-  }
-
-  value[last] = v
-  return o
-}
+import * as ini from './ini.js'
 
 function trim (string) {
   const lines = string.split(/\r?\n/)
@@ -66,7 +32,7 @@ class AppProperties extends Tonic {
     const el = Tonic.match(e.target, '[data-event]')
     if (!el) return
 
-    const { event } = el.dataset
+    const { event, section } = el.dataset
 
     const app = document.querySelector('app-view')
     const notifications = document.querySelector('#notifications')
@@ -75,10 +41,7 @@ class AppProperties extends Tonic {
 
     if (event === 'property') {
       const node = project.getNodeByProperty('id', 'socket.ini')
-      const data = ini.parse(node.data)
-
-      setObjectValue(data, el.id, el.value)
-      node.data = ini.stringify(data)
+      node.data = ini.set(node.data, section, el.id, el.value)
 
       const dest = path.join(app.state.cwd, node.id)
       await fs.promises.writeFile(dest, node.data)
@@ -208,15 +171,8 @@ class AppProperties extends Tonic {
     let data
 
     if (!this.state.data) {
-      //
-      // If we don't have any state data, read it from the template
-      //
-      const str = await fs.promises.readFile('templates/socket.ini', 'utf8')
-      data = this.state.data = ini.parse(str)
+      data = await fs.promises.readFile('templates/socket.ini', 'utf8')
     } else {
-      //
-      // This state data may be written locally or by the editor
-      //
       data = this.state.data
     }
 
@@ -228,17 +184,17 @@ class AppProperties extends Tonic {
           label="Desktop Features"
         >
           <div class="option">
-            <tonic-checkbox id="build.headless" checked="${data.build.headless ? 'true' : 'false'}" data-event="property" label="Headless" title="Headless"></tonic-checkbox>
+            <tonic-checkbox data-section="build" id="headless" checked="${ini.get(data, 'build', 'headless')}" data-event="property" label="Headless" title="Headless"></tonic-checkbox>
             <p>The app's primary window is initially hidden.</p>
           </div>
 
           <div class="option">
-            <tonic-checkbox id="application.tray" checked="${data.application.tray ? 'true' : 'false'}" label="Tray" data-event="property" title="Tray"></tonic-checkbox>
+            <tonic-checkbox data-section="application" id="tray" checked="${ini.get(data, 'application', 'tray')}" label="Tray" data-event="property" title="Tray"></tonic-checkbox>
             <p>An icon is placed in the omni-present system menu (aka Tray). Clicking it triggers an event.</p>
           </div>
 
           <div class="option">
-            <tonic-checkbox id="application.agent" checked="${data.application.agent ? 'true' : 'false'}" data-event="property" label="Agent" title="Agent"></tonic-checkbox>
+            <tonic-checkbox data-section="application" id="agent" checked="${ini.get(data, 'application', 'agent')}" data-event="property" label="Agent" title="Agent"></tonic-checkbox>
             <p>Apps do not appear in the task switcher or on the Dock.</p>
           </div>
         </tonic-accordion-section>
@@ -248,51 +204,51 @@ class AppProperties extends Tonic {
           label="Permissions"
         >
           <div class="option">
-            <tonic-checkbox id="permissions.allow_fullscreen" checked="${data.permissions.allow_fullscreen ? 'true' : 'false'}" data-event="property" label="Full Screen"></tonic-checkbox>
+            <tonic-checkbox data-section="permissions" id="allow_fullscreen" checked="${ini.get(data, 'permissions', 'allow_fullscreen')}" data-event="property" label="Full Screen"></tonic-checkbox>
             <p>Allow/Disallow fullscreen in application</p>
           </div>
           <div class="option">
-            <tonic-checkbox id="permissions.allow_microphone" checked="${data.permissions.allow_microphone ? 'true' : 'false'}" data-event="property" label="Microphone"></tonic-checkbox>
+            <tonic-checkbox data-section="permissions" id="allow_microphone" checked="${ini.get(data, 'permissions', 'allow_microphone')}" data-event="property" label="Microphone"></tonic-checkbox>
             <p>Allow/Disallow microphone in application</p>
           </div>
           <div class="option">
-            <tonic-checkbox id="permissions.allow_camera" checked="${data.permissions.allow_camera ? 'true' : 'false'}" data-event="property" label="Camera"></tonic-checkbox>
+            <tonic-checkbox data-section="permissions" id="allow_camera" checked="${ini.get(data, 'permissions', 'allow_camera')}" data-event="property" label="Camera"></tonic-checkbox>
             <p>Allow/Disallow camera in application</p>
           </div>
           <div class="option">
-            <tonic-checkbox id="permissions.allow_user_media" checked="${data.permissions.allow_user_media ? 'true' : 'false'}" data-event="property" label="User Media"></tonic-checkbox>
+            <tonic-checkbox data-section="permissions" id="allow_user_media" checked="${ini.get(data, 'permissions', 'allow_user_media')}" data-event="property" label="User Media"></tonic-checkbox>
             <p>Allow/Disallow user media (microphone + camera) in application</p>
           </div>
           <div class="option">
-            <tonic-checkbox id="permissions.allow_geolocation" checked="${data.permissions.allow_geolocation ? 'true' : 'false'}" data-event="property" label="Geolocation"></tonic-checkbox>
+            <tonic-checkbox data-section="permissions" id="allow_geolocation" checked="${ini.get(data, 'permissions', 'allow_geolocation')}" data-event="property" label="Geolocation"></tonic-checkbox>
             <p>Allow/Disallow geolocation in application</p>
           </div>
           <div class="option">
-            <tonic-checkbox id="permissions.allow_notifications" checked="${data.permissions.allow_notifications ? 'true' : 'false'}" data-event="property" label="Notifications"></tonic-checkbox>
+            <tonic-checkbox data-section="permissions" id="allow_notifications" checked="${ini.get(data, 'permissions', 'allow_notifications')}" data-event="property" label="Notifications"></tonic-checkbox>
             <p>Allow/Disallow notifications in application</p>
           </div>
           <div class="option">
-            <tonic-checkbox id="permissions.allow_sensors" checked="${data.permissions.allow_sensors ? 'true' : 'false'}" data-event="property" label="Sensors"></tonic-checkbox>
+            <tonic-checkbox data-section="permissions" id="allow_sensors" checked="${ini.get(data, 'permissions', 'allow_sensors')}" data-event="property" label="Sensors"></tonic-checkbox>
             <p>Allow/Disallow sensors in application</p>
           </div>
           <div class="option">
-            <tonic-checkbox id="permissions.allow_clipboard" checked="${data.permissions.allow_clipboard ? 'true' : 'false'}" data-event="property" label="Clipboard"></tonic-checkbox>
+            <tonic-checkbox data-section="permissions" id="allow_clipboard" checked="${ini.get(data, 'permissions', 'allow_clipboard')}" data-event="property" label="Clipboard"></tonic-checkbox>
             <p>Allow/Disallow clipboard in application</p>
           </div>
           <div class="option">
-            <tonic-checkbox id="permissions.allow_bluetooth" checked="${data.permissions.allow_bluetooth ? 'true' : 'false'}" data-event="property" label="Bluetooth"></tonic-checkbox>
+            <tonic-checkbox data-section="permissions" id="allow_bluetooth" checked="${ini.get(data, 'permissions', 'allow_bluetooth')}" data-event="property" label="Bluetooth"></tonic-checkbox>
             <p>Allow/Disallow bluetooth in application</p>
           </div>
           <div class="option">
-            <tonic-checkbox id="permissions.allow_data_access" checked="${data.permissions.allow_data_access ? 'true' : 'false'}" data-event="property" label="Data Access"></tonic-checkbox>
+            <tonic-checkbox data-section="permissions" id="allow_data_access" checked="${ini.get(data, 'permissions', 'allow_data_access')}" data-event="property" label="Data Access"></tonic-checkbox>
             <p>Allow/Disallow data access in application</p>
           </div>
           <div class="option">
-            <tonic-checkbox id="permissions.allow_airplay" checked="${data.permissions.allow_airplay ? 'true' : 'false'}" data-event="property" label="AirPlay"></tonic-checkbox>
+            <tonic-checkbox data-section="permissions" id="allow_airplay" checked="${ini.get(data, 'permissions', 'allow_airplay')}" data-event="property" label="AirPlay"></tonic-checkbox>
             <p>Allow/Disallow AirPlay access in application (macOS/iOS) only</p>
           </div>
           <div class="option">
-            <tonic-checkbox id="permissions.allow_hotkeys" checked="${data.permissions.allow_hotkeys ? 'true' : 'false'}" data-event="property" label="AirPlay"></tonic-checkbox>
+            <tonic-checkbox data-section="permissions" id="allow_hotkeys" checked="${ini.get(data, 'permissions', 'allow_hotkeys')}" data-event="property" label="AirPlay"></tonic-checkbox>
             <p>Allow/Disallow HotKey binding registration (desktop only)</p>
           </div>
         </tonic-accordion-section>

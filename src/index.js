@@ -8,7 +8,6 @@ import { spawn } from 'socket:child_process'
 
 import Tonic from '@socketsupply/tonic'
 import components from '@socketsupply/components'
-import ini from 'ini'
 
 import { AppTerminal } from './terminal.js'
 import { AppProject } from './project.js'

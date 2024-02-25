@@ -274,7 +274,7 @@ header {
   overflow: auto;
 }
 
-.monaco-editor, .monaco-editor * {
+.monaco-editor .view-lines, .monaco-editor .view-lines * {
   -webkit-user-select: initial;
   user-select: initial;
 }
