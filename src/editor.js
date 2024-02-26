@@ -148,20 +148,28 @@ class AppEditor extends Tonic {
       inherit: true,
       rules: [
         {
-          token: "identifier",
+          token: 'identifier',
           foreground: colors.primary
         },
         {
-          token: "comment",
+          token: 'comment',
           foreground: colors.info
         },
         {
-          token: "keyword",
+          token: 'keyword',
           foreground: colors.accent
         },
         {
-          token: "string",
+          token: 'string',
           foreground: colors.info
+        },
+        {
+          token: 'number',
+          foreground: colors.accent
+        },
+        {
+          token: 'punctuation',
+          foreground: colors.primary
         }
       ],
       colors: {
