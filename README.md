@@ -12,5 +12,5 @@ A javascript scratchpad similar to Electron Fiddle or CodePen.
 This is an editor that evaluates your source text and builds a sample project. It helps
 you to explore and test Socket Runtime APIs.
 
-![screenshot](docs/screenshot.png)
+![screenshot](docs/screenshot3.png)
 ![screenshot](docs/screenshot2.png)
