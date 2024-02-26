@@ -1,0 +1,234 @@
+app-project {
+  user-select: none;
+  content-visibility: auto;
+  -webkit-user-select: none;
+  padding: 16px 20px;
+  display: block;
+  position: absolute;
+  background-color: var(--tonic-window);
+  top: 0px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+body.mobile app-project {
+  transition: all .2s ease;
+  top: 40px;
+  bottom: 40px;
+  left: 20%;
+  transform: translateX(100%);
+}
+
+body[sidebar="true"] app-project {
+  transform: translateX(0%);
+}
+
+app-project * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+app-project:hover {
+  overflow-y: overlay;
+}
+
+app-project .children {
+  display: block;
+}
+
+app-project .node-data {
+  display: flex;
+  padding: 2 4px 0;
+  width: 100%;
+}
+
+app-project .region {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding-right: 20px;
+}
+
+app-project .item .node-data .label {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  margin-left: 8px;
+  text-indent: 28px;
+  text-decoration: none;
+  text-underline-offset: 2px;
+  line-height: 22px;
+  letter-spacing: 0.8px;
+  font-family: var(--tonic-body);
+  font-weight: 100;
+}
+
+app-project .item .handle:hover {
+  background: var(--tonic-shadow);
+  cursor: pointer;
+}
+
+app-project .item .handle[data-selected="1"] .node-data .label {
+  color: var(--tonic-accent);
+  text-decoration: underline;
+}
+
+app-project .item .node-data .label[disabled] {
+  color: var(--tonic-disabled);
+}
+
+app-project .item .node-data .label[disabled]:hover {
+  border-bottom: 1px solid transparent;
+}
+
+app-project .node[data-id="root"] {
+  margin: 30px 40px;
+}
+
+app-project .node[data-state="0"] .children {
+  /* display: none; */
+}
+
+app-project .node {
+  position: relative;
+  list-style: none;
+  padding: 0;
+  padding-left: 20px;
+}
+
+app-project > .node,
+app-project main > .node {
+  padding-left: 0px;
+}
+
+app-project .item .handle {
+  user-select: none;
+  text-decoration: none;
+  font-size: 14px;
+  color: var(--tonic-primary);
+  background: var(--tonic-window);
+  border-radius: 4px;
+  margin-left: 24px;
+  position: relative;
+  display: flex;
+  padding: 4px 0px;
+  min-height: 28px;
+}
+
+app-project[draggable="false"] .item .handle a {
+  -webkit-user-drag: none;
+}
+
+app-project .item .handle[data-state="0"] + .node {
+  display: none;
+}
+
+app-project .item .handle[data-state="1"] + .node {
+  display: block;
+}
+
+app-project .toggle {
+  position: absolute;
+  top: 8px;
+  left: -14px;
+  width: 14px;
+  height: 14px;
+}
+
+app-project .item .handle[data-state="0"][data-toggle="false"] .toggle {
+  display: none;
+}
+
+app-project .item .handle[data-dir="true"] .toggle:before,
+app-project .item .handle[data-state="0"][data-toggle="true"] .toggle:before,
+app-project .item .handle[data-state="1"][data-toggle="true"] .toggle:before {
+  content: ' ';
+  position: absolute;
+  top: 4px;
+  left: -4px;
+  border-top: 1px solid var(--tonic-primary);
+  border-right: 1px solid var(--tonic-primary);
+  transform: rotate(45deg);
+  width: 6px;
+  height: 6px;
+  cursor: pointer;
+}
+
+app-project .item .handle[data-state="1"][data-toggle="true"] .toggle:before {
+  left: -2px;
+  top: 2px;
+  transform: rotate(135deg);
+}
+
+/* the vertical bars on each item */
+app-project .item {
+  /* background:
+    repeating-linear-gradient(
+      90deg,
+      var(--tonic-border),
+      var(--tonic-border) 1px,
+      transparent 1px,
+      transparent 32px
+    ); */
+  background-size: 32px;
+  position: relative;
+}
+
+app-project .item::before {
+  /* position: absolute;
+  width: 12px;
+  height: 1px;
+  content: ' ';
+  top: 15px;
+  border-top: 1px solid var(--tonic-border); */
+}
+
+app-project .item:last-child {
+  background: var(--tonic-window);
+}
+
+/* the L shape at the end of each node */
+app-project .item:last-child::before {
+  /* width: 12px;
+  height: 15px;
+  border: 1px solid var(--tonic-border);
+  content: ' ';
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  border-right: none;
+  border-top: none; */
+}
+
+app-project tonic-icon {
+  position: absolute;
+  cursor: pointer;
+  top: 6px;
+  left: 8px;
+}
+
+app-project tonic-icon[cached="true"]:after {
+  content: ' ';
+  border-radius: 128px;
+  border: 1px solid var(--tonic-window);
+  background: var(--tonic-warning);
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  height: 6px;
+  width: 6px;
+}
+
+@media (max-width: 699px) {
+  app-project .item .handle {
+    font-size: 16px;
+    padding: 8px 0;
+  }
+
+  app-project .toggle,
+  app-project tonic-icon {
+    top: 10px;
+  }
+}

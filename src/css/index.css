@@ -1,0 +1,294 @@
+* {
+  box-sizing: border-box;
+  font-family: 'FiraMono';
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  height: calc(100vh);
+  font-size: 14px;
+  overflow: hidden;
+  background-color: var(--tonic-window);
+}
+
+body.no-labels section {
+  top: 0;
+}
+
+body.no-labels label {
+  display: none;
+}
+
+#inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  background-color: var(--tonic-window);
+}
+
+#inputs tonic-tab {
+  display: grid;
+  height: 40px;
+  align-content: stretch;
+  justify-content: stretch;
+}
+
+#inputs .tonic--tab {
+  display: grid;
+  height: 100%;
+  width: 100%;
+  text-align: center;
+  align-content: center;
+  border-bottom: 1px solid var(--tonic-border);
+  font-family: var(--tonic-body);
+}
+
+#inputs .tonic--tab {
+  color: var(--tonic-info);
+  text-decoration: none;
+}
+
+#inputs .tonic--tab[aria-selected="true"] {
+  background-color: var(--tonic-background);
+  color: var(--tonic-primary);
+  border-bottom: 1px solid var(--tonic-background);
+  border-left: 1px solid var(--tonic-border);
+  border-right: 1px solid var(--tonic-border);
+}
+
+#inputs tonic-tab:nth-child(1) .tonic--tab {
+  border-left: none;
+}
+
+#inputs tonic-tab:nth-child(4) .tonic--tab {
+  border-right: none;
+}
+
+tonic-tab-panel {
+  background-color: var(--tonic-window);
+}
+
+tonic-split-top {
+  background-color: var(--tonic-background);
+}
+
+.editor {
+  overflow: auto;
+}
+
+.editor, tonic-tab-panel {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  bottom: 2px;
+  right: 2px;
+  background-color: var(--tonic-background);
+}
+
+.image-preview {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1;
+  opacity: 0;
+  transition: all .2s ease;
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  grid-template-rows: 1fr 1fr;
+  grid-template-columns: 1fr;
+  background-color: var(--tonic-background);
+}
+
+.image-preview .top {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-preview .bottom {
+  display: grid;
+  grid-template-columns: 1.5fr 1.3fr 1.1fr 1fr;
+  padding: 10%;
+  gap: 10px;
+  align-items: end;
+  justify-content: center;
+}
+
+.image-preview tonic-button {
+  margin: auto;
+}
+
+.image-preview h1 {
+  color: var(--tonic-border);
+  font-size: 28px;
+  font-family: var(--tonic-body);
+}
+
+.image-preview img {
+  margin: auto;
+  width: 50%;
+}
+
+.image-preview .size {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-preview .size label {
+  text-align: center;
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--tonic-primary);
+}
+
+.image-preview .size icon {
+  cursor: pointer;
+}
+
+.image-preview .size-128 img {
+  width: 128px;
+  height: 128px;
+}
+
+.image-preview .size-64 img {
+  width: 64px;
+  height: 64px;
+}
+
+.image-preview .size-32 img {
+  width: 32px;
+  height: 32px;
+}
+
+.image-preview .size-16 img {
+  width: 16px;
+  height: 16px;
+}
+
+.image-preview.show {
+  opacity: 1;
+  z-index: 1;
+}
+
+tonic-tab-panel {
+  top: 40px;
+}
+
+#options .option {
+  display: grid;
+}
+
+#options .option tonic-button button {
+  box-shadow: none;
+  border: 1px solid var(--tonic-border) !important;
+}
+
+#options .option p {
+  margin-left: 10px;
+  padding-bottom: 10px;
+  margin-top: 0;
+  border-bottom: 1px solid var(--tonic-border);
+  display: inline-block;
+  font-family: var(--tonic-body);
+  line-height: 22px;
+  color: var(--tonic-info);
+}
+
+#options .option p tonic-button {
+  margin-top: 10px;
+  display: block;
+}
+
+app-container {
+  position: absolute;
+  top: 0px;
+  left: 0;
+  right: 0;
+  bottom: 00;
+}
+
+section > div,
+section {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+section {
+  top: 22px;
+}
+
+label.title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 22px;
+  color: var(--tonic-primary);
+  font-size: 10px;
+  border-bottom: 1px solid var(--tonic-border);
+  padding: 4px 8px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+section.render {
+  padding: 10%;
+  text-align: center;
+  overflow: auto;
+}
+
+main-component {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+header {
+  display: grid;
+  grid-template-columns: 34px 250px 34px 1fr 150px;
+  gap: 12px;
+  grid-template-rows: auto;
+  align-content: center;
+  height: 82px;
+  padding: 0 12px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#split-main {
+  top: 80px;
+  border-top: 1px solid var(--tonic-border);
+}
+
+#split-main tonic-split-right {
+  overflow: auto;
+}
+
+.monaco-editor .view-lines, .monaco-editor .view-lines * {
+  -webkit-user-select: initial;
+  user-select: initial;
+}
+
+.monaco-editor .margin:after {
+  content: ' ';
+  position: absolute;
+  right: 4px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  border-right: 1px solid var(--tonic-border);
+}
+
+.monaco-editor .scroll-decoration {
+  box-shadow: var(--vscode-scrollbar-shadow) 0 6px 10px -12px inset;
+}

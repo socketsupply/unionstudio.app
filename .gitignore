@@ -1,5 +1,21 @@
-/node_modules
-.DS_Store
+
+# Logs
+logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Ignore all files in the node_modules folder
+node_modules/
+
+# Default output directory
 dist/
+build/
+
 package-lock.json
+
+# Provisioning profile
+*.mobileprovision

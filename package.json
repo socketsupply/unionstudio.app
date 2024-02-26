@@ -1,81 +1,31 @@
 {
   "name": "Scratches",
   "productName": "Scratches",
-  "main": "src/main.js",
   "version": "1.0.0",
-  "description": "Read, Evaluate, Print, Loop with a nicer editor",
+  "type": "module",
+  "description": "A fiddle for Socket Runtime",
   "repository": {
-    "url": "git@github.com:heapwolf/scratches.git",
+    "url": "git@github.com:socketsupply/scratches.git",
     "type": "git"
   },
-  "dependencies": {
-    "@optoolco/components": "^12.2.1",
-    "@optoolco/tonic": "^13.1.4",
-    "codemirror": "^5.33.0",
-    "marked": "^1.2.7",
-    "typescript": "2.7.2"
-  },
   "devDependencies": {
-    "cross-spawn": "^5.1.0",
-    "electron": "^11.2.1",
-    "electron-builder": "^22.9.1",
-    "electron-icon-maker": "0.0.5",
-    "electron-publisher-s3": "^20.17.2",
-    "pre-commit": "^1.2.2",
-    "standard": "^16.0.3"
+    "@socketsupply/components": "^14.0.13",
+    "@socketsupply/tonic": "^15.1.2",
+    "esbuild": "^0.20.0",
+    "monaco-editor": "^0.46.0",
+    "standard": "^16.0.4",
+    "xterm": "^5.3.0",
+    "xterm-addon-fit": "^0.8.0",
+    "xterm-addon-search": "^0.13.0"
   },
   "scripts": {
-    "start": "electron src/main.js",
+    "build": "ssc build -r -o",
     "test": "npm run lint",
-    "lint": "standard \"**/*.js\"",
-    "precommit-msg": "echo 'Pre-commit checks...' && exit 0",
-    "pack": "electron-builder",
-    "dist": "electron-builder --publish=onTagOrDraft"
+    "lint": "standard \"**/*.js\""
   },
-  "pre-commit": [
-    "precommit-msg",
-    "lint"
-  ],
-  "author": "Voltra Co. <hello@voltra.co>",
+  "author": "Socket Supply Co. <hello@socketsupply.co>",
   "license": "MIT",
-  "build": {
-    "appId": "com.scratches",
-    "icon": "./static/icon.ico",
-    "asar": true,
-    "npmRebuild": false,
-    "files": [
-      "**/*",
-      "src",
-      "!keys",
-      "!test",
-      "!*.pug",
-      "!src/node_modules/test",
-      "!release",
-      "!.DS_Store",
-      "!webpack.config.js",
-      "!cmake-js",
-      "!pkg",
-      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme,test,__tests__,tests,powered-test,example,examples,*.d.ts}",
-      "!**/*.{o,hprof,orig,pyc,pyo,rbc}",
-      "!**/node_modules/.bin",
-      "!**/{.DS_Store,.git,.gitignore}"
-    ],
-    "linux": {
-      "executableName": "scratches",
-      "target": [
-        "AppImage",
-        "tar.gz",
-        "deb",
-        "rpm"
-      ]
-    },
-    "mac": {
-      "icon": "./static/icon.icns"
-    },
-    "publish": [
-      {
-        "provider": "github"
-      }
-    ]
+  "dependencies": {
+    "@socketsupply/socket": "^0.5.4"
   }
 }

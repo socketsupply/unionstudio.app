@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="index.js" type="module"></script>
+    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        connect-src data: socket://* http://localhost:8081 ipc://*;
+        img-src 'self' https: data: file: blob:;
+        worker-src blob: socket: 'unsafe-eval' 'unsafe-inline';
+        object-src 'self' blob:;
+      "
+    >
+    <link rel="stylesheet" href="css/fonts.css">
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/editor.main.css">
+    <link rel="stylesheet" href="css/tonic-overrides.css">
+    <link rel="stylesheet" href="css/xterm.css">
+    <link rel="stylesheet" href="css/project.css">
+    <link rel="stylesheet" href="css/index.css">
+    <title>Scratches</title>
+  </head>
+
+  <body>
+    <app-view id="root"></app-view>
+    <app-sprite></app-sprite>
+    <tonic-toaster id="notifications"></tonic-toaster>
+  </body>
+ </html>

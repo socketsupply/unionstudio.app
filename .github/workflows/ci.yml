@@ -1,0 +1,105 @@
+name: Socket CI
+
+on: [push]
+
+jobs:
+  mac_build:
+    name: macOS build
+    runs-on: macOS-13
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js
+          uses: actions/setup-node@v3.6.0
+          with:
+            node-version: 18.x
+
+      - name: webfactory/ssh-agent
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Build app
+      run: |
+        npm install
+        npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ssc_artifacts_linux
+        path: /Users/runner/.local/share/socket/
+        retention-days: 1
+
+  linux_build:
+    name: Linux build
+    runs-on: ubuntu-latest-m
+    timeout-minutes: 20
+    needs: lint
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: webfactory/ssh-agent
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+    - name: Build app
+      run: |
+        npm install
+        npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ssc_artifacts_linux
+        path: /Users/runner/.local/share/socket/
+        retention-days: 1
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    timeout-minutes: 20
+    needs: lint
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.tag }}
+  
+    - name: Configure SSH
+      run: Set-Service ssh-agent -StartupType Manual
+
+    - name: Start SSH
+      run: Start-Service ssh-agent
+
+    - name: Add SSH key
+      run: echo $env:SSH_PRIVATE_KEY | ssh-add -
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add github.com to known_hosts
+      run: |
+        mkdir ~/.ssh
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+    - name: Build app
+      run: |
+        npm install
+        npm run build
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ssc_artifacts_linux
+        path: /Users/runner/.local/share/socket/
+        retention-days: 1
+
