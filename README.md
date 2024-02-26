@@ -1,8 +1,8 @@
 ![logo](docs/logos/256x256.png)
 
-A javascript scratchpad similar to [Electron Fiddle](https://www.electronjs.org/fiddle).
+A javascript scratchpad similar to Electron Fiddle or CodePen.
 
-Download the latest release [here](https://github.com/socketsupply/scratches/releases).
+Download the latest release [here](https://github.com/socketsupply/socket-app-studio/releases).
 
 # DESCRIPTION
 

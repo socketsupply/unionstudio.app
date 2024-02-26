@@ -25,7 +25,7 @@ class AppView extends Tonic {
   }
 
   async init () {
-    this.state.cwd = path.join(process.env.HOME, '.local', 'share', 'socket-scratches')
+    this.state.cwd = path.join(process.env.HOME, '.local', 'share', 'socket-app-studio')
     await fs.promises.mkdir(path.join(this.state.cwd, 'src'), { recursive: true })
   }
 
@@ -108,7 +108,7 @@ class AppView extends Tonic {
   }
 
   async setupWindow () {
-    document.title = 'Scratches'
+    document.title = 'Socket App Studio'
 
     let itemsMac = ''
 
@@ -121,8 +121,8 @@ class AppView extends Tonic {
     }
 
     const menu = `
-      Serverless Studio:
-        About Scratches: _
+      Socket App Studio:
+        About Socket App Studio: _
         ---
         ${itemsMac}
         Quit: q + CommandOrControl

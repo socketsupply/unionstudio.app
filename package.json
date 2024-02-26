@@ -1,11 +1,11 @@
 {
-  "name": "Scratches",
-  "productName": "Scratches",
+  "name": "socket-app-studio",
+  "productName": "socket-app-studio",
   "version": "1.0.0",
   "type": "module",
   "description": "A fiddle for Socket Runtime",
   "repository": {
-    "url": "git@github.com:socketsupply/scratches.git",
+    "url": "git@github.com:socketsupply/socket-app-studio.git",
     "type": "git"
   },
   "devDependencies": {
