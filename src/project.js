@@ -1,5 +1,7 @@
+import application from 'socket:application'
 import fs from 'socket:fs'
 import path from 'socket:path'
+import { lookup } from 'socket:mime'
 import Tonic from '@socketsupply/tonic'
 import { convertToICO } from './icon/index.js' 
 
@@ -101,6 +103,30 @@ class AppProject extends Tonic {
     return this.clickNode(node, isIcon)
   }
 
+  async contextmenu (e) {
+    const el = Tonic.match(e.target, '[data-path]')
+    if (!el) return
+
+    const node = this.getNodeFromElement(el)
+    if (!node) this.getNodeFromElement(el.parentElement)
+    if (!node) return
+
+    e.preventDefault()
+
+    const w = await application.getCurrentWindow()
+
+
+    const x = await w.setContextMenu({
+      'Cut': 'cut',
+      'Copy': 'copy',
+      'Paste': 'copy',
+      '---': '',
+      'Delete': 'delete'
+    })
+
+    console.log(x, node)
+  }
+
   async keydown (e) {
     if (e.keyCode === 32) {
       const focused = this.querySelector('a:focus')
@@ -193,8 +219,61 @@ class AppProject extends Tonic {
     return node
   }
 
-  load (value) {
-    this.state.tree = value
+  async connected () {
+    this.load()
+  }
+
+  async load () {
+    const tree = {
+      id: 'root',
+      children: []
+    }
+
+    const readDir = async (dirPath, parent) => {
+      let entries = []
+
+      try {
+        entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
+      } catch (err) {
+        console.error(err, dirPath)
+      }
+
+      for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name)
+
+        const child = {
+          id: fullPath,
+          parent,
+          selected: 0,
+          state: 0,
+          icon: entry.isDirectory() ? 'folder' : 'file',
+          label: entry.name,
+          mime: await lookup(path.extname(entry.name)),
+          children: []
+        }
+
+        parent.children.push(child)
+
+        if (entry.isDirectory()) {
+          try {
+            await readDir(fullPath, child)
+          } catch (err) {
+            console.error(`Error reading directory ${fullPath}:`, err)
+          }
+        }
+      }
+    }
+
+    const app = document.querySelector('app-view')
+
+    try {
+      await readDir(app.state.cwd, tree)
+      this.state.tree = tree
+    } catch (err) {
+      console.error('Error initiating read directory operation:', err)
+      return
+    }
+
     this.reRender()
   }
 

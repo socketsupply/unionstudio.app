@@ -274,6 +274,10 @@ header {
   overflow: auto;
 }
 
+.monaco-menu-container {
+  z-index: 10000 !important; /* Adjust the value as needed */
+}
+
 .monaco-editor .view-lines, .monaco-editor .view-lines * {
   -webkit-user-select: initial;
   user-select: initial;

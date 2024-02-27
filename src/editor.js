@@ -1,5 +1,6 @@
 import fs from 'socket:fs'
 import path from 'socket:path'
+import { lookup } from 'socket:mime'
 
 import Tonic from '@socketsupply/tonic'
 import { resizePNG } from './icon/index.js'
@@ -99,10 +100,14 @@ class AppEditor extends Tonic {
     this.editor.getModel().getValueInRange(this.editor.getSelection())
   }
 
-  async writeToDisk (projectNode) {
+  async writeToDisk (projectNode, data) {
     const app = document.querySelector('app-view')
-    const dest = path.join(app.state.cwd, projectNode.id)
-    await fs.promises.writeFile(dest, projectNode.data)
+
+    try {
+      await fs.promises.writeFile(projectNode.id, data)
+    } catch (err) {
+      console.error(`Unable to write to ${dest}`, err)
+    }
   }
 
   async loadProjectNode (projectNode) {
@@ -124,8 +129,14 @@ class AppEditor extends Tonic {
     imagePreview.classList.remove('show')
 
     if (this.editor) {
-      monaco.editor.setModelLanguage(this.editor.getModel(), projectNode.language)
-      this.editor.setValue(projectNode.data)
+      let languageHint = path.extname(projectNode.id).slice(1)
+      if (languageHint === 'js') languageHint = 'javascript'
+      if (languageHint === 'hh') languageHint = 'cpp'
+      if (languageHint === 'cc') languageHint = 'cpp'
+      if (languageHint === 'c') languageHint = 'cpp'
+      monaco.editor.setModelLanguage(this.editor.getModel(), languageHint)
+      const data = await fs.promises.readFile(projectNode.id, 'utf8')
+      this.editor.setValue(data)
     }
   }
 
@@ -227,10 +238,10 @@ class AppEditor extends Tonic {
       clearTimeout(this.writeDebounce)
 
       if (!this.projectNode) return
-      this.projectNode.data = this.editor.getValue()
+      const value = this.editor.getValue()
 
       this.writeDebounce = setTimeout(() => {
-        this.writeToDisk(this.projectNode)
+        this.writeToDisk(this.projectNode, value)
       }, 256)
     })
 

@@ -25,8 +25,29 @@ class AppView extends Tonic {
   }
 
   async init () {
+    //
+    // TODO(@heapwolf): make this.state.cwd confirgurable
+    //
     this.state.cwd = path.join(process.env.HOME, '.local', 'share', 'socket-app-studio')
-    await fs.promises.mkdir(path.join(this.state.cwd, 'src'), { recursive: true })
+
+    const exists = await fs.promises.stat(path.join(this.state.cwd, 'socket.ini'))
+
+    if (!exists) {
+      await fs.promises.mkdir(path.join(this.state.cwd, 'src'), { recursive: true })
+
+      try {
+        await fs.promises.cp('templates', this.statea.cwd, { recursive: true })
+      } catch (err) {
+        const notifications = docuent.querySelector('#notifications')
+        notifications.create({
+          type: 'error',
+          title: 'Unable to initialize directory',
+          message: err.message
+        })
+
+        return
+      }
+    }
   }
 
   //
@@ -262,7 +283,7 @@ class AppView extends Tonic {
   async connected () {
     this.setupWindow()
 
-    const tree = {
+    /* const tree = {
       id: 'root',
       children: []
     }
@@ -402,7 +423,7 @@ class AppView extends Tonic {
     project.load(this.state.tree)
 
     const editor = document.querySelector('app-editor')
-    editor.loadProjectNode(node.children[0].children[2])
+    editor.loadProjectNode(node.children[0].children[2]) */
   }
 
   render () {

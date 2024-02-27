@@ -1,6 +1,17 @@
+#split-input tonic-split-top {
+  z-index: 30;
+}
+
+#split-editor .tonic--split-handle.tonic--split-vertical {
+  margin-left: -5px;
+  border-left: none !important;
+  border-right: 1px solid var(--tonic-border);
+}
+
 tonic-split .tonic--split-horizontal {
-  margin-top: -5px;
   z-index: 9;
+  border-bottom: none !important;
+  border-top: 1px solid var(--tonic-border);
 }
 
 tonic-split .tonic--split-handle {
@@ -28,6 +39,10 @@ tonic-accordion-section .tonic--accordion-panel {
 .tonic--split-handle.tonic--split-horizontal {
   z-index: 10;
 }
+
+tonic-split > tonic-split-top, tonic-split > tonic-split-bottom, tonic-split > tonic-split-left, tonic-split > tonic-split-right {
+  overflow: visible !important;
+} 
 
 tonic-split-top {
   padding-bottom: 1px;
