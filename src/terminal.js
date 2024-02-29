@@ -252,7 +252,7 @@ class AppTerminal extends Tonic {
     // this.term.loadAddon(this.ligatures)
     this._term.open(el)
     this.resizer.fit()
-    
+
     this._term.options.cursorBlink = false
 
     this._term.attachCustomKeyEventHandler(function (e) {
@@ -265,7 +265,7 @@ class AppTerminal extends Tonic {
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
       this.updated()
-    });
+    })
 
     window.removeEventListener('resize', this.boundResizeEvent)
     window.addEventListener('resize', this.boundResizeEvent)

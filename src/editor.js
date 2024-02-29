@@ -7,42 +7,42 @@ import { resizePNG } from './icon/index.js'
 
 import * as monaco from 'monaco-editor'
 
-function rgbaToHex(rgbaString) {
-  const rgbaValues = rgbaString.match(/\d+/g);
-  
-  const r = parseInt(rgbaValues[0]);
-  const g = parseInt(rgbaValues[1]);
-  const b = parseInt(rgbaValues[2]);
-  
-  const a = Math.round(parseFloat(rgbaValues[3]) * 255);
+function rgbaToHex (rgbaString) {
+  const rgbaValues = rgbaString.match(/\d+/g)
 
-  const rHex = r.toString(16).padStart(2, '0');
-  const gHex = g.toString(16).padStart(2, '0');
-  const bHex = b.toString(16).padStart(2, '0');
-  const aHex = a.toString(16).padStart(2, '0');
+  const r = parseInt(rgbaValues[0])
+  const g = parseInt(rgbaValues[1])
+  const b = parseInt(rgbaValues[2])
 
-  return `#${rHex}${gHex}${bHex}${aHex}`;
+  const a = Math.round(parseFloat(rgbaValues[3]) * 255)
+
+  const rHex = r.toString(16).padStart(2, '0')
+  const gHex = g.toString(16).padStart(2, '0')
+  const bHex = b.toString(16).padStart(2, '0')
+  const aHex = a.toString(16).padStart(2, '0')
+
+  return `#${rHex}${gHex}${bHex}${aHex}`
 }
 
 globalThis.MonacoEnvironment = {
   getWorkerUrl: function (moduleId, label) {
     if (label === 'json') {
-      return 'vs/language/json/json.worker.js';
+      return 'vs/language/json/json.worker.js'
     }
 
     if (label === 'css' || label === 'scss' || label === 'less') {
-      return 'vs/language/css/css.worker.js';
+      return 'vs/language/css/css.worker.js'
     }
 
     if (label === 'html' || label === 'handlebars' || label === 'razor') {
-      return 'vs/language/html/html.worker.js';
+      return 'vs/language/html/html.worker.js'
     }
 
     if (label === 'typescript' || label === 'javascript') {
-      return 'vs/language/typescript/ts.worker.js';
+      return 'vs/language/typescript/ts.worker.js'
     }
 
-    return 'vs/editor/editor.worker.js';
+    return 'vs/editor/editor.worker.js'
   }
 }
 
@@ -60,14 +60,14 @@ class AppEditor extends Tonic {
     const pickerOpts = {
       types: [
         {
-          description: "Images",
+          description: 'Images',
           accept: {
-            "image/*": ['.png'],
-          },
-        },
+            'image/*': ['.png']
+          }
+        }
       ],
       excludeAcceptAllOption: true,
-      multiple: false,
+      multiple: false
     }
 
     if (event === 'size') {
@@ -119,7 +119,6 @@ class AppEditor extends Tonic {
 
     if (type.length) {
       if (/image/.test(type[0].mime)) {
-
         // Display a preview for this type.
         return
       }
@@ -209,43 +208,43 @@ class AppEditor extends Tonic {
     monaco.editor.setTheme(theme)
   }
 
- async loadAPIs(directoryPath = './socket') {
+  async loadAPIs (directoryPath = './socket') {
     const readDir = async (dirPath) => {
-      const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
+      const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
 
       entries.forEach(async (entry) => {
-        const fullPath = path.join(dirPath, entry.name);
+        const fullPath = path.join(dirPath, entry.name)
 
         if (entry.isDirectory()) {
-          readDir(fullPath).catch(err => console.error(`Error reading directory ${fullPath}:`, err));
+          readDir(fullPath).catch(err => console.error(`Error reading directory ${fullPath}:`, err))
         } else {
           if (path.extname(fullPath) === '.ts') {
             fs.promises.readFile(fullPath, 'utf8')
               .then(sourceText => {
-                monaco.languages.typescript.javascriptDefaults.addExtraLib(sourceText, `socket/${fullPath}`);
-                monaco.languages.typescript.typescriptDefaults.addExtraLib(sourceText, `socket/${fullPath}`);
+                monaco.languages.typescript.javascriptDefaults.addExtraLib(sourceText, `socket/${fullPath}`)
+                monaco.languages.typescript.typescriptDefaults.addExtraLib(sourceText, `socket/${fullPath}`)
               })
-              .catch(err => console.error(`Error reading file ${fullPath}:`, err));
+              .catch(err => console.error(`Error reading file ${fullPath}:`, err))
           }
         }
-      });
-    };
+      })
+    }
 
     try {
-      await readDir(directoryPath);
+      await readDir(directoryPath)
     } catch (err) {
-      console.error('Error initiating read directory operation:', err);
+      console.error('Error initiating read directory operation:', err)
     }
   }
 
   async refreshSettings () {
-    let parent = this.props.parent
+    const parent = this.props.parent
     this.editor.updateOptions(parent.state.settings?.editorOptions || {})
   }
 
   connected () {
     let theme
-    let parent = this.props.parent
+    const parent = this.props.parent
 
     this.editor = monaco.editor.create(this.querySelector('.editor'), {
       value: '',

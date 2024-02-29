@@ -64,7 +64,7 @@ class AppView extends Tonic {
 
     const settingsFile = path.join(this.state.cwd, 'settings.json')
     const notifications = document.querySelector('#notifications')
-    
+
     try {
       projectExists = await fs.promises.stat(path.join(this.state.cwd, 'socket.ini'))
     } catch {}
@@ -74,7 +74,7 @@ class AppView extends Tonic {
 
       this.state.settings = defaultSettings
       await fs.promises.writeFile(settingsFile, JSON.stringify(defaultSettings))
-      await this.installTemplates() 
+      await this.installTemplates()
     }
 
     if (projectExists) {
@@ -95,7 +95,6 @@ class AppView extends Tonic {
           title: 'Unable to read settings from ${settingsFile}',
           message: err.message
         })
-        return
       }
     }
   }
@@ -120,7 +119,7 @@ class AppView extends Tonic {
           dir = path.join('icons', 'icon.ico')
         } else {
           dir = path.join('icons', 'icon.png')
-        }       
+        }
       }
 
       paths[path.join(this.state.cwd, dir)] = data

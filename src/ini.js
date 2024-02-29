@@ -35,7 +35,7 @@ function set (src, section, key, value) {
       if (parts[0] === key) {
         value = `${parts[0]} = ${value}`
         lines[i] = value
-      }  
+      }
     }
   }
 

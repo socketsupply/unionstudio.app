@@ -54,7 +54,7 @@ export async function init (options) {
         .reduce((array, transfer) => array.concat(transfer), [])
 
       port.postMessage({ method: 'console.debug', args }, { transfer })
-    },
+    }
   })
 }
 
