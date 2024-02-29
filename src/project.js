@@ -11,13 +11,12 @@ const NOT_SELECTED = 0
 const IS_SELECTED = 1
 
 async function rmdir (directory) {
-  const files = await fs.promises.readdir(directory)
+  const files = await fs.promises.readdir(directory, { withfiletypes: true })
 
   for (const file of files) {
-    const filePath = path.join(directory, file)
-    const stats = await fs.promises.stat(filePath)
+    const filePath = path.join(directory, file.name)
 
-    if (stats.isDirectory()) {
+    if (file.isDirectory()) {
       await rmdir(filePath)
     } else {
       await fs.promises.unlink(filePath)
@@ -29,18 +28,16 @@ async function rmdir (directory) {
 
 async function cpdir (srcDir, destDir) {
   await fs.promises.mkdir(destDir, { recursive: true })
-  const files = await fs.promises.readdir(srcDir)
+  const files = await fs.promises.readdir(srcDir, { withFileTypes: true })
 
   for (const file of files) {
-    const srcPath = path.join(srcDir, file)
-    const destPath = path.join(destDir, file)
+    const srcPath = path.join(srcDir, file.name)
+    const destPath = path.join(destDir, file.name)
 
-    const stats = await fs.promises.stat(srcPath)
-
-    if (stats.isDirectory()) {
+    if (file.isDirectory()) {
       await copyDirectory(srcPath, destPath)
     } else {
-      await fs.promises.copyFile(srcPath, destPath)
+      await fs.promises.copyFile(srcPath, destPath, fs.constants.COPYFILE_FICLONE)
     }
   }
 }
@@ -146,12 +143,17 @@ class AppProject extends Tonic {
     this.referenceNode = node
   }
 
-  async mouseup (e) {
-    const mouseDragged = this.mouseIsDragging
+
+  resetMouse () {
     this.mouseMoveThreshold = 0
     this.removeAttribute('dragging')
     this.mouseIsDragging = false
     this.mouseIsDown = false
+  }
+
+  async mouseup (e) {
+    const mouseDragged = this.mouseIsDragging
+    this.resetMouse()
 
     if (mouseDragged) {
       this.load()
@@ -170,11 +172,10 @@ class AppProject extends Tonic {
 
         if (srcNode.id === destDir) return
 
-        console.log('MOVE', srcNode.id, '->', destDir)
-
         try {
-          await cpdir(srcNode.id, destDir)
+          await cpdir(srcNode.id, path.join(destDir, path.basename(srcNode.id)))
         } catch (err) {
+          console.log(err)
           return notifications.create({
             type: 'error',
             title: 'Unable to copy files',
@@ -185,6 +186,7 @@ class AppProject extends Tonic {
         try {
           await rmdir(srcNode.id)
         } catch (err) {
+          console.log(err)
           return notifications.create({
             type: 'error',
             title: 'Unable to remove files',
@@ -279,6 +281,7 @@ class AppProject extends Tonic {
   }
 
   async dblclick (e) {
+    this.resetMouse()
     const el = Tonic.match(e.target, '[data-path]')
     if (!el) return
 
@@ -303,6 +306,8 @@ class AppProject extends Tonic {
   }
 
   async contextmenu (e) {
+    this.resetMouse()
+
     const el = Tonic.match(e.target, '[data-path]')
     if (!el) return
 
