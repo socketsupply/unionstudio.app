@@ -113,13 +113,27 @@ class AppEditor extends Tonic {
   async loadProjectNode (projectNode) {
     if (!projectNode) return
 
+    const parent = this.props.parent
+    const ext = path.extname(projectNode.id)
+    const type = await lookup(ext.slice(1))
+
+    if (type.length) {
+      if (/image/.test(type[0].mime)) {
+
+        // Display a preview for this type.
+        return
+      }
+    }
+
     this.projectNode = projectNode
 
     const fileName = projectNode.label
     const imagePreview = this.querySelector('.image-preview')
 
-    if (fileName.endsWith('.assets')) {
-      const blob = new Blob([projectNode.data], { type: 'image/png' })
+    if (projectNode.isDirectory && fileName === 'icons') {
+      const iconPath = path.join(projectNode.id, 'icon.png')
+      const data = await fs.promises.readFile(iconPath)
+      const blob = new Blob([data], { type: 'image/png' })
       const url = URL.createObjectURL(blob)
       ;[...imagePreview.querySelectorAll('img')].forEach(img => (img.src = url))
       imagePreview.classList.add('show')
@@ -128,14 +142,18 @@ class AppEditor extends Tonic {
 
     imagePreview.classList.remove('show')
 
-    if (this.editor) {
-      let languageHint = path.extname(projectNode.id).slice(1)
-      if (languageHint === 'js') languageHint = 'javascript'
-      if (languageHint === 'hh') languageHint = 'cpp'
-      if (languageHint === 'cc') languageHint = 'cpp'
-      if (languageHint === 'c') languageHint = 'cpp'
-      monaco.editor.setModelLanguage(this.editor.getModel(), languageHint)
-      const data = await fs.promises.readFile(projectNode.id, 'utf8')
+    if (!projectNode.isDirectory && this.editor) {
+      const ext = path.extname(projectNode.id)
+      const mappings = parent.state.settings.extensionLanguageMappings
+      const lang = mappings[ext] || ext.slice(1)
+      monaco.editor.setModelLanguage(this.editor.getModel(), lang)
+      let data = await fs.promises.readFile(projectNode.id, 'utf8')
+
+      if (path.extname(projectNode.id) === '.json') {
+        try {
+          data = JSON.stringify(JSON.parse(data), null, 2)
+        } catch {}
+      }
       this.editor.setValue(data)
     }
   }
@@ -220,8 +238,14 @@ class AppEditor extends Tonic {
     }
   }
 
+  async refreshSettings () {
+    let parent = this.props.parent
+    this.editor.updateOptions(parent.state.settings?.editorOptions || {})
+  }
+
   connected () {
     let theme
+    let parent = this.props.parent
 
     this.editor = monaco.editor.create(this.querySelector('.editor'), {
       value: '',
@@ -234,7 +258,11 @@ class AppEditor extends Tonic {
       renderLineHighlight: 'none'
     })
 
-    this.editor.getModel().onDidChangeContent(() => {
+    this.refreshSettings()
+
+    const model = this.editor.getModel()
+
+    model.onDidChangeContent(async () => {
       clearTimeout(this.writeDebounce)
 
       if (!this.projectNode) return

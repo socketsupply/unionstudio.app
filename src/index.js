@@ -14,6 +14,7 @@ import { AppProject } from './project.js'
 import { AppProperties } from './properties.js'
 import { AppSprite } from './sprite.js'
 import { AppEditor } from './editor.js'
+import { settings as defaultSettings } from './settings.js'
 
 components(Tonic)
 
@@ -21,7 +22,36 @@ class AppView extends Tonic {
   constructor () {
     super()
     this.editors = {}
-    this.init()
+  }
+
+  async installTemplates () {
+    const readDir = async (dirPath) => {
+      const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
+
+      for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name)
+
+        if (entry.isDirectory()) {
+          try {
+            await readDir(fullPath)
+          } catch (err) {
+            console.error(`Error reading directory ${fullPath}:`, err)
+          }
+        } else {
+          const file = await fs.promises.readFile(fullPath)
+          const basePath = path.relative('templates', fullPath)
+          const destPath = path.join(this.state.cwd, basePath)
+          await fs.promises.mkdir(path.dirname(destPath), { recursive: true })
+          await fs.promises.writeFile(destPath, file)
+        }
+      }
+    }
+
+    try {
+      await readDir('templates')
+    } catch (err) {
+      console.error('Error initiating read directory operation:', err)
+    }
   }
 
   async init () {
@@ -30,21 +60,41 @@ class AppView extends Tonic {
     //
     this.state.cwd = path.join(process.env.HOME, '.local', 'share', 'socket-app-studio')
 
-    const exists = await fs.promises.stat(path.join(this.state.cwd, 'socket.ini'))
+    let projectExists
 
-    if (!exists) {
+    const settingsFile = path.join(this.state.cwd, 'settings.json')
+    const notifications = document.querySelector('#notifications')
+    
+    try {
+      projectExists = await fs.promises.stat(path.join(this.state.cwd, 'socket.ini'))
+    } catch {}
+
+    if (!projectExists) {
       await fs.promises.mkdir(path.join(this.state.cwd, 'src'), { recursive: true })
 
+      this.state.settings = defaultSettings
+      await fs.promises.writeFile(settingsFile, JSON.stringify(defaultSettings))
+      await this.installTemplates() 
+    }
+
+    if (projectExists) {
       try {
-        await fs.promises.cp('templates', this.statea.cwd, { recursive: true })
+        const str = await fs.promises.readFile(settingsFile, 'utf8')
+        this.state.settings = JSON.parse(str)
+
+        fs.watch(settingsFile, async () => {
+          const editor = document.querySelector('app-editor')
+          if (editor) {
+            this.state.settings = await fs.promises.readFile(settingsFile, 'utf8')
+            editor.refreshSettings()
+          }
+        })
       } catch (err) {
-        const notifications = docuent.querySelector('#notifications')
         notifications.create({
           type: 'error',
-          title: 'Unable to initialize directory',
+          title: 'Unable to read settings from ${settingsFile}',
           message: err.message
         })
-
         return
       }
     }
@@ -151,6 +201,8 @@ class AppView extends Tonic {
 
       File:
         Export Project: s + CommandOrControl
+        New Folder: n + CommandOrControl
+        New File: N + CommandOrControl
         ---
         Reset Project: _
       ;
@@ -178,7 +230,7 @@ class AppView extends Tonic {
       ;
 
       Build & Run:
-        Evaluate Editor Source: E + CommandOrControl + Shift
+        Evaluate Editor Source: r + CommandOrControl + Shift
         ---
         Android: s + CommandOrControl
         iOS: s + CommandOrControl
@@ -426,7 +478,9 @@ class AppView extends Tonic {
     editor.loadProjectNode(node.children[0].children[2]) */
   }
 
-  render () {
+  async render () {
+    await this.init()
+
     return this.html`
       <header>
         <tonic-button type="icon" size="18px" symbol-id="play" title="Build & Run The Project" data-event="run">
@@ -448,16 +502,16 @@ class AppView extends Tonic {
         <tonic-split-left width="80%">
           <tonic-split id="split-editor" type="vertical">
             <tonic-split-left width="25%">
-              <app-project id="app-project"></app-project>
+              <app-project id="app-project" parent=${this}></app-project>
             </tonic-split-left>
 
             <tonic-split-right width="75%">
               <tonic-split id="split-input" type="horizontal">
                 <tonic-split-top height="80%">
-                  <app-editor id="editor"></app-editor>
+                  <app-editor id="editor" parent=${this}></app-editor>
                 </tonic-split-top>
                 <tonic-split-bottom height="20%">
-                  <app-terminal id="app-terminal"></app-terminal>
+                  <app-terminal id="app-terminal" parent=${this}></app-terminal>
                 </tonic-split-bottom>
               </tonic-split>
             </tonic-split-right>
@@ -465,7 +519,7 @@ class AppView extends Tonic {
         </tonic-split-left>
 
         <tonic-split-right width="20%">
-          <app-properties id="app-properties"></app-properties>
+          <app-properties id="app-properties" parent=${this}></app-properties>
         </tonic-split-right>
       </tonic-split>
       <app-sprite></app-sprite>

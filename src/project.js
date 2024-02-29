@@ -3,14 +3,58 @@ import fs from 'socket:fs'
 import path from 'socket:path'
 import { lookup } from 'socket:mime'
 import Tonic from '@socketsupply/tonic'
-import { convertToICO } from './icon/index.js' 
+import { convertToICO } from './icon/index.js'
 
 const EXPANDED_STATE = 1
 const CLOSED_STATE = 0
 const NOT_SELECTED = 0
 const IS_SELECTED = 1
 
+async function rmdir (directory) {
+  const files = await fs.promises.readdir(directory)
+
+  for (const file of files) {
+    const filePath = path.join(directory, file)
+    const stats = await fs.promises.stat(filePath)
+
+    if (stats.isDirectory()) {
+      await rmdir(filePath)
+    } else {
+      await fs.promises.unlink(filePath)
+    }
+  }
+
+  await fs.promises.rmdir(directory)
+}
+
+async function cpdir (srcDir, destDir) {
+  await fs.promises.mkdir(destDir, { recursive: true })
+  const files = await fs.promises.readdir(srcDir)
+
+  for (const file of files) {
+    const srcPath = path.join(srcDir, file)
+    const destPath = path.join(destDir, file)
+
+    const stats = await fs.promises.stat(srcPath)
+
+    if (stats.isDirectory()) {
+      await copyDirectory(srcPath, destPath)
+    } else {
+      await fs.promises.copyFile(srcPath, destPath)
+    }
+  }
+}
+
 class AppProject extends Tonic {
+  createCount = 0
+  contextCut = null
+  contextCopy = null
+  contextDelete = null
+  mouseIsDragging = false
+  mouseIsDown = false
+  mouseMoveThreshold = 0
+  timeoutMouseMove = 0
+
   /**
    * auto-sort="false"
    */
@@ -50,9 +94,9 @@ class AppProject extends Tonic {
     this.reRender()
   }
 
-  getNodeByProperty (prop, value) {
-    return this.walk(this.state.tree, node => {
-      if (node[prop] === value) return node
+  getNodeByProperty (prop, value, tree = this.state.tree) {
+    return this.walk(tree, node => {
+      if (node && node[prop] === value) return node
     })
   }
 
@@ -87,9 +131,116 @@ class AppProject extends Tonic {
     })
   }
 
-  click (e) {
+  mousedown (e) {
     const el = Tonic.match(e.target, '[data-path]')
     if (!el) return
+
+    const node = this.getNodeFromElement(el)
+    if (!node) this.getNodeFromElement(el.parentElement)
+    if (!node) return
+
+    this.removeAttribute('dragging')
+    this.mouseMoveThreshold = 0
+
+    this.mouseIsDown = true
+    this.referenceNode = node
+  }
+
+  async mouseup (e) {
+    const mouseDragged = this.mouseIsDragging
+    this.mouseMoveThreshold = 0
+    this.removeAttribute('dragging')
+    this.mouseIsDragging = false
+    this.mouseIsDown = false
+
+    if (mouseDragged) {
+      this.load()
+
+      const el = Tonic.match(e.target, '[data-path]')
+      const srcNode = this.referenceNode
+
+      if (el && srcNode) {
+        const destNode = this.getNodeFromElement(el)
+        if (!destNode) this.getNodeFromElement(el.parentElement)
+        if (!destNode) return
+
+        const destDir = destNode.isDirectory
+          ? destNode.id
+          : path.dirname(destNode.id)
+
+        if (srcNode.id === destDir) return
+
+        console.log('MOVE', srcNode.id, '->', destDir)
+
+        try {
+          await cpdir(srcNode.id, destDir)
+        } catch (err) {
+          return notifications.create({
+            type: 'error',
+            title: 'Unable to copy files',
+            message: err.message
+          })
+        }
+
+        try {
+          await rmdir(srcNode.id)
+        } catch (err) {
+          return notifications.create({
+            type: 'error',
+            title: 'Unable to remove files',
+            message: err.message
+          })
+        }
+      }
+
+      this.referenceNode = null
+    }
+  }
+
+  mousemove (e) {
+    if (this.mouseIsDown) {
+      ++this.mouseMoveThreshold
+
+      if (!this.mouseIsDragging && this.mouseMoveThreshold < 24) {
+        this.mouseIsDragging = true
+        return
+      }
+
+      if (this.mouseIsDragging) {
+        this.mouseMoveThreshold = 0
+        this.setAttribute('dragging', 'true')
+
+        let placeholder = document.getElementById('tree-item-placeholder')
+
+        if (!placeholder) {
+          placeholder = document.createElement('div')
+          placeholder.id = 'tree-item-placeholder'
+          this.appendChild(placeholder)
+        }
+
+        const others = [...this.querySelectorAll('.hover')]
+        others.forEach(el => el.classList.remove('hover'))
+
+        const closest = e.srcElement.closest('[data-path]')
+        if (closest) closest.classList.add('hover')
+
+        placeholder.style.pointerEvents = 'none'
+        placeholder.textContent = this.referenceNode.label
+        placeholder.style.top = `${e.clientY + 4}px`
+        placeholder.style.left = `${e.clientX + 4}px`
+      }
+    }
+  }
+
+  click (e) {
+    this.mouseMoveThreshold = 0
+
+    const el = Tonic.match(e.target, '[data-path]')
+    if (!el) return
+
+    if (Tonic.match(e.target, '[data-event="rename"]')) {
+      return
+    }
 
     if (e.detail === 2) {
       return
@@ -103,6 +254,54 @@ class AppProject extends Tonic {
     return this.clickNode(node, isIcon)
   }
 
+  async keyup (e) {
+    const el = Tonic.match(e.target, '[data-path]')
+    if (!el) return
+
+    const node = this.getNodeFromElement(el)
+    if (!node) this.getNodeFromElement(el.parentElement)
+    if (!node) return
+
+    //
+    // Rename a node in the tree
+    //
+    if (Tonic.match(e.target, '[data-event="rename"]')) {
+      if (e.key === 'Enter') {
+        const value = e.target.value.trim()
+        if (this.getNodeByProperty('id', value)) return
+
+        const newId = path.join(path.dirname(node.id), value)
+        await fs.promises.rename(node.id, newId)
+        node.label = value
+        this.load()
+      }
+    }
+  }
+
+  async dblclick (e) {
+    const el = Tonic.match(e.target, '[data-path]')
+    if (!el) return
+
+    const node = this.getNodeFromElement(el)
+    if (!node) this.getNodeFromElement(el.parentElement)
+    if (!node) return
+
+    const container = el.querySelector('.label')
+
+    const input = document.createElement('input')
+    input.dataset.event = 'rename'
+    input.value = node.label
+    input.addEventListener('blur', () => {
+      container.innerHTML = ''
+      container.textContent = node.label
+    })
+
+    container.innerHTML = ''
+    container.appendChild(input)
+
+    input.focus()
+  }
+
   async contextmenu (e) {
     const el = Tonic.match(e.target, '[data-path]')
     if (!el) return
@@ -113,18 +312,98 @@ class AppProject extends Tonic {
 
     e.preventDefault()
 
+    const notifications = document.querySelector('#notifications')
     const w = await application.getCurrentWindow()
 
-
-    const x = await w.setContextMenu({
-      'Cut': 'cut',
-      'Copy': 'copy',
-      'Paste': 'copy',
-      '---': '',
-      'Delete': 'delete'
+    const value = await w.setContextMenu({
+      value: `
+        New Folder: new-folder
+        New File: new-file
+        ---
+        Cut: cut
+        Copy: copy
+        Paste: paste
+        ---
+        Delete: delete
+      `
     })
 
-    console.log(x, node)
+    if (value === 'new-folder') {
+      const dirname = node.isDirectory ? node.id : path.dirname(node.id)
+      await fs.promises.mkdir(path.join(dirname, `new-folder-${++this.createCount}`))
+      this.load()
+      return
+    }
+
+    if (value === 'new-file') {
+      const dirname = node.isDirectory ? node.id : path.dirname(node.id)
+
+      try {
+        await fs.promises.mkdir(dirname)
+      } catch {}
+
+      await fs.promises.writeFile(path.join(dirname, `new-file-${++this.createCount}.js`), Buffer.from(''))
+      this.load()
+      return
+    }
+
+    if (value === 'copy') {
+      this.contextCopy = node
+      return
+    }
+
+    if (value === 'cut') {
+      this.contextCopy = node
+      this.contextCut = node
+      return
+    }
+
+    if (value === 'paste') {
+      if (!this.contextCopy) return
+
+      const src = node.isDirectory ? node.id : path.dirname(node.id)
+
+      try {
+        const data = await fs.promises.readFile(this.contextCopy.id)
+        const dest = path.join(src, this.contextCopy.label)
+        await fs.promises.writeFile(dest, data)
+        this.contextCopy = null
+
+        if (this.contextCut) {
+          await fs.promises.unlink(this.contextCut.id)
+          this.contextCut = null
+          this.onSelection(node.parent)
+        }
+      } catch (err) {
+        notifications.create({
+          type: 'error',
+          title: 'Unable to copy file',
+          message: err.message
+        })
+      }
+
+      this.load()
+      return
+    }
+
+    if (value === 'delete') {
+      if (node.isDirectory) {
+        try {
+          await rmdir(node.id)
+        } catch (err) {
+          notifications.create({
+            type: 'error',
+            title: 'Unable to delete',
+            message: err.message
+          })
+        }
+      } else {
+        await fs.promises.unlink(node.id)
+      }
+
+      this.onSelection(node.parent)
+      this.load()
+    }
   }
 
   async keydown (e) {
@@ -148,7 +427,7 @@ class AppProject extends Tonic {
   }
 
   async onSelection (node, isToggle) {
-    if (!isToggle && node.children.length === 0) {
+    if (!isToggle) {
       const editor = document.querySelector('app-editor')
       editor.loadProjectNode(node)
     }
@@ -161,7 +440,7 @@ class AppProject extends Tonic {
       selected: 0,
       state: 0,
       children: [],
-      ...node,
+      ...node
     }
 
     if (parent) {
@@ -224,6 +503,8 @@ class AppProject extends Tonic {
   }
 
   async load () {
+    const oldState = this.state.tree
+
     const tree = {
       id: 'root',
       children: []
@@ -240,12 +521,14 @@ class AppProject extends Tonic {
 
       for (const entry of entries) {
         const fullPath = path.join(dirPath, entry.name)
+        const oldChild = this.getNodeByProperty('id', fullPath, oldState)
 
         const child = {
           id: fullPath,
           parent,
-          selected: 0,
-          state: 0,
+          selected: oldChild?.selected ?? 0,
+          state: oldChild?.state ?? 0,
+          isDirectory: entry.isDirectory(),
           icon: entry.isDirectory() ? 'folder' : 'file',
           label: entry.name,
           mime: await lookup(path.extname(entry.name)),

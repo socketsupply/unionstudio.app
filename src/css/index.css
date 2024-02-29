@@ -293,6 +293,10 @@ header {
   border-right: 1px solid var(--tonic-border);
 }
 
+.monaco-editor .margin-view-overlays .line-numbers {
+  color: var(--tonic-info);
+}
+
 .monaco-editor .scroll-decoration {
   box-shadow: var(--vscode-scrollbar-shadow) 0 6px 10px -12px inset;
 }
