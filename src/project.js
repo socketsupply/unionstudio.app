@@ -10,14 +10,14 @@ const CLOSED_STATE = 0
 const NOT_SELECTED = 0
 const IS_SELECTED = 1
 
-async function rmdir (directory) {
+async function rm (directory) {
   const files = await fs.promises.readdir(directory, { withfiletypes: true })
 
   for (const file of files) {
     const filePath = path.join(directory, file.name)
 
     if (file.isDirectory()) {
-      await rmdir(filePath)
+      await rm(filePath)
     } else {
       await fs.promises.unlink(filePath)
     }
@@ -26,7 +26,7 @@ async function rmdir (directory) {
   await fs.promises.rmdir(directory)
 }
 
-async function cpdir (srcDir, destDir) {
+async function cp (srcDir, destDir) {
   await fs.promises.mkdir(destDir, { recursive: true })
   const files = await fs.promises.readdir(srcDir, { withFileTypes: true })
 
@@ -166,14 +166,20 @@ class AppProject extends Tonic {
         if (!destNode) this.getNodeFromElement(el.parentElement)
         if (!destNode) return
 
-        const destDir = destNode.isDirectory
-          ? destNode.id
-          : path.dirname(destNode.id)
+        let destDir = destNode.isDirectory ? destNode.id : path.dirname(destNode.id)
 
+        // dont copy it if it's going to the place it came from
         if (srcNode.id === destDir) return
+        if (path.dirname(srcNode.id) === path.dirname(destNode.id)) return
+
+        destDir = path.join(destDir, path.basename(srcNode.id))
 
         try {
-          await cpdir(srcNode.id, path.join(destDir, path.basename(srcNode.id)))
+          if (srcNode.isDirectory) {
+            await cp(srcNode.id, destDir)
+          } else {
+            await fs.promises.copyFile(srcNode.id, destDir, fs.constants.COPYFILE_FICLONE)
+          }
         } catch (err) {
           console.log(err)
           return notifications.create({
@@ -184,7 +190,11 @@ class AppProject extends Tonic {
         }
 
         try {
-          await rmdir(srcNode.id)
+          if (srcNode.isDirectory) {
+            await rm(srcNode.id)
+          } else {
+            await fs.promises.unlink(srcNode.id)
+          }
         } catch (err) {
           console.log(err)
           return notifications.create({
@@ -204,33 +214,32 @@ class AppProject extends Tonic {
       ++this.mouseMoveThreshold
 
       if (!this.mouseIsDragging && this.mouseMoveThreshold < 24) {
-        this.mouseIsDragging = true
+        this.mouseIsDragging = false
         return
       }
 
-      if (this.mouseIsDragging) {
-        this.mouseMoveThreshold = 0
-        this.setAttribute('dragging', 'true')
+      this.mouseIsDragging = true
+      this.mouseMoveThreshold = 0
+      this.setAttribute('dragging', 'true')
 
-        let placeholder = document.getElementById('tree-item-placeholder')
+      let placeholder = document.getElementById('tree-item-placeholder')
 
-        if (!placeholder) {
-          placeholder = document.createElement('div')
-          placeholder.id = 'tree-item-placeholder'
-          this.appendChild(placeholder)
-        }
-
-        const others = [...this.querySelectorAll('.hover')]
-        others.forEach(el => el.classList.remove('hover'))
-
-        const closest = e.srcElement.closest('[data-path]')
-        if (closest) closest.classList.add('hover')
-
-        placeholder.style.pointerEvents = 'none'
-        placeholder.textContent = this.referenceNode.label
-        placeholder.style.top = `${e.clientY + 4}px`
-        placeholder.style.left = `${e.clientX + 4}px`
+      if (!placeholder) {
+        placeholder = document.createElement('div')
+        placeholder.id = 'tree-item-placeholder'
+        this.appendChild(placeholder)
       }
+
+      const others = [...this.querySelectorAll('.hover')]
+      others.forEach(el => el.classList.remove('hover'))
+
+      const closest = e.srcElement.closest('[data-path]')
+      if (closest) closest.classList.add('hover')
+
+      placeholder.style.pointerEvents = 'none'
+      placeholder.textContent = this.referenceNode.label
+      placeholder.style.top = `${e.clientY + 4}px`
+      placeholder.style.left = `${e.clientX + 4}px`
     }
   }
 
@@ -318,8 +327,8 @@ class AppProject extends Tonic {
     e.preventDefault()
 
     const notifications = document.querySelector('#notifications')
-    const w = await application.getCurrentWindow()
 
+    const w = await application.getCurrentWindow()
     const value = await w.setContextMenu({
       value: `
         New Folder: new-folder
@@ -394,7 +403,7 @@ class AppProject extends Tonic {
     if (value === 'delete') {
       if (node.isDirectory) {
         try {
-          await rmdir(node.id)
+          await rm(node.id)
         } catch (err) {
           notifications.create({
             type: 'error',
