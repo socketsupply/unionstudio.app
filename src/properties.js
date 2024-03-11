@@ -67,6 +67,10 @@ class AppProperties extends Tonic {
     const editor = document.querySelector('app-editor')
     const project = document.querySelector('app-project')
 
+    if (event === 'preview') {
+      app.activatePreviewWindows()
+    }
+
     if (event === 'insert-native-extension') {
       await project.insert({
         label: 'extension.cc',

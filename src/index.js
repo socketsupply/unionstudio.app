@@ -61,7 +61,6 @@ class AppView extends Tonic {
   async reloadPreviewWindows () {
     clearTimeout(this.debounce)
     this.debounce = setTimeout(() => {
-      console.log(this.previewWindows)
       for (const w of Object.values(this.previewWindows)) {
         w.navigate(this.state.indexURL + `?zoom=${this.state.zoom[w.index]}`)
       }
@@ -128,13 +127,15 @@ class AppView extends Tonic {
         opts.minHeight = Math.floor(height / scale)
       }
 
-      const w = await application.createWindow(opts)
+      try {
+        const w = await application.createWindow(opts)
 
-      w.channel.addEventListener('message', e => {
-        this.state.zoom[w.index] = e.data.zoom || 1
-      })
+        w.channel.addEventListener('message', e => {
+          this.state.zoom[w.index] = e.data.zoom || 1
+        })
 
-      this.previewWindows[w.index] = w
+        this.previewWindows[w.index] = w
+      } catch {}
     }
   }
 
