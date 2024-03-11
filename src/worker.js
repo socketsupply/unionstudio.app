@@ -37,6 +37,23 @@ export default async function (req, env, ctx) {
     `
   }
 
+  if (params.get('device') === 'iphone-15') {
+    css = `
+      #SOCKET_NOTCH {
+        position: fixed;
+        top: 0;
+        left: 50%;
+        width: 35%;
+        transform: translateX(-50%);
+        height: 3.8%;
+        border-radius: 0 0 10px 10px;
+        background: black;
+        opacity: 0.1;
+        z-index: 1000;
+      }
+    `
+  }
+
   if (url.pathname.endsWith('index.html')) {
     data = data.replace(/<html(?:[^\n\r]*)>/, `<html style="zoom: ${params.get('zoom')}">`)
     data = data.replace('</body>', `<style>${css}</style><div id="SOCKET_NOTCH"></div></body>`)

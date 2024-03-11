@@ -457,7 +457,7 @@ class AppView extends Tonic {
     await this.init()
 
     return this.html`
-      <header movable>
+      <header>
         <span class="spacer"></span>
 
         <tonic-button type="icon" size="18px" symbol-id="play" title="Build & Run The Project" data-event="run">
@@ -475,6 +475,22 @@ class AppView extends Tonic {
         </tonic-button>
 
         <span class="spacer"></span>
+        <tonic-button
+          type="icon"
+          size="18px"
+          symbol-id="plus"
+          title="Add a shared project"
+          data-event="get-share"
+        >
+        </tonic-button>
+        <tonic-button
+          type="icon"
+          size="18px"
+          symbol-id="link"
+          title="Share this project"
+          data-event="put-share"
+        >
+        </tonic-button>
       </header>
 
       <tonic-split id="split-main" type="vertical">

@@ -253,7 +253,7 @@ main-component {
 
 header {
   display: grid;
-  grid-template-columns: 1fr 34px 250px 34px 1fr;
+  grid-template-columns: 1fr 34px 250px 34px 1fr 34px 34px;
   gap: 12px;
   grid-template-rows: auto;
   align-content: center;
@@ -265,7 +265,7 @@ header {
   right: 0;
   cursor: default;
   app-region: drag; /* windows */
-  --app-region: drag; /* mac/linux */
+  --app-region: drag; /* mac & linux */
 }
 
 header [platform="darwin"] {

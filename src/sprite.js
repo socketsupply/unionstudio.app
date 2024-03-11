@@ -155,6 +155,11 @@ class AppSprite extends Tonic {
             c0,0.7,0.5,1.3,1.2,1.3C84.6,70,85.1,69.4,85.1,68.7z"/>
         </symbol>
 
+        <symbol id="plus" viewBox="0 0 100 100">
+          <line fill="none" stroke="currentColor" stroke-width="4" stroke-miterlimit="0" x1="46.5" y1="15.4" x2="46.5" y2="86.7"/>
+          <line fill="none" stroke="currentColor" stroke-width="4" stroke-miterlimit="0" x1="82.2" y1="51.1" x2="10.9" y2="51.1"/>
+        </symbol>
+
         <symbol id="package" viewBox="0 0 100 100">
           <path fill="none" stroke="currentColor" stroke-width="2"
             d="M89.2,26.3L89.2,26.3L70,14.9L50.9,3.4l0,0c-0.1,0-0.1-0.1-0.2-0.1c-0.1,0-0.2,0-0.2,0.1l0,0l-38.5,23l0,0l-0.1,0.1
