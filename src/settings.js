@@ -17,9 +17,10 @@ const settings = {
   previewWindows: [
     {
       title: 'iPhone 15',
+      platform: 'ios',
       aspectRatio: '9:19.5',
       arch: 'arm64',
-      resolution: '1179×2556',
+      resolution: '1179x2556',
       active: true,
       radius: '48.5',
       margin: '6.0',
@@ -27,6 +28,7 @@ const settings = {
     },
     {
       title: 'Samsung Galaxy 23',
+      platform: 'android',
       aspectRatio: '9:19.5',
       arch: 'arm64',
       resolution: '1080x2340',
@@ -37,9 +39,10 @@ const settings = {
     },
     {
       title: 'iPad',
+      platform: 'ios',
       arch: 'arm64',
       aspectRatio: '4:3',
-      resolution: '1024×768',
+      resolution: '1024x768',
       radius: '48.5',
       margin: '6.0',
       active: false,

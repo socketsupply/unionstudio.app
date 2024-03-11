@@ -5,7 +5,7 @@ import fs from 'socket:fs'
 //
 // This is the path tho where our app data is stored
 //
-const filename = path.join(path.DATA, 'src', 'dummy.json')
+const filename = path.join(path.DATA, 'src', 'data.json')
 
 //
 // Read the file from the disk
@@ -20,5 +20,5 @@ const greetings = JSON.parse(data)
 //
 // Print some stuff
 //
-console.log(`${greetings.greeting1}, ${process.platform}!`)
+console.log(`${greetings.en}, ${process.platform}!`)
 

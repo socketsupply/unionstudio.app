@@ -5,7 +5,7 @@ html, body {
 
 @media (prefers-color-scheme: light) {
   body {
-    background: rgba(255, 255, 255, 1);
+    background: rgba(245, 245, 245, 1);
     color: rgba(54, 57, 61, 1);
   }
 }
@@ -22,4 +22,9 @@ body {
   justify-content: center;
   align-content: center;
   font-family: helvetica;
+}
+
+h1 {
+  --app-region: drag;
+  app-region: drag;
 }

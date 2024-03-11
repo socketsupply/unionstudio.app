@@ -100,11 +100,16 @@ class AppView extends Tonic {
         height = preview.resolution = size[1]
       }
 
+      let hostOS = process.platform
+
+      if (preview.platform === 'ios') hostOS = 'iphoneos'
+      if (preview.platform === 'android') hostOS = 'android'
+
       const opts = {
         __runtime_primordial_overrides__: {
           arch: 'arm64',
-          'host-operating-system': 'iphoneos',
-          platform: preview.platform
+          'host-operating-system': hostOS,
+          platform: preview.platform || process.platform
         },
         path: this.state.indexURL + `?zoom=${this.state.zoom[index] || '1'}`,
         index: index,
@@ -128,6 +133,7 @@ class AppView extends Tonic {
       }
 
       try {
+        console.log(opts)
         const w = await application.createWindow(opts)
 
         w.channel.addEventListener('message', e => {
