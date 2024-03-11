@@ -143,7 +143,6 @@ class AppProject extends Tonic {
     this.referenceNode = node
   }
 
-
   resetMouse () {
     this.mouseMoveThreshold = 0
     this.removeAttribute('dragging')
@@ -171,6 +170,7 @@ class AppProject extends Tonic {
         // dont copy it if it's going to the place it came from
         if (srcNode.id === destDir) return
         if (path.dirname(srcNode.id) === path.dirname(destNode.id)) return
+        if (path.dirname(srcNode.id) === destNode.id) return
 
         destDir = path.join(destDir, path.basename(srcNode.id))
 
@@ -291,6 +291,7 @@ class AppProject extends Tonic {
 
   async dblclick (e) {
     this.resetMouse()
+
     const el = Tonic.match(e.target, '[data-path]')
     if (!el) return
 
@@ -303,9 +304,10 @@ class AppProject extends Tonic {
     const input = document.createElement('input')
     input.dataset.event = 'rename'
     input.value = node.label
+    input.setAttribute('spellcheck', 'false')
     input.addEventListener('blur', () => {
       container.innerHTML = ''
-      container.textContent = node.label
+      container.textContent = n.writelnode.label
     })
 
     container.innerHTML = ''
@@ -331,14 +333,15 @@ class AppProject extends Tonic {
     const w = await application.getCurrentWindow()
     const value = await w.setContextMenu({
       value: `
-        New Folder: new-folder
-        New File: new-file
-        ---
         Cut: cut
         Copy: copy
         Paste: paste
         ---
         Delete: delete
+        ---
+        New Folder: new-folder
+        New File: new-file
+        Show Enclosing Folder: reveal-file
       `
     })
 
@@ -359,6 +362,11 @@ class AppProject extends Tonic {
       await fs.promises.writeFile(path.join(dirname, `new-file-${++this.createCount}.js`), Buffer.from(''))
       this.load()
       return
+    }
+
+    if (value === 'reveal-file') {
+      const w = await application.getCurrentWindow()
+      await w.revealFile(path.dirname(node.id))
     }
 
     if (value === 'copy') {

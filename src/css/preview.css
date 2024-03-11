@@ -1,0 +1,53 @@
+app-preview {
+  position: absolute;
+  top: 0; bottom: 0; left: 0; right: 0;
+  background: var(--tonic-background);
+}
+
+app-preview .container {
+  position: absolute;
+  top: 0px; bottom: 0px; left: 0px; right: 0px;
+}
+
+app-preview .device {
+  position: relative;
+  height: 100%;
+  border: 1px solid var(--tonic-border);
+  overflow: hidden;
+}
+
+app-preview .device iframe {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+}
+
+/* Source: https://github.com/kylebshr/ScreenCorners */
+
+app-preview .device[device="ios"] {
+  aspect-ratio: 9 / 19.5;
+  border-radius: 39px;
+  margin: 60px;
+}
+
+app-preview .device[device="ipad"] {
+  aspect-ratio: 3 / 4;
+  border-radius: 18px;
+  margin: 60px;
+}
+
+app-preview .device[device="darwin"] {
+  aspect-ratio: initial;
+  border-radius: 12px;
+  position: absolute;
+  top: 60px;
+  border-top: 1px solid var(--tonic-border);
+  left: 60px;
+  right: 60px;
+  bottom: 60px;
+  height: unset;
+}

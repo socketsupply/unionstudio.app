@@ -14,6 +14,19 @@ tonic-split .tonic--split-horizontal {
   border-top: 1px solid var(--tonic-border);
 }
 
+tonic-select .tonic--select {
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+tonic-select select:not([multiple]) {
+  padding: 6px 30px 6px 10px;
+}
+
+tonic-select .tonic--arrow:before {
+  top: 43%;
+}
+
 tonic-split .tonic--split-handle {
   z-index: 20 !important;
 }

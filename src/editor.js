@@ -102,12 +102,17 @@ class AppEditor extends Tonic {
 
   async writeToDisk (projectNode, data) {
     const app = document.querySelector('app-view')
+    const preview = document.querySelector('app-preview')
+
+    const zoom = this.props.parent.state.scaleFactor || '1'
 
     try {
       await fs.promises.writeFile(projectNode.id, data)
     } catch (err) {
       console.error(`Unable to write to ${dest}`, err)
     }
+
+    this.props.parent.reloadPreviewWindows()
   }
 
   async loadProjectNode (projectNode) {

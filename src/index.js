@@ -22,6 +22,9 @@ class AppView extends Tonic {
   constructor () {
     super()
     this.editors = {}
+    this.previewWindows = {}
+
+    this.setAttribute('platform', process.platform)
   }
 
   async installTemplates () {
@@ -54,11 +57,98 @@ class AppView extends Tonic {
     }
   }
 
+  async reloadPreviewWindows () {
+    clearTimeout(this.debounce)
+    this.debounce = setTimeout(() => {
+      console.log(this.previewWindows)
+      for (const w of Object.values(this.previewWindows)) {
+        w.navigate(this.state.indexURL + `?zoom=${this.state.zoom}`)
+      }
+    }, 128)
+  }
+
+  async activatePreviewWindows () {
+    if (!this.state.settings.previewWindows) {
+      console.log('can not find config')
+      return
+    }
+
+    if (!Array.isArray(this.state.settings.previewWindows)) {
+      console.log('expect settings.previewWindows to be of type Array<Object>')
+      return
+    }
+
+    for (const [k, v] of Object.entries(this.previewWindows)) {
+      await v.close() // destroy any existing preview windows
+    }
+
+    const screenSize = await application.getScreenSize()
+
+    for (let i = 0; i < this.state.settings.previewWindows.length; i++) {
+      const preview = this.state.settings.previewWindows[i]
+      if (!preview.active) continue
+
+      let width = screenSize.width * 0.6
+      let height = screenSize.height * 0.6
+      const scale = preview.scale || 1
+
+      if (/\d+x\d+/.test(preview.aspectRatio)) {
+        const size = preview.aspectRatio.split('x')
+        width = preview.aspectRatio = size[0]
+        height = preview.aspectRatio = size[1]
+      }
+
+      const opts = {
+        __runtime_primordial_overrides__: {
+          arch: 'arm64',
+          'host-operating-system': 'iphoneos',
+          platform: 'ios'
+        },
+        path: this.state.indexURL + `?zoom=${this.state.zoom || '1'}`,
+        index: i + 1,
+        frameless: preview.frameless,
+        closable: false,
+        maximizable: false,
+        radius: preview.radius, // ie '48.5',
+        margin: preview.margin, // ie '6.0',
+        title: preview.title,
+        titleBarStyle: preview.titleBarStyle, // ie 'hiddenInset'
+        trafficLightPosition: preview.trafficLightPosition, // ie '10x26'
+        aspectRatio: preview.aspectRatio, // ie '9:19.5'
+        width: Math.floor(width / scale),
+        height: Math.floor(height / scale)
+      }
+
+      if (scale > 1) {
+        opts.userScript = this.state.userScript
+        opts.minWidth = Math.floor(width / scale)
+        opts.minHeight = Math.floor(height / scale)
+      }
+
+      console.log(preview, opts)
+
+      const w = await application.createWindow(opts)
+
+      w.channel.addEventListener('message', e => {
+        this.previewWindows[w.index].zoom = e.data.zoom || 1
+      })
+
+      this.previewWindows[w.index] = w
+    }
+  }
+
   async init () {
     //
     // TODO(@heapwolf): make this.state.cwd confirgurable
     //
-    this.state.cwd = path.join(process.env.HOME, '.local', 'share', 'socket-app-studio')
+    const mount = '/user/home'
+    this.state.navigatorPath = path.DATA.replace(path.HOME, mount)
+    this.state.cwd = path.DATA
+
+    const res = await fetch('./preview.js')
+    this.state.userScript = await res.text()
+
+    await navigator.serviceWorker.ready
 
     let projectExists
 
@@ -82,13 +172,13 @@ class AppView extends Tonic {
         const str = await fs.promises.readFile(settingsFile, 'utf8')
         this.state.settings = JSON.parse(str)
 
-        fs.watch(settingsFile, async () => {
+        /* fs.watch(settingsFile, async () => {
           const editor = document.querySelector('app-editor')
           if (editor) {
             this.state.settings = await fs.promises.readFile(settingsFile, 'utf8')
             editor.refreshSettings()
           }
-        })
+        }) */
       } catch (err) {
         notifications.create({
           type: 'error',
@@ -97,6 +187,15 @@ class AppView extends Tonic {
         })
       }
     }
+
+    let webviewRoot = 'src'
+
+    if (this.state.settings.root) {
+      webviewRoot = this.state.settings.root
+    }
+
+    this.state.indexURL = path.join('/preview', webviewRoot, 'index.html')
+    this.activatePreviewWindows()
   }
 
   //
@@ -333,155 +432,15 @@ class AppView extends Tonic {
 
   async connected () {
     this.setupWindow()
-
-    /* const tree = {
-      id: 'root',
-      children: []
-    }
-
-    const node = {
-      id: 'project',
-      selected: 0,
-      state: 1,
-      type: 'dir',
-      label: 'Project',
-      children: [
-        {
-          id: 'src',
-          selected: 0,
-          state: 1,
-          type: 'dir',
-          label: 'src',
-          children: [
-            {
-              id: 'src/index.css',
-              label: 'index.css',
-              data: await fs.promises.readFile('templates/index.css', 'utf8'),
-              icon: 'file',
-              language: 'css',
-              selected: 0,
-              state: 0,
-              children: []
-            },
-            {
-              id: 'src/index.html',
-              label: 'index.html',
-              data: await fs.promises.readFile('templates/index.html', 'utf8'),
-              icon: 'file',
-              language: 'html',
-              selected: 0,
-              state: 0,
-              children: []
-            },
-            {
-              id: 'src/index.js',
-              label: 'index.js',
-              data: await fs.promises.readFile('templates/index.js', 'utf8'),
-              language: 'javascript',
-              icon: 'file',
-              selected: 1,
-              state: 1,
-              children: []
-            }
-          ]
-        },
-        {
-          id: 'icon.assets',
-          label: 'icon.assets',
-          data: await fs.promises.readFile('templates/icons/icon.png'),
-          icon: 'file',
-          selected: 0,
-          state: 0,
-          children: []
-        },
-        {
-          id: 'socket.ini',
-          label: 'socket.ini',
-          data: await fs.promises.readFile('templates/socket.ini', 'utf8'),
-          icon: 'file',
-          language: 'ini',
-          selected: 0,
-          state: 0,
-          children: []
-        }
-      ]
-    }
-
-    tree.children.push(node)
-
-    tree.children.push({
-      id: 'examples',
-      selected: 0,
-      state: 0,
-      label: 'Examples',
-      children: [
-        {
-          id: 'examples/buffers.js',
-          label: 'buffers.js',
-          data: await fs.promises.readFile('examples/buffers.js', 'utf8'),
-          language: 'javascript',
-          icon: 'file',
-          selected: 0,
-          state: 0,
-          children: []
-        },
-        {
-          id: 'examples/child_process.js',
-          label: 'child_process.js',
-          data: await fs.promises.readFile('examples/child_process.js', 'utf8'),
-          language: 'javascript',
-          icon: 'file',
-          selected: 0,
-          state: 0,
-          children: []
-        },
-        {
-          id: 'examples/network.js',
-          label: 'network.js',
-          data: await fs.promises.readFile('examples/network.js', 'utf8'),
-          language: 'javascript',
-          icon: 'file',
-          selected: 0,
-          state: 0,
-          children: []
-        },
-        {
-          id: 'examples/path.js',
-          label: 'path.js',
-          data: await fs.promises.readFile('examples/path.js', 'utf8'),
-          language: 'javascript',
-          icon: 'file',
-          selected: 0,
-          state: 0,
-          children: []
-        },
-        {
-          id: 'examples/require.js',
-          label: 'require.js',
-          data: await fs.promises.readFile('examples/require.js', 'utf8'),
-          language: 'javascript',
-          icon: 'file',
-          selected: 0,
-          state: 0,
-          children: []
-        }
-      ]
-    })
-
-    this.state.tree = tree
-
-    const project = document.querySelector('app-project')
-    project.load(this.state.tree)
-
-    const editor = document.querySelector('app-editor')
-    editor.loadProjectNode(node.children[0].children[2]) */
   }
 
   async render () {
     await this.init()
 
     return this.html`
-      <header>
+      <header movable>
+        <span class="spacer"></span>
+
         <tonic-button type="icon" size="18px" symbol-id="play" title="Build & Run The Project" data-event="run">
         </tonic-button>
 
@@ -495,6 +454,8 @@ class AppView extends Tonic {
 
         <tonic-button type="icon" size="18px" symbol-id="refresh" title="Evalulate The Current Code In The Editor" data-event="eval">
         </tonic-button>
+
+        <span class="spacer"></span>
       </header>
 
       <tonic-split id="split-main" type="vertical">

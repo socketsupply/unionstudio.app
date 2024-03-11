@@ -176,8 +176,39 @@ class AppProperties extends Tonic {
       data = this.state.data
     }
 
+    const settings = this.props.parent.state.settings
+    const previewWindows = []
+
+    if (settings?.previewWindows) {
+      let index = 0
+
+      if (Array.isArray(settings.previewWindows)) {
+        for (const w of settings.previewWindows) {
+          if (!w.title) continue
+          previewWindows.push(this.html`
+            <tonic-checkbox
+              id="${w.title}-${String(index++)}"
+              data-event="preview"
+              checked="${String(w.active)}"
+              data-aspect-ratio="${w.aspectRatio}"
+              data-resolution="${w.resolution}"
+              label="${w.title}"
+              title="${w.description || ''}"
+            ></tonic-checkbox>
+          `)
+        }
+      }
+    }
+
     return this.html`
       <tonic-accordion id="options">
+        <tonic-accordion-section
+          name="preview-windows"
+          id="preview-windows"
+          label="Preview Windows"
+        >
+          ${previewWindows}
+        </tonic-accordion-section>
         <tonic-accordion-section
           name="application"
           id="application"
