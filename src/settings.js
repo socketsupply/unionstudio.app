@@ -19,6 +19,7 @@ const settings = {
       title: 'iPhone 15',
       platform: 'ios',
       aspectRatio: '9:19.5',
+      device: 'iphone-15',
       arch: 'arm64',
       resolution: '1179x2556',
       active: true,
@@ -29,6 +30,7 @@ const settings = {
     {
       title: 'Samsung Galaxy 23',
       platform: 'android',
+      device: 'galaxy-23',
       aspectRatio: '9:19.5',
       arch: 'arm64',
       resolution: '1080x2340',
@@ -40,6 +42,7 @@ const settings = {
     {
       title: 'iPad',
       platform: 'ios',
+      device: 'ipad-10',
       arch: 'arm64',
       aspectRatio: '4:3',
       resolution: '1024x768',

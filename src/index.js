@@ -62,7 +62,12 @@ class AppView extends Tonic {
     clearTimeout(this.debounce)
     this.debounce = setTimeout(() => {
       for (const w of Object.values(this.previewWindows)) {
-        w.navigate(this.state.indexURL + `?zoom=${this.state.zoom[w.index]}`)
+        const indexParams = new URLSearchParams({
+          device: w.device,
+          zoom: this.state.zoom[w.index] || '1'
+        }).toString()
+
+        w.navigate([this.state.indexURL, indexParams].join('?'))
       }
     }, 128)
   }
@@ -93,6 +98,7 @@ class AppView extends Tonic {
       let height = screenSize.height * 0.6
       const index = i + 1
       const scale = preview.scale || 1
+      const platform = preview.platform || process.platform
 
       if (/\d+x\d+/.test(preview.resolution)) {
         const size = preview.resolution.split('x')
@@ -105,13 +111,18 @@ class AppView extends Tonic {
       if (preview.platform === 'ios') hostOS = 'iphoneos'
       if (preview.platform === 'android') hostOS = 'android'
 
+      const indexParams = new URLSearchParams({
+        device: preview.device,
+        zoom: this.state.zoom[index] || '1'
+      }).toString()
+
       const opts = {
         __runtime_primordial_overrides__: {
           arch: 'arm64',
           'host-operating-system': hostOS,
-          platform: preview.platform || process.platform
+          platform
         },
-        path: this.state.indexURL + `?zoom=${this.state.zoom[index] || '1'}`,
+        path: [this.state.indexURL, indexParams].join('?'),
         index: index,
         frameless: preview.frameless,
         closable: false,
@@ -133,8 +144,8 @@ class AppView extends Tonic {
       }
 
       try {
-        console.log(opts)
         const w = await application.createWindow(opts)
+        w.device = preview.device
 
         w.channel.addEventListener('message', e => {
           this.state.zoom[w.index] = e.data.zoom || 1

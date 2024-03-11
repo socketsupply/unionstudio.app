@@ -14,12 +14,32 @@ export default async function (req, env, ctx) {
   if (!route) return
 
   const p = path.join(navigatorPath, route.pathname.groups[0])
-
+  const params = url.searchParams
   const res = await fetch(p)
+
   let data = await res.text()
+  let css = ``
+
+  if (params.get('device') === 'iphone-15') {
+    css = `
+      #SOCKET_NOTCH {
+        position: fixed;
+        top: 2%;
+        left: 50%;
+        width: 35%;
+        transform: translateX(-50%);
+        height: 4%;
+        border-radius: 50px;
+        background: black;
+        opacity: 0.1;
+        z-index: 1000;
+      }
+    `
+  }
 
   if (url.pathname.endsWith('index.html')) {
-    data = data.replace(/<html(?:[^\n\r]*)>/, `<html style="zoom: ${url.searchParams.get('zoom')}">`)
+    data = data.replace(/<html(?:[^\n\r]*)>/, `<html style="zoom: ${params.get('zoom')}">`)
+    data = data.replace('</body>', `<style>${css}</style><div id="SOCKET_NOTCH"></div></body>`)
   }
 
   const types = await lookup(path.extname(url.pathname).slice(1))
