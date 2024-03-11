@@ -22,6 +22,7 @@ class AppView extends Tonic {
   constructor () {
     super()
     this.editors = {}
+    this.state.zoom = {}
     this.previewWindows = {}
 
     this.setAttribute('platform', process.platform)
@@ -62,7 +63,7 @@ class AppView extends Tonic {
     this.debounce = setTimeout(() => {
       console.log(this.previewWindows)
       for (const w of Object.values(this.previewWindows)) {
-        w.navigate(this.state.indexURL + `?zoom=${this.state.zoom}`)
+        w.navigate(this.state.indexURL + `?zoom=${this.state.zoom[w.index]}`)
       }
     }, 128)
   }
@@ -79,6 +80,7 @@ class AppView extends Tonic {
     }
 
     for (const [k, v] of Object.entries(this.previewWindows)) {
+      delete this.state.zoom[k]
       await v.close() // destroy any existing preview windows
     }
 
@@ -90,22 +92,23 @@ class AppView extends Tonic {
 
       let width = screenSize.width * 0.6
       let height = screenSize.height * 0.6
+      const index = i + 1
       const scale = preview.scale || 1
 
-      if (/\d+x\d+/.test(preview.aspectRatio)) {
-        const size = preview.aspectRatio.split('x')
-        width = preview.aspectRatio = size[0]
-        height = preview.aspectRatio = size[1]
+      if (/\d+x\d+/.test(preview.resolution)) {
+        const size = preview.resolution.split('x')
+        width = preview.resolution = size[0]
+        height = preview.resolution = size[1]
       }
 
       const opts = {
         __runtime_primordial_overrides__: {
           arch: 'arm64',
           'host-operating-system': 'iphoneos',
-          platform: 'ios'
+          platform: preview.platform
         },
-        path: this.state.indexURL + `?zoom=${this.state.zoom || '1'}`,
-        index: i + 1,
+        path: this.state.indexURL + `?zoom=${this.state.zoom[index] || '1'}`,
+        index: index,
         frameless: preview.frameless,
         closable: false,
         maximizable: false,
@@ -125,12 +128,10 @@ class AppView extends Tonic {
         opts.minHeight = Math.floor(height / scale)
       }
 
-      console.log(preview, opts)
-
       const w = await application.createWindow(opts)
 
       w.channel.addEventListener('message', e => {
-        this.previewWindows[w.index].zoom = e.data.zoom || 1
+        this.state.zoom[w.index] = e.data.zoom || 1
       })
 
       this.previewWindows[w.index] = w
