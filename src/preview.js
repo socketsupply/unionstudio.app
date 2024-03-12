@@ -1,16 +1,19 @@
 import application from 'socket:application'
+import { inspect } from 'socket:util'
 
 globalThis.RUNTIME_APPLICATION_ALLOW_MULTI_WINDOWS = true
 
 const currentWindow = await application.getCurrentWindow()
-
-const oldLog = console.log
-
 setTimeout(() => {
-  globalThis.console.log = (...args) => {
-    currentWindow.channel.postMessage({
-      log: args
-    })
+  const consoleMethods = ['log', 'error', 'info', 'warn', 'debug']
+  for (const method of consoleMethods) {
+    const original = console[method]
+    globalThis.console[method] = (...args) => {
+      original.call(console, ...args)
+      currentWindow.channel.postMessage({
+        [method]: [inspect(...args)]
+      })
+    }
   }
 }, 2048)
 
