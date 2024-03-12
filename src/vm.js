@@ -19,6 +19,8 @@ export async function init (options) {
     port.start()
   }
 
+  const { log, info, warn, debug, error } = globalThis.console
+
   Object.assign(globalThis.console, {
     log (...args) {
       if (!port) {
@@ -29,7 +31,21 @@ export async function init (options) {
         .map(getTransferables)
         .reduce((array, transfer) => array.concat(transfer), [])
 
+      log.call(globalThis, ...args)
       port.postMessage({ method: 'console.log', args }, { transfer })
+    },
+
+    info (...args) {
+      if (!port) {
+        return
+      }
+
+      const transfer = args
+        .map(getTransferables)
+        .reduce((array, transfer) => array.concat(transfer), [])
+
+      info.call(globalThis, ...args)
+      port.postMessage({ method: 'console.info', args }, { transfer })
     },
 
     error (...args) {
@@ -41,7 +57,21 @@ export async function init (options) {
         .map(getTransferables)
         .reduce((array, transfer) => array.concat(transfer), [])
 
+      error.call(globalThis, ...args)
       port.postMessage({ method: 'console.error', args }, { transfer })
+    },
+
+    warn (...args) {
+      if (!port) {
+        return
+      }
+
+      const transfer = args
+        .map(getTransferables)
+        .reduce((array, transfer) => array.concat(transfer), [])
+
+      warn.call(globalThis, ...args)
+      port.postMessage({ method: 'console.warn', args }, { transfer })
     },
 
     debug (...args) {
@@ -53,8 +83,9 @@ export async function init (options) {
         .map(getTransferables)
         .reduce((array, transfer) => array.concat(transfer), [])
 
+      debug.call(globalThis, ...args)
       port.postMessage({ method: 'console.debug', args }, { transfer })
-    },
+    }
   })
 }
 

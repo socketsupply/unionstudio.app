@@ -253,25 +253,37 @@ main-component {
 
 header {
   display: grid;
-  grid-template-columns: 34px 250px 34px 1fr 150px;
+  grid-template-columns: 68px 1fr 34px 250px 34px 1fr 34px 34px;
   gap: 12px;
   grid-template-rows: auto;
   align-content: center;
-  height: 82px;
+  height: 50px;
   padding: 0 12px;
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
+  cursor: default;
+  app-region: drag; /* windows */
+  --app-region: drag; /* mac & linux */
+}
+
+header [platform="darwin"] {
+  padding-left: 35%;
+  padding-right: 35%;
 }
 
 #split-main {
-  top: 80px;
+  top: 50px;
   border-top: 1px solid var(--tonic-border);
 }
 
 #split-main tonic-split-right {
   overflow: auto;
+}
+
+.monaco-menu-container {
+  z-index: 10000 !important; /* Adjust the value as needed */
 }
 
 .monaco-editor .view-lines, .monaco-editor .view-lines * {
@@ -287,6 +299,10 @@ header {
   bottom: 0;
   width: 1px;
   border-right: 1px solid var(--tonic-border);
+}
+
+.monaco-editor .margin-view-overlays .line-numbers {
+  color: var(--tonic-info);
 }
 
 .monaco-editor .scroll-decoration {

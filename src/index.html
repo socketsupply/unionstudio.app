@@ -6,10 +6,13 @@
     <meta
       http-equiv="Content-Security-Policy"
       content="
-        connect-src data: socket://* http://localhost:8081 ipc://*;
-        img-src 'self' https: data: file: blob:;
-        worker-src blob: socket: 'unsafe-eval' 'unsafe-inline';
-        object-src 'self' blob:;
+        connect-src socket: https: http: blob: ipc: wss: ws: ws://localhost:*;
+         script-src socket: https: http: blob: http://localhost:* 'unsafe-eval' 'unsafe-inline';
+         worker-src socket: https: http: blob: 'unsafe-eval' 'unsafe-inline';
+          frame-src socket: https: http: blob: http://localhost:*;
+            img-src socket: https: http: blob: data: http://localhost:*;
+          child-src socket: https: http: blob:;
+         object-src 'none';
       "
     >
     <link rel="stylesheet" href="css/fonts.css">
@@ -17,6 +20,7 @@
     <link rel="stylesheet" href="css/editor.main.css">
     <link rel="stylesheet" href="css/tonic-overrides.css">
     <link rel="stylesheet" href="css/xterm.css">
+    <link rel="stylesheet" href="css/preview.css">
     <link rel="stylesheet" href="css/project.css">
     <link rel="stylesheet" href="css/index.css">
   </head>

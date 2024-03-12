@@ -3,17 +3,17 @@ import path from 'socket:path'
 import process from 'socket:process'
 import application from 'socket:application'
 import vm from 'socket:vm'
-import { format } from 'socket:util'
-import { spawn } from 'socket:child_process'
+import { inspect, format } from 'socket:util'
+import { spawn, exec } from 'socket:child_process'
 
 import Tonic from '@socketsupply/tonic'
 import components from '@socketsupply/components'
 
-import { AppTerminal } from './terminal.js'
-import { AppProject } from './project.js'
-import { AppProperties } from './properties.js'
-import { AppSprite } from './sprite.js'
-import { AppEditor } from './editor.js'
+import { AppTerminal } from './components/terminal.js'
+import { AppProject } from './components/project.js'
+import { AppProperties } from './components/properties.js'
+import { AppSprite } from './components/sprite.js'
+import { AppEditor } from './components/editor.js'
 
 components(Tonic)
 
@@ -21,12 +21,279 @@ class AppView extends Tonic {
   constructor () {
     super()
     this.editors = {}
-    this.init()
+    this.state.zoom = {}
+    this.previewWindows = {}
+
+    this.setAttribute('platform', process.platform)
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+      this.reloadPreviewWindows()
+    })
+
+    window.addEventListener('close', async e => {
+      const data = e.detail.data
+
+      const previewWindowSettings = this.state.settings.previewWindows[data - 1]
+      if (!previewWindowSettings) return
+
+      previewWindowSettings.active = false
+
+      // we will need to update the properties panel to reflect the new state
+      const coProperties = document.querySelector('app-properties')
+      coProperties.reRender()
+
+      const currentProject = this.state.currentProject
+      const notifications = document.querySelector('#notifications')
+
+      // if the user currently has the config file open in the editor...
+      if (currentProject.label === 'settings.json' && currentProject.parent.id === 'root') {
+        const coEditor = document.querySelctor('app-editor')
+
+        try {
+          coEditor.value = JSON.stringify(this.state.settings, null, 2)
+        } catch (err) {
+          return notifications.create({
+            type: 'error',
+            title: 'Unable to save config file',
+            message: err.message
+          })
+        }
+      }
+
+      // write the settings file to disk, its a well known location
+      try {
+        const pathToSettingsFile = path.join(path.DATA, 'projects', 'settings.json')
+        await fs.promises.writeFile(pathToSettingsFile, JSON.stringify(this.state.settings))
+      } catch (err) {
+        return notifications.create({
+          type: 'error',
+          title: 'Unable to save config file',
+          message: err.message
+        })
+      }
+    })
+  }
+
+  async installTemplates () {
+    const readDir = async (dirPath) => {
+      const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
+
+      for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name)
+
+        if (entry.isDirectory()) {
+          try {
+            await readDir(fullPath)
+          } catch (err) {
+            console.error(`Error reading directory ${fullPath}:`, err)
+          }
+        } else {
+          const file = await fs.promises.readFile(fullPath)
+          const basePath = path.relative('template', fullPath)
+          const destPath = path.join(path.DATA, 'projects', basePath)
+          await fs.promises.mkdir(path.dirname(destPath), { recursive: true })
+          await fs.promises.writeFile(destPath, file)
+        }
+      }
+    }
+
+    try {
+      await readDir('template')
+    } catch (err) {
+      console.error('Error initiating read directory operation:', err)
+    }
+  }
+
+  getCurrentProjectPath () {
+    let currentProjectPath = this.state.currentProject?.id
+
+    if (!currentProjectPath) {
+      currentProjectPath = path.join(path.DATA, 'projects', 'demo-project')
+    }
+
+    currentProjectPath = path.join(currentProjectPath, this.state.settings.rootFile)
+    return currentProjectPath.replace(path.DATA, '/preview')
+  }
+
+  async reloadPreviewWindows () {
+    clearTimeout(this.debounce)
+    this.debounce = setTimeout(() => {
+      const currentProjectPath = this.getCurrentProjectPath() 
+
+      for (const w of Object.values(this.previewWindows)) {
+        const indexParams = new URLSearchParams({
+          device: w.device,
+          zoom: this.state.zoom[w.index] || '1'
+        }).toString()
+
+        w.navigate([currentProjectPath, indexParams].join('?'))
+      }
+    }, 128)
+  }
+
+  async activatePreviewWindows () {
+    if (!this.state.settings.previewWindows) {
+      console.log('can not find config')
+      return
+    }
+
+    if (!Array.isArray(this.state.settings.previewWindows)) {
+      console.log('expect settings.previewWindows to be of type Array<Object>')
+      return
+    }
+
+    for (const [k, v] of Object.entries(this.previewWindows)) {
+      delete this.state.zoom[k]
+      await v.close() // destroy any existing preview windows
+    }
+
+    if (!this.state.userScript) {
+      const res = await fetch('./preview.js')
+      this.state.userScript = await res.text()
+    }
+
+    const term = document.querySelector('app-terminal')
+    const screenSize = await application.getScreenSize()
+
+    for (let i = 0; i < this.state.settings.previewWindows.length; i++) {
+      const preview = this.state.settings.previewWindows[i]
+      if (!preview.active) continue
+
+      let width = screenSize.width * 0.6
+      let height = screenSize.height * 0.6
+      const index = i + 1
+      const scale = preview.scale || 1
+      const platform = preview.platform || process.platform
+
+      if (/\d+x\d+/.test(preview.resolution)) {
+        const size = preview.resolution.split('x')
+        width = preview.resolution = size[0]
+        height = preview.resolution = size[1]
+      }
+
+      let hostOS = process.platform
+
+      if (preview.platform === 'ios') hostOS = 'iphoneos'
+      if (preview.platform === 'android') hostOS = 'android'
+
+      const indexParams = new URLSearchParams({
+        device: preview.device,
+        zoom: this.state.zoom[index] || '1'
+      }).toString()
+
+      let currentProjectPath = this.getCurrentProjectPath() 
+
+      const opts = {
+        __runtime_primordial_overrides__: {
+          arch: 'arm64',
+          'host-operating-system': hostOS,
+          platform
+        },
+        config: {
+          webview_auto_register_service_workers: false,
+          webview_service_worker_frame: false
+        },
+        path: [currentProjectPath, indexParams].join('?'),
+        index: index,
+        frameless: preview.frameless,
+        closable: true,
+        maximizable: false,
+        radius: preview.radius, // ie '48.5',
+        margin: preview.margin, // ie '6.0',
+        title: preview.title,
+        titleBarStyle: preview.titleBarStyle, // ie 'hiddenInset'
+        trafficLightPosition: preview.trafficLightPosition, // ie '10x26'
+        aspectRatio: preview.aspectRatio, // ie '9:19.5'
+        width: Math.floor(width / scale),
+        height: Math.floor(height / scale)
+      }
+
+      if (scale > 1) {
+        opts.userScript = this.state.userScript
+        opts.minWidth = Math.floor(width / scale)
+        opts.minHeight = Math.floor(height / scale)
+      }
+
+      try {
+        const w = await application.createWindow(opts)
+        w.device = preview.device
+
+        w.channel.addEventListener('message', e => {
+          if (e.data.log) {
+            return term.writeln(e.data.log.join(' '))
+          }
+
+          if (e.data.debug) {
+            return term.writeln(e.data.debug.join(' '))
+          }
+
+          if (e.data.error) {
+            return term.error(e.data.error.join(' '))
+          }
+
+          if (e.data.warn) {
+            return term.warn(e.data.warn.join(' '))
+          }
+
+          if (e.data.info) {
+            return term.info(e.data.info.join(' '))
+          }
+
+          this.state.zoom[w.index] = e.data.zoom || 1
+        })
+
+        this.previewWindows[w.index] = w
+      } catch {}
+    }
   }
 
   async init () {
-    this.state.cwd = path.join(process.env.HOME, '.local', 'share', 'socket-app-studio')
-    await fs.promises.mkdir(path.join(this.state.cwd, 'src'), { recursive: true })
+    await navigator.serviceWorker.ready
+
+    const notifications = document.querySelector('#notifications')
+    const settingsFile = path.join(path.DATA, 'projects', 'settings.json')
+
+    let exists
+    let settings
+
+    try {
+      exists = await fs.promises.stat(settingsFile)
+    } catch (err) {
+      console.log(err)
+    }
+
+    if (!exists) {
+      const defaultProjectDir = path.join(path.DATA, 'projects', 'demo-project')
+      await fs.promises.mkdir(defaultProjectDir, { recursive: true })
+      await this.installTemplates()
+    }
+
+    try {
+      settings = JSON.parse(await fs.promises.readFile(settingsFile, 'utf8'))
+    } catch {
+      // NOPE
+      return
+    }
+
+    this.state.settings = settings
+
+    this.activatePreviewWindows()
+  }
+
+
+  async createProject () {
+    const dest = path.join(path.DATA, 'projects', 'new-project')
+    await fs.promises.mkdir(dest, { recursive: true })
+
+    //
+    // TODO(@heapwolf) check that exec is accepting cwd correctly
+    //
+    const c = await spawn('ssc', ['init'], { stdin: false, cwd: dest })
+
+    c.on('exit', () => {
+      const project = document.querySelector('app-project')
+      project.load()
+    })
   }
 
   //
@@ -36,38 +303,16 @@ class AppView extends Tonic {
     const project = document.querySelector('app-project')
     const node = project.getNodeByProperty('id', 'project')
 
-    const paths = {}
-    project.walk(project.state.tree.children[0], child => {
-      if (child.type === 'dir') return
-
-      let dir = child.id
-      let data = child.data
-
-      if (child.id.includes('icon.assets')) {
-        if (process.platform === 'win') {
-          data = convertToICO(node.data)
-          dir = path.join('icons', 'icon.ico')
-        } else {
-          dir = path.join('icons', 'icon.png')
-        }       
-      }
-
-      paths[path.join(this.state.cwd, dir)] = data
-    })
-
-    for (const [pathToFile, data] of Object.entries(paths)) {
-      await fs.promises.mkdir(path.dirname(pathToFile), { recursive: true })
-      await fs.promises.writeFile(pathToFile, data)
-    }
-
     const args = [
       'build',
-      '-r',
-      '-w'
+      '-r'
+      // TODO allow config for -w
     ]
 
     const coDevice = document.querySelector('#device')
-    if (coDevice.option.dataset.value) args.push(coDevice.option.dataset.value)
+    if (coDevice.option.dataset.value) {
+      args.push(coDevice.option.dataset.value) // --platform=P
+    }
 
     const term = document.querySelector('app-terminal')
     term.info(`ssc ${args.join(' ')}`)
@@ -86,7 +331,8 @@ class AppView extends Tonic {
     }
 
     term.info('Running new instance of app')
-    const c = this.childprocess = await spawn('ssc', args, { stdin: false, cwd: this.state.cwd })
+    const cwd = this.state.currentProject.id
+    const c = this.childprocess = await spawn('ssc', args, { stdin: false, cwd })
 
     c.stdout.on('data', data => {
       term.writeln(Buffer.from(data).toString().trim())
@@ -129,9 +375,9 @@ class AppView extends Tonic {
       ;
 
       File:
-        Export Project: s + CommandOrControl
+        New Project: n + CommandOrControl
         ---
-        Reset Project: _
+        Reset Demo Project: _
       ;
 
       Edit:
@@ -157,7 +403,7 @@ class AppView extends Tonic {
       ;
 
       Build & Run:
-        Evaluate Editor Source: E + CommandOrControl + Shift
+        Evaluate Editor Source: r + CommandOrControl + Shift
         ---
         Android: s + CommandOrControl
         iOS: s + CommandOrControl
@@ -184,6 +430,11 @@ class AppView extends Tonic {
 
       case 'Evaluate Editor Source': {
         this.eval().catch(err => console.error(err))
+        break
+      }
+
+      case 'New Project': {
+        this.createProject()
         break
       }
 
@@ -217,15 +468,23 @@ class AppView extends Tonic {
 
     channel.port1.onmessage = ({ data }) => {
       if (data.method === 'console.log') {
-        term.writeln(format(...data.args))
+        term.writeln(inspect(...data.args))
       }
 
       if (data.method === 'console.error') {
-        term.writeln(format(...data.args))
+        term.error(inspect(...data.args))
+      }
+
+      if (data.method === 'console.warn') {
+        term.warn(inspect(...data.args))
+      }
+
+      if (data.method === 'console.info') {
+        term.info(inspect(...data.args))
       }
 
       if (data.method === 'console.debug') {
-        term.writeln(format(...data.args))
+        term.writeln(inspect(...data.args))
       }
     }
 
@@ -261,153 +520,16 @@ class AppView extends Tonic {
 
   async connected () {
     this.setupWindow()
-
-    const tree = {
-      id: 'root',
-      children: []
-    }
-
-    const node = {
-      id: 'project',
-      selected: 0,
-      state: 1,
-      type: 'dir',
-      label: 'Project',
-      children: [
-        {
-          id: 'src',
-          selected: 0,
-          state: 1,
-          type: 'dir',
-          label: 'src',
-          children: [
-            {
-              id: 'src/index.css',
-              label: 'index.css',
-              data: await fs.promises.readFile('templates/index.css', 'utf8'),
-              icon: 'file',
-              language: 'css',
-              selected: 0,
-              state: 0,
-              children: []
-            },
-            {
-              id: 'src/index.html',
-              label: 'index.html',
-              data: await fs.promises.readFile('templates/index.html', 'utf8'),
-              icon: 'file',
-              language: 'html',
-              selected: 0,
-              state: 0,
-              children: []
-            },
-            {
-              id: 'src/index.js',
-              label: 'index.js',
-              data: await fs.promises.readFile('templates/index.js', 'utf8'),
-              language: 'javascript',
-              icon: 'file',
-              selected: 1,
-              state: 1,
-              children: []
-            }
-          ]
-        },
-        {
-          id: 'icon.assets',
-          label: 'icon.assets',
-          data: await fs.promises.readFile('templates/icons/icon.png'),
-          icon: 'file',
-          selected: 0,
-          state: 0,
-          children: []
-        },
-        {
-          id: 'socket.ini',
-          label: 'socket.ini',
-          data: await fs.promises.readFile('templates/socket.ini', 'utf8'),
-          icon: 'file',
-          language: 'ini',
-          selected: 0,
-          state: 0,
-          children: []
-        }
-      ]
-    }
-
-    tree.children.push(node)
-
-    tree.children.push({
-      id: 'examples',
-      selected: 0,
-      state: 0,
-      label: 'Examples',
-      children: [
-        {
-          id: 'examples/buffers.js',
-          label: 'buffers.js',
-          data: await fs.promises.readFile('examples/buffers.js', 'utf8'),
-          language: 'javascript',
-          icon: 'file',
-          selected: 0,
-          state: 0,
-          children: []
-        },
-        {
-          id: 'examples/child_process.js',
-          label: 'child_process.js',
-          data: await fs.promises.readFile('examples/child_process.js', 'utf8'),
-          language: 'javascript',
-          icon: 'file',
-          selected: 0,
-          state: 0,
-          children: []
-        },
-        {
-          id: 'examples/network.js',
-          label: 'network.js',
-          data: await fs.promises.readFile('examples/network.js', 'utf8'),
-          language: 'javascript',
-          icon: 'file',
-          selected: 0,
-          state: 0,
-          children: []
-        },
-        {
-          id: 'examples/path.js',
-          label: 'path.js',
-          data: await fs.promises.readFile('examples/path.js', 'utf8'),
-          language: 'javascript',
-          icon: 'file',
-          selected: 0,
-          state: 0,
-          children: []
-        },
-        {
-          id: 'examples/require.js',
-          label: 'require.js',
-          data: await fs.promises.readFile('examples/require.js', 'utf8'),
-          language: 'javascript',
-          icon: 'file',
-          selected: 0,
-          state: 0,
-          children: []
-        }
-      ]
-    })
-
-    this.state.tree = tree
-
-    const project = document.querySelector('app-project')
-    project.load(this.state.tree)
-
-    const editor = document.querySelector('app-editor')
-    editor.loadProjectNode(node.children[0].children[2])
   }
 
-  render () {
+  async render () {
+    await this.init()
+
     return this.html`
       <header>
+        <span class="spacer"></span>
+        <span class="spacer"></span>
+
         <tonic-button type="icon" size="18px" symbol-id="play" title="Build & Run The Project" data-event="run">
         </tonic-button>
 
@@ -419,7 +541,25 @@ class AppView extends Tonic {
           <option value="win32" data-value="" disabled>Windows</option>
         </tonic-select>
 
-        <tonic-button type="icon" size="18px" symbol-id="refresh" title="Evalulate The Current Code In The Editor" data-event="eval">
+        <tonic-button type="icon" size="18px" symbol-id="eval" title="Evalulate The Current Code In The Editor" data-event="eval">
+        </tonic-button>
+
+        <span class="spacer"></span>
+        <tonic-button
+          type="icon"
+          size="18px"
+          symbol-id="plus"
+          title="Add a shared project"
+          data-event="get-share"
+        >
+        </tonic-button>
+        <tonic-button
+          type="icon"
+          size="18px"
+          symbol-id="link"
+          title="Share this project"
+          data-event="put-share"
+        >
         </tonic-button>
       </header>
 
@@ -427,16 +567,16 @@ class AppView extends Tonic {
         <tonic-split-left width="80%">
           <tonic-split id="split-editor" type="vertical">
             <tonic-split-left width="25%">
-              <app-project id="app-project"></app-project>
+              <app-project id="app-project" parent=${this}></app-project>
             </tonic-split-left>
 
             <tonic-split-right width="75%">
               <tonic-split id="split-input" type="horizontal">
                 <tonic-split-top height="80%">
-                  <app-editor id="editor"></app-editor>
+                  <app-editor id="editor" parent=${this}></app-editor>
                 </tonic-split-top>
                 <tonic-split-bottom height="20%">
-                  <app-terminal id="app-terminal"></app-terminal>
+                  <app-terminal id="app-terminal" parent=${this}></app-terminal>
                 </tonic-split-bottom>
               </tonic-split>
             </tonic-split-right>
@@ -444,7 +584,7 @@ class AppView extends Tonic {
         </tonic-split-left>
 
         <tonic-split-right width="20%">
-          <app-properties id="app-properties"></app-properties>
+          <app-properties id="app-properties" parent=${this}></app-properties>
         </tonic-split-right>
       </tonic-split>
       <app-sprite></app-sprite>

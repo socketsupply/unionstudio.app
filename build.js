@@ -15,11 +15,12 @@ const cp = async (a, b) => fs.cp(
 async function copy (target) {
   await cp('src/index.html', target)
   await cp('src/vm.js', target)
+  await cp('src/preview.js', target)
+  await cp('src/worker.js', target)
   await cp('icons/icon.png', target)
-  await cp('src/templates', target)
-  await cp('src/examples', target)
+  await cp('src/template', target)
   await cp('src/fonts', target)
-  await cp('src/vs', target)
+  await cp('src/lib', target)
   await cp('src/css', target)
 }
 
@@ -35,6 +36,7 @@ async function main (argv) {
   await esbuild.build({
     entryPoints: workerEntryPoints.map((entry) => `node_modules/monaco-editor/esm/${entry}`),
     bundle: true,
+    minify: false,
     format: 'iife',
     outbase: 'node_modules/monaco-editor/esm/',
     outdir: 'src'
@@ -45,9 +47,8 @@ async function main (argv) {
     format: 'esm',
     bundle: true,
     minify: false,
-    sourcemap: true,
+    sourcemap: false,
     external: ['socket:*', 'node:*'],
-    keepNames: true,
     loader: {
       '.ttf': 'file'
     }
@@ -57,10 +58,7 @@ async function main (argv) {
 
   const opts = {
     ...params,
-    outdir: target,
-    minifyWhitespace: false,
-    minifyIdentifiers: true,
-    minifySyntax: true
+    outdir: target
   }
   await esbuild.build(opts)
   await copy(target)

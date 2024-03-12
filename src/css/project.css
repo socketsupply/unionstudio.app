@@ -39,6 +39,35 @@ app-project .children {
   display: block;
 }
 
+app-project #tree-item-placeholder {
+  position: fixed;
+  display: inline-grid;
+  align-content: center;
+  align-items: center;
+  z-index: -1;
+  opacity: 0;
+  width: auto;
+  height: 28px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: var(--tonic-window);
+  background: var(--tonic-primary);
+}
+
+app-project[dragging="true"] #tree-item-placeholder {
+  opacity: 1;
+  z-index: 1000;
+}
+
+app-project input[data-event="rename"] {
+  border: none;
+  font-size: 14px;
+  padding: 2px;
+  color: var(--tonic-info);
+  background-color: transparent;
+  outline: none;
+}
+
 app-project .node-data {
   display: flex;
   padding: 2 4px 0;
@@ -49,6 +78,11 @@ app-project .region {
   text-overflow: ellipsis;
   overflow: hidden;
   padding-right: 20px;
+}
+
+app-project [data-path].hover {
+  outline: 1px solid var(--tonic-accent);
+  outline-offset: -1px;
 }
 
 app-project .item .node-data .label {
@@ -65,7 +99,11 @@ app-project .item .node-data .label {
   font-weight: 100;
 }
 
-app-project .item .handle:hover {
+app-project[dragging] {
+  cursor: grab;
+}
+
+app-project:not([dragging]) .item .handle:hover {
   background: var(--tonic-shadow);
   cursor: pointer;
 }
