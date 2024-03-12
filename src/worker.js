@@ -1,6 +1,7 @@
 import path from 'socket:path'
 import { lookup } from 'socket:mime'
 import fs from 'socket:fs'
+import application from 'socket:application'
 
 const mount = '/user/home'
 const navigatorPath = path.DATA.replace(path.HOME, mount)
@@ -18,38 +19,40 @@ export default async function (req, env, ctx) {
   const res = await fetch(p)
 
   let data = await res.text()
-  let css = ``
+
+  const w = await application.getCurrentWindow()
+  const winfo = await w.getBackgroundColor()
+  const bgColor = winfo?.data || 'black'
+
+  let css = `
+    #SOCKET_NOTCH {
+      position: fixed;
+      transform: translateX(-50%);
+      background: ${bgColor};
+      z-index: 1000;
+    }
+  `
 
   if (params.get('device') === 'iphone-15') {
-    css = `
+    css += `
       #SOCKET_NOTCH {
-        position: fixed;
         top: 2%;
         left: 50%;
         width: 35%;
-        transform: translateX(-50%);
         height: 4%;
         border-radius: 50px;
-        background: black;
-        opacity: 0.1;
-        z-index: 1000;
       }
     `
   }
 
-  if (params.get('device') === 'iphone-15') {
-    css = `
+  if (params.get('device') === 'iphone-13') {
+    css += `
       #SOCKET_NOTCH {
-        position: fixed;
         top: 0;
         left: 50%;
-        width: 35%;
-        transform: translateX(-50%);
+        width: 45%;
         height: 3.8%;
         border-radius: 0 0 10px 10px;
-        background: black;
-        opacity: 0.1;
-        z-index: 1000;
       }
     `
   }

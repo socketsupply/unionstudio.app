@@ -6,11 +6,13 @@ const currentWindow = await application.getCurrentWindow()
 
 const oldLog = console.log
 
-console.log = (...args) => {
-  currentWindow.channel.postMessage({
-    log: args
-  })
-}
+setTimeout(() => {
+  globalThis.console.log = (...args) => {
+    currentWindow.channel.postMessage({
+      log: args
+    })
+  }
+}, 2048)
 
 const previewWindowTitleBar = 38
 const previewWindowMargin = 12

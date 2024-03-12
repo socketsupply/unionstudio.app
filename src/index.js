@@ -4,17 +4,16 @@ import process from 'socket:process'
 import application from 'socket:application'
 import vm from 'socket:vm'
 import { format } from 'socket:util'
-import { spawn } from 'socket:child_process'
+import { spawn, exec } from 'socket:child_process'
 
 import Tonic from '@socketsupply/tonic'
 import components from '@socketsupply/components'
 
-import { AppTerminal } from './terminal.js'
-import { AppProject } from './project.js'
-import { AppProperties } from './properties.js'
-import { AppSprite } from './sprite.js'
-import { AppEditor } from './editor.js'
-import { settings as defaultSettings } from './settings.js'
+import { AppTerminal } from './components/terminal.js'
+import { AppProject } from './components/project.js'
+import { AppProperties } from './components/properties.js'
+import { AppSprite } from './components/sprite.js'
+import { AppEditor } from './components/editor.js'
 
 components(Tonic)
 
@@ -43,8 +42,8 @@ class AppView extends Tonic {
           }
         } else {
           const file = await fs.promises.readFile(fullPath)
-          const basePath = path.relative('templates', fullPath)
-          const destPath = path.join(this.state.cwd, basePath)
+          const basePath = path.relative('template', fullPath)
+          const destPath = path.join(path.DATA, 'projects', basePath)
           await fs.promises.mkdir(path.dirname(destPath), { recursive: true })
           await fs.promises.writeFile(destPath, file)
         }
@@ -52,22 +51,35 @@ class AppView extends Tonic {
     }
 
     try {
-      await readDir('templates')
+      await readDir('template')
     } catch (err) {
       console.error('Error initiating read directory operation:', err)
     }
   }
 
+  getCurrentProjectPath () {
+    let currentProjectPath = this.state.currentProject?.id
+
+    if (!currentProjectPath) {
+      currentProjectPath = path.join(path.DATA, 'projects', 'demo-project')
+    }
+
+    currentProjectPath = path.join(currentProjectPath, this.state.settings.rootFile)
+    return currentProjectPath.replace(path.DATA, '/preview')
+  }
+
   async reloadPreviewWindows () {
     clearTimeout(this.debounce)
     this.debounce = setTimeout(() => {
+      const currentProjectPath = this.getCurrentProjectPath() 
+
       for (const w of Object.values(this.previewWindows)) {
         const indexParams = new URLSearchParams({
           device: w.device,
           zoom: this.state.zoom[w.index] || '1'
         }).toString()
 
-        w.navigate([this.state.indexURL, indexParams].join('?'))
+        w.navigate([currentProjectPath, indexParams].join('?'))
       }
     }, 128)
   }
@@ -88,6 +100,12 @@ class AppView extends Tonic {
       await v.close() // destroy any existing preview windows
     }
 
+    if (!this.state.userScript) {
+      const res = await fetch('./preview.js')
+      this.state.userScript = await res.text()
+    }
+
+    const term = document.querySelector('app-terminal')
     const screenSize = await application.getScreenSize()
 
     for (let i = 0; i < this.state.settings.previewWindows.length; i++) {
@@ -116,13 +134,15 @@ class AppView extends Tonic {
         zoom: this.state.zoom[index] || '1'
       }).toString()
 
+      let currentProjectPath = this.getCurrentProjectPath() 
+
       const opts = {
         __runtime_primordial_overrides__: {
           arch: 'arm64',
           'host-operating-system': hostOS,
           platform
         },
-        path: [this.state.indexURL, indexParams].join('?'),
+        path: [currentProjectPath, indexParams].join('?'),
         index: index,
         frameless: preview.frameless,
         closable: false,
@@ -148,6 +168,11 @@ class AppView extends Tonic {
         w.device = preview.device
 
         w.channel.addEventListener('message', e => {
+          
+          if (e.data.log) {
+            return term.writeln(e.data.log.join(' '))
+          }
+
           this.state.zoom[w.index] = e.data.zoom || 1
         })
 
@@ -157,64 +182,52 @@ class AppView extends Tonic {
   }
 
   async init () {
-    //
-    // TODO(@heapwolf): make this.state.cwd confirgurable
-    //
-    const mount = '/user/home'
-    this.state.navigatorPath = path.DATA.replace(path.HOME, mount)
-    this.state.cwd = path.DATA
-
-    const res = await fetch('./preview.js')
-    this.state.userScript = await res.text()
-
     await navigator.serviceWorker.ready
 
-    let projectExists
-
-    const settingsFile = path.join(this.state.cwd, 'settings.json')
     const notifications = document.querySelector('#notifications')
+    const settingsFile = path.join(path.DATA, 'projects', 'settings.json')
+
+    let exists
+    let settings
 
     try {
-      projectExists = await fs.promises.stat(path.join(this.state.cwd, 'socket.ini'))
-    } catch {}
+      exists = await fs.promises.stat(settingsFile)
+    } catch (err) {
+      console.log(err)
+    }
 
-    if (!projectExists) {
-      await fs.promises.mkdir(path.join(this.state.cwd, 'src'), { recursive: true })
-
-      this.state.settings = defaultSettings
-      await fs.promises.writeFile(settingsFile, JSON.stringify(defaultSettings))
+    if (!exists) {
+      const defaultProjectDir = path.join(path.DATA, 'projects', 'demo-project')
+      await fs.promises.mkdir(defaultProjectDir, { recursive: true })
       await this.installTemplates()
     }
 
-    if (projectExists) {
-      try {
-        const str = await fs.promises.readFile(settingsFile, 'utf8')
-        this.state.settings = JSON.parse(str)
-
-        /* fs.watch(settingsFile, async () => {
-          const editor = document.querySelector('app-editor')
-          if (editor) {
-            this.state.settings = await fs.promises.readFile(settingsFile, 'utf8')
-            editor.refreshSettings()
-          }
-        }) */
-      } catch (err) {
-        notifications.create({
-          type: 'error',
-          title: 'Unable to read settings from ${settingsFile}',
-          message: err.message
-        })
-      }
+    try {
+      settings = JSON.parse(await fs.promises.readFile(settingsFile, 'utf8'))
+    } catch {
+      // NOPE
+      return
     }
 
-    let webviewRoot = 'src'
+    this.state.settings = settings
 
-    if (this.state.settings.root) {
-      webviewRoot = this.state.settings.root
-    }
-
-    this.state.indexURL = path.join('/preview', webviewRoot, 'index.html')
     this.activatePreviewWindows()
+  }
+
+
+  async createProject () {
+    const dest = path.join(path.DATA, 'projects', 'new-project')
+    await fs.promises.mkdir(dest, { recursive: true })
+
+    //
+    // TODO(@heapwolf) check that exec is accepting cwd correctly
+    //
+    const c = await spawn('ssc', ['init'], { stdin: false, cwd: dest })
+
+    c.on('exit', () => {
+      const project = document.querySelector('app-project')
+      project.load()
+    })
   }
 
   //
@@ -224,38 +237,16 @@ class AppView extends Tonic {
     const project = document.querySelector('app-project')
     const node = project.getNodeByProperty('id', 'project')
 
-    const paths = {}
-    project.walk(project.state.tree.children[0], child => {
-      if (child.type === 'dir') return
-
-      let dir = child.id
-      let data = child.data
-
-      if (child.id.includes('icon.assets')) {
-        if (process.platform === 'win') {
-          data = convertToICO(node.data)
-          dir = path.join('icons', 'icon.ico')
-        } else {
-          dir = path.join('icons', 'icon.png')
-        }
-      }
-
-      paths[path.join(this.state.cwd, dir)] = data
-    })
-
-    for (const [pathToFile, data] of Object.entries(paths)) {
-      await fs.promises.mkdir(path.dirname(pathToFile), { recursive: true })
-      await fs.promises.writeFile(pathToFile, data)
-    }
-
     const args = [
       'build',
-      '-r',
-      '-w'
+      '-r'
+      // TODO allow config for -w
     ]
 
     const coDevice = document.querySelector('#device')
-    if (coDevice.option.dataset.value) args.push(coDevice.option.dataset.value)
+    if (coDevice.option.dataset.value) {
+      args.push(coDevice.option.dataset.value) // --platform=P
+    }
 
     const term = document.querySelector('app-terminal')
     term.info(`ssc ${args.join(' ')}`)
@@ -317,11 +308,9 @@ class AppView extends Tonic {
       ;
 
       File:
-        Export Project: s + CommandOrControl
-        New Folder: n + CommandOrControl
-        New File: N + CommandOrControl
+        New Project: n + CommandOrControl
         ---
-        Reset Project: _
+        Reset Demo Project: _
       ;
 
       Edit:
@@ -374,6 +363,11 @@ class AppView extends Tonic {
 
       case 'Evaluate Editor Source': {
         this.eval().catch(err => console.error(err))
+        break
+      }
+
+      case 'New Project': {
+        this.createProject()
         break
       }
 
