@@ -528,6 +528,7 @@ class AppView extends Tonic {
     return this.html`
       <header>
         <span class="spacer"></span>
+        <span class="spacer"></span>
 
         <tonic-button type="icon" size="18px" symbol-id="play" title="Build & Run The Project" data-event="run">
         </tonic-button>

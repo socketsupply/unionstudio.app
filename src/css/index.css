@@ -253,7 +253,7 @@ main-component {
 
 header {
   display: grid;
-  grid-template-columns: 1fr 34px 250px 34px 1fr 34px 34px;
+  grid-template-columns: 68px 1fr 34px 250px 34px 1fr 34px 34px;
   gap: 12px;
   grid-template-rows: auto;
   align-content: center;
