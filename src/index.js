@@ -3,7 +3,7 @@ import path from 'socket:path'
 import process from 'socket:process'
 import application from 'socket:application'
 import vm from 'socket:vm'
-import { format } from 'socket:util'
+import { inspect, format } from 'socket:util'
 import { spawn, exec } from 'socket:child_process'
 
 import Tonic from '@socketsupply/tonic'
@@ -189,6 +189,10 @@ class AppView extends Tonic {
           'host-operating-system': hostOS,
           platform
         },
+        config: {
+          webview_auto_register_service_workers: false,
+          webview_service_worker_frame: false
+        },
         path: [currentProjectPath, indexParams].join('?'),
         index: index,
         frameless: preview.frameless,
@@ -215,9 +219,24 @@ class AppView extends Tonic {
         w.device = preview.device
 
         w.channel.addEventListener('message', e => {
-          
           if (e.data.log) {
             return term.writeln(e.data.log.join(' '))
+          }
+
+          if (e.data.debug) {
+            return term.writeln(e.data.debug.join(' '))
+          }
+
+          if (e.data.error) {
+            return term.error(e.data.error.join(' '))
+          }
+
+          if (e.data.warn) {
+            return term.warn(e.data.warn.join(' '))
+          }
+
+          if (e.data.info) {
+            return term.info(e.data.info.join(' '))
           }
 
           this.state.zoom[w.index] = e.data.zoom || 1
@@ -449,15 +468,23 @@ class AppView extends Tonic {
 
     channel.port1.onmessage = ({ data }) => {
       if (data.method === 'console.log') {
-        term.writeln(format(...data.args))
+        term.writeln(inspect(...data.args))
       }
 
       if (data.method === 'console.error') {
-        term.writeln(format(...data.args))
+        term.error(inspect(...data.args))
+      }
+
+      if (data.method === 'console.warn') {
+        term.warn(inspect(...data.args))
+      }
+
+      if (data.method === 'console.info') {
+        term.info(inspect(...data.args))
       }
 
       if (data.method === 'console.debug') {
-        term.writeln(format(...data.args))
+        term.writeln(inspect(...data.args))
       }
     }
 
