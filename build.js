@@ -39,7 +39,7 @@ async function main (argv) {
     minify: false,
     format: 'iife',
     outbase: 'node_modules/monaco-editor/esm/',
-    outdir: 'src'
+    outdir: 'src/lib'
   })
 
   const params = {
