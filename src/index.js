@@ -540,7 +540,7 @@ class AppView extends Tonic {
           <option value="win32" data-value="" disabled>Windows</option>
         </tonic-select>
 
-        <tonic-button type="icon" size="18px" symbol-id="refresh" title="Evalulate The Current Code In The Editor" data-event="eval">
+        <tonic-button type="icon" size="18px" symbol-id="eval" title="Evalulate The Current Code In The Editor" data-event="eval">
         </tonic-button>
 
         <span class="spacer"></span>
