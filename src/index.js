@@ -25,6 +25,53 @@ class AppView extends Tonic {
     this.previewWindows = {}
 
     this.setAttribute('platform', process.platform)
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+      this.reloadPreviewWindows()
+    })
+
+    window.addEventListener('close', async e => {
+      const data = e.detail.data
+
+      const previewWindowSettings = this.state.settings.previewWindows[data - 1]
+      if (!previewWindowSettings) return
+
+      previewWindowSettings.active = false
+
+      // we will need to update the properties panel to reflect the new state
+      const coProperties = document.querySelector('app-properties')
+      coProperties.reRender()
+
+      const currentProject = this.state.currentProject
+      const notifications = document.querySelector('#notifications')
+
+      // if the user currently has the config file open in the editor...
+      if (currentProject.label === 'settings.json' && currentProject.parent.id === 'root') {
+        const coEditor = document.querySelctor('app-editor')
+
+        try {
+          coEditor.value = JSON.stringify(this.state.settings, null, 2)
+        } catch (err) {
+          return notifications.create({
+            type: 'error',
+            title: 'Unable to save config file',
+            message: err.message
+          })
+        }
+      }
+
+      // write the settings file to disk, its a well known location
+      try {
+        const pathToSettingsFile = path.join(path.DATA, 'projects', 'settings.json')
+        await fs.promises.writeFile(pathToSettingsFile, JSON.stringify(this.state.settings))
+      } catch (err) {
+        return notifications.create({
+          type: 'error',
+          title: 'Unable to save config file',
+          message: err.message
+        })
+      }
+    })
   }
 
   async installTemplates () {
@@ -145,7 +192,7 @@ class AppView extends Tonic {
         path: [currentProjectPath, indexParams].join('?'),
         index: index,
         frameless: preview.frameless,
-        closable: false,
+        closable: true,
         maximizable: false,
         radius: preview.radius, // ie '48.5',
         margin: preview.margin, // ie '6.0',
@@ -265,7 +312,8 @@ class AppView extends Tonic {
     }
 
     term.info('Running new instance of app')
-    const c = this.childprocess = await spawn('ssc', args, { stdin: false, cwd: this.state.cwd })
+    const cwd = this.state.currentProject.id
+    const c = this.childprocess = await spawn('ssc', args, { stdin: false, cwd })
 
     c.stdout.on('data', data => {
       term.writeln(Buffer.from(data).toString().trim())

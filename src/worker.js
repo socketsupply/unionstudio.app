@@ -20,9 +20,16 @@ export default async function (req, env, ctx) {
 
   let data = await res.text()
 
-  const w = await application.getCurrentWindow()
-  const winfo = await w.getBackgroundColor()
-  const bgColor = winfo?.data || 'black'
+  const id = ctx.event.clientId
+  const windows = await application.getWindows()
+  const w = Object.values(windows)[0]
+
+  let bgColor = 'black'
+
+  if (w) {
+    const winfo = await w.getBackgroundColor()
+    bgColor = winfo?.data
+  }
 
   let css = `
     #SOCKET_NOTCH {

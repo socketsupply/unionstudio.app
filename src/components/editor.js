@@ -51,6 +51,10 @@ class AppEditor extends Tonic {
     return this.editor.getValue()
   }
 
+  set value (s) {
+    this.editor.setValue(s)
+  }
+
   async click (e) {
     const el = Tonic.match(e.target, '[data-event]')
     if (!el) return
@@ -270,10 +274,22 @@ class AppEditor extends Tonic {
 
       if (!this.projectNode) return
       const value = this.editor.getValue()
+      const terminal = document.querySelector('app-terminal')
 
       this.writeDebounce = setTimeout(() => {
+        if (this.projectNode.label === 'settings.json' && this.projectNode.parent.id === 'root') {
+
+          try {
+            this.props.parent.state.settings = JSON.parse(value)
+          } catch (err) {
+            terminal.error(`Unable to parse settings file (${err.message})`)
+            return
+          }
+          terminal.info(`Settings file updated.`)
+        }
+
         this.writeToDisk(this.projectNode, value)
-      }, 256)
+      }, 620)
     })
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {

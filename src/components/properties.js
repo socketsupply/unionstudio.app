@@ -33,12 +33,34 @@ class AppProperties extends Tonic {
     const el = Tonic.match(e.target, '[data-event]')
     if (!el) return
 
-    const { event, section } = el.dataset
+    const { event, section, value } = el.dataset
 
-    const app = document.querySelector('app-view')
+    const app = this.props.parent
     const notifications = document.querySelector('#notifications')
     const editor = document.querySelector('app-editor')
     const project = document.querySelector('app-project')
+
+    if (event === 'preview') {
+      const pathToSettingsFile = path.join(path.DATA, 'projects', 'settings.json')
+      const previewWindow = app.state.settings.previewWindows.find(o => o.title === value)
+
+      if (previewWindow) {
+        previewWindow.active = !previewWindow.active
+
+        try {
+          const str = JSON.stringify(app.state.settings)
+          await fs.promises.writeFile(pathToSettingsFile, str)
+        } catch (err) {
+          return notifications?.create({
+            type: 'error',
+            title: 'Error',
+            message: 'Unable to update settings'
+          })
+        }
+
+        app.activatePreviewWindows()
+      }
+    }
 
     if (event === 'property') {
       const node = project.getNodeByProperty('id', 'socket.ini')
@@ -63,112 +85,8 @@ class AppProperties extends Tonic {
 
     const { event, propertyValue } = el.dataset
 
-    const app = document.querySelector('app-view')
-    const notifications = document.querySelector('#notifications')
-    const editor = document.querySelector('app-editor')
-    const project = document.querySelector('app-project')
-
-    if (event === 'preview') {
-      app.activatePreviewWindows()
-    }
-
-    if (event === 'insert-native-extension') {
-      await project.insert({
-        label: 'extension.cc',
-        id: 'templates/extension.cc'
-      })
-
-      const node = project.getNodeByProperty('id', 'templates/index.js')
-      project.revealNode(node.id)
-
-      node.data = trim(`
-        import extension from 'socket:extension'
-        import ipc from 'socket:ipc'
-      `) + node.data
-
-      node.data += trim(`
-        //
-        // Native Extension example
-        //
-        const simple = await extension.load('simple-ipc-ping')
-        const result = await ipc.request('simple.ping', { value: 'hello world' })
-        console.log(result.data, 'hello world')
-
-        await simple.unload()
-      `)
-
-      editor.loadProjectNode(node)
-    }
-
-    if (event === 'insert-wasm-extension') {
-      await project.insert({
-        label: 'wasm-extension.cc',
-        id: 'templates/wasm-extension.cc'
-      })
-    }
-
-    if (event === 'insert-service-worker') {
-      await project.insert({
-        label: 'service-worker.c',
-        id: 'templates/service-worker.c'
-      })
-    }
-
-    if (event === 'insert-worker-thread') {
-      const exists = project.getNodeByProperty('id', 'src/worker-thread.js')
-      if (exists) return
-
-      await project.insert({
-        source: 'templates/worker-thread.js',
-        node: {
-          label: 'worker-thread.js',
-          id: 'src/worker-thread.js'
-        }
-      })
-
-      const node = project.getNodeByProperty('id', 'src/index.js')
-
-      if (!node.data.includes('socket:worker_threads')) {
-        node.data = trim(`
-          import { Worker } from 'socket:worker_threads'
-        `) + node.data
-      }
-
-      if (!node.data.includes('socket:process')) {
-        node.data = trim(`
-          import process from 'socket:process'
-        `) + node.data
-      }
-
-      node.data += trim(`
-        //
-        // Create a worker from the new file
-        //
-
-        // send some initial data through to the worker
-        const sampleData = new TextEncoder().encode('hello world')
-
-        // create the worker
-        const worker = new Worker('./worker-thread.js', {
-          workerData: { sampleData },
-          stdin: true,
-          stdout: true
-        })
-
-        // listen to messages from the worker
-        worker.on('message', console.log)
-        worker.on('error', console.error)
-        worker.stdout.on('data', console.log)
-      `)
-
-      editor.loadProjectNode(node)
-    }
-
-    if (event === 'insert-web-worker') {
-      await project.insert({
-        label: 'web-worker.c',
-        id: 'templates/web-worker.c'
-      })
+    if (event === 'ext') {
+      // TODO
     }
   }
 
@@ -200,6 +118,7 @@ class AppProperties extends Tonic {
             <tonic-checkbox
               id="${w.title}-${String(index++)}"
               data-event="preview"
+              data-value="${w.title}"
               checked="${String(w.active)}"
               data-aspect-ratio="${w.aspectRatio}"
               data-resolution="${w.resolution}"
