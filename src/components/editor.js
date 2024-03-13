@@ -123,9 +123,12 @@ class AppEditor extends Tonic {
     const parent = this.props.parent
     const ext = path.extname(projectNode.id)
     const type = await lookup(ext.slice(1))
+    const elImagePreview = document.querySelector('.image-preview')
+    elImagePreview.style.display = 'none'
 
     if (type.length) {
       if (/image/.test(type[0].mime)) {
+        elImagePreview.style.display = 'block'
         // Display a preview for this type.
         return
       }

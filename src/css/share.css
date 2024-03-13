@@ -1,0 +1,47 @@
+dialog-share {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  max-width: 500px;
+  min-height: 280px;
+  display: grid;
+  font-family: var(--tonic-monospace);
+}
+
+body.mobile dialog-share {
+  width: 90vw !important;
+  height: 50vh !important;
+}
+
+dialog-share header {
+  height: 46px;
+  text-align: center;
+  padding: 14px;
+  font-size: 12px;
+  color: var(--tonic-secondary);
+}
+
+dialog-share footer {
+  height: 50px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 0 16px;
+}
+
+dialog-share .centered {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: grid;
+  justtify-content: center;
+  align-content: center;
+}
+
+dialog-share .centered .message {
+  display: inline-block;
+  width: 80%;
+  margin: auto;
+}
+
+dialog-share main {
+  padding: 16px;
+}

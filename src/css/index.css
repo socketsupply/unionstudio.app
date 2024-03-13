@@ -251,7 +251,7 @@ main-component {
   bottom: 0;
 }
 
-header {
+app-view > header {
   display: grid;
   grid-template-columns: 68px 1fr 34px 250px 34px 1fr 34px 34px;
   gap: 12px;
@@ -268,7 +268,7 @@ header {
   --app-region: drag; /* mac & linux */
 }
 
-header [platform="darwin"] {
+app-view > header [platform="darwin"] {
   padding-left: 35%;
   padding-right: 35%;
 }

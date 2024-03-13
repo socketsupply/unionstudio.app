@@ -17,6 +17,7 @@ import { AppProject } from './components/project.js'
 import { AppProperties } from './components/properties.js'
 import { AppSprite } from './components/sprite.js'
 import { AppEditor } from './components/editor.js'
+import { DialogShare } from './components/share.js'
 
 components(Tonic)
 
@@ -255,7 +256,64 @@ class AppView extends Tonic {
   }
 
   async initNetwork () {
+    const { data: dataPeer } = await this.db.state.get('peer')
+    const { data: dataUser } = await this.db.state.get('user')
 
+    //
+    // once awaited, we know that we have discovered our nat type and advertised
+    // to the network that we can accept inbound connections from other peers
+    // the socket is now ready to be read from and written to.
+    //
+    const pk = Buffer.from(dataUser.publicKey).toString('base64')
+
+    const signingKeys = {
+      publicKey: dataUser.publicKey,
+      privateKey: dataUser.privateKey
+    }
+
+    let socket = this.socket
+
+    if (!this.state.isInitialized) {
+      socket = this.socket = await network({ ...dataPeer, signingKeys })
+      const info = await socket.getInfo()
+      console.log(info)
+    }
+
+    const { data: dataSubscriptions } = await this.db.subscriptions.readAll()
+
+    for (const [subscriptionId, subscription] of dataSubscriptions.entries()) {
+      if (!subscription.sharedKey) continue
+      if (socket.subclusters.get(subscriptionId)) continue
+
+      const subcluster = await socket.subcluster({ sharedKey: subscription.sharedKey })
+
+      const onMessage = async (value, packet) => {
+        const pid = Buffer.from(packet.packetId).toString('hex')
+        const scid = Buffer.from(packet.subclusterId).toString('base64')
+        const key = [channelId, pid].join('\xFF')
+
+        const { data: hasPacket } = await this.db.messages.has(key)
+        if (hasPacket) return
+
+
+      }
+
+      subcluster.on('message', (value, packet) => {
+        if (!packet.verified) return // gtfoa
+        if (packet.index !== -1) return // not interested
+
+        // messages must be parsable
+        try { value = JSON.parse(value) } catch { return }
+
+        // messages must have content
+        if (!value || !value.content) return
+
+        // messages must have a type
+        if (typeof value.type !== 'string') return
+
+        onMessage(value, packet)
+      })
+    }
   }
 
   async initData () {
@@ -265,7 +323,7 @@ class AppView extends Tonic {
     }
 
     this.db = {
-      channels: await Database.open('shares'),
+      subscriptions: await Database.open('subscriptions'),
       state: await Database.open('state')
     }
 
@@ -288,7 +346,6 @@ class AppView extends Tonic {
     const { data: dataPeer } = await this.db.state.has('peer')
 
     if (!dataPeer) {
-      const signingKeys = await Encryption.createKeyPair()
       await this.db.state.put('peer', {
         config: {
           peerId: await Encryption.createId(),
@@ -296,6 +353,17 @@ class AppView extends Tonic {
         }
       })
     }
+
+    const { data: dataUser } = await this.db.state.has('user')
+
+    if (!dataUser) {
+      const signingKeys = await Encryption.createKeyPair()
+
+      await this.db.state.put('user', {
+        ...signingKeys
+      })
+    }
+
   }
 
   async initApplication () {
@@ -563,6 +631,11 @@ class AppView extends Tonic {
     if (event === 'run') {
       this.exportProject()
     }
+
+    if (event === 'open-dialog-share') {
+      const coDialogShare = document.querySelector('dialog-share')
+      if (coDialogShare) coDialogShare.show()
+    }
   }
 
   async connected () {
@@ -604,12 +677,13 @@ class AppView extends Tonic {
           data-event="get-share"
         >
         </tonic-button>
+
         <tonic-button
           type="icon"
           size="18px"
           symbol-id="link"
           title="Share this project"
-          data-event="put-share"
+          data-event="open-dialog-share"
         >
         </tonic-button>
       </header>
@@ -638,6 +712,15 @@ class AppView extends Tonic {
           <app-properties id="app-properties" parent=${this}></app-properties>
         </tonic-split-right>
       </tonic-split>
+
+      <dialog-share
+        id="dialog-share"
+        width="50%"
+        height="30%"
+        parent=${this}
+      >
+      </dialog-share>
+
       <app-sprite></app-sprite>
     `
   }
@@ -652,4 +735,5 @@ window.onload = () => {
   Tonic.add(AppSprite)
   Tonic.add(AppTerminal)
   Tonic.add(AppView)
+  Tonic.add(DialogShare)
 }
