@@ -47,6 +47,21 @@ class AppProperties extends Tonic {
       if (previewWindow) {
         previewWindow.active = !previewWindow.active
 
+        const currentProject = app.state.currentProject
+
+        // if the user currently has the config file open in the editor...
+        if (currentProject.label === 'settings.json' && currentProject.parent.id === 'root') {
+          try {
+            editor.value = JSON.stringify(app.state.settings, null, 2)
+          } catch (err) {
+            return notifications.create({
+              type: 'error',
+              title: 'Unable to save config file',
+              message: err.message
+            })
+          }
+        }
+
         try {
           const str = JSON.stringify(app.state.settings)
           await fs.promises.writeFile(pathToSettingsFile, str)
@@ -131,7 +146,7 @@ class AppProperties extends Tonic {
     }
 
     return this.html`
-      <tonic-accordion id="options">
+      <tonic-accordion id="options" selected="preview-windows">
         <tonic-accordion-section
           name="preview-windows"
           id="preview-windows"

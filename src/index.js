@@ -2,12 +2,15 @@ import fs from 'socket:fs'
 import path from 'socket:path'
 import process from 'socket:process'
 import application from 'socket:application'
+import { network, Encryption, sha256 } from 'socket:network'
 import vm from 'socket:vm'
 import { inspect, format } from 'socket:util'
 import { spawn, exec } from 'socket:child_process'
 
 import Tonic from '@socketsupply/tonic'
 import components from '@socketsupply/components'
+
+import Database from './db/index.js'
 
 import { AppTerminal } from './components/terminal.js'
 import { AppProject } from './components/project.js'
@@ -30,7 +33,7 @@ class AppView extends Tonic {
       this.reloadPreviewWindows()
     })
 
-    window.addEventListener('close', async e => {
+    window.addEventListener('window-closed', async e => {
       const data = e.detail.data
 
       const previewWindowSettings = this.state.settings.previewWindows[data - 1]
@@ -142,11 +145,6 @@ class AppView extends Tonic {
       return
     }
 
-    for (const [k, v] of Object.entries(this.previewWindows)) {
-      delete this.state.zoom[k]
-      await v.close() // destroy any existing preview windows
-    }
-
     if (!this.state.userScript) {
       const res = await fetch('./preview.js')
       this.state.userScript = await res.text()
@@ -156,19 +154,27 @@ class AppView extends Tonic {
     const screenSize = await application.getScreenSize()
 
     for (let i = 0; i < this.state.settings.previewWindows.length; i++) {
+      const index = i + 1
       const preview = this.state.settings.previewWindows[i]
-      if (!preview.active) continue
+
+      if (!preview.active) {
+        const w = this.previewWindows[index]
+        if (w) {
+          delete this.state.zoom[index]
+          await w.close()
+        }
+        continue
+      }
 
       let width = screenSize.width * 0.6
       let height = screenSize.height * 0.6
-      const index = i + 1
       const scale = preview.scale || 1
       const platform = preview.platform || process.platform
 
       if (/\d+x\d+/.test(preview.resolution)) {
         const size = preview.resolution.split('x')
-        width = preview.resolution = size[0]
-        height = preview.resolution = size[1]
+        width = size[0]
+        height = size[1]
       }
 
       let hostOS = process.platform
@@ -243,13 +249,55 @@ class AppView extends Tonic {
         })
 
         this.previewWindows[w.index] = w
-      } catch {}
+      } catch (err) {
+        console.log(err)
+      }
     }
   }
 
-  async init () {
-    await navigator.serviceWorker.ready
+  async initData () {
+    if (process.env.DEBUG === '1') {
+      const databases = await window.indexedDB.databases()
+      for (const { name } of databases) await Database.drop(name)
+    }
 
+    this.db = {
+      channels: await Database.open('shares'),
+      state: await Database.open('state')
+    }
+
+    Database.onerror = err => {
+      console.error(err)
+
+      const notifications = document.querySelector('#notifications')
+      notifications?.create({
+        type: 'error',
+        title: 'Unhandled Database Error',
+        message: err.message
+      })
+    }
+
+    //
+    // Create a default clusterId (used as the default group)
+    //
+    const clusterId = await Encryption.createClusterId('socket-app-studio')
+
+    const { data: dataPeer } = await this.db.state.has('peer')
+
+    if (!dataPeer) {
+      const signingKeys = await Encryption.createKeyPair()
+      await this.db.state.put('peer', {
+        config: {
+          peerId: await Encryption.createId(),
+          clusterId
+        }
+      })
+    }
+
+
+  }
+
+  async initApplication () {
     const notifications = document.querySelector('#notifications')
     const settingsFile = path.join(path.DATA, 'projects', 'settings.json')
 
@@ -523,7 +571,10 @@ class AppView extends Tonic {
   }
 
   async render () {
-    await this.init()
+    await navigator.serviceWorker.ready
+
+    await this.initData()
+    await this.initApplication()
 
     return this.html`
       <header>

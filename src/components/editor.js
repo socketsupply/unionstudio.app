@@ -274,7 +274,8 @@ class AppEditor extends Tonic {
 
       if (!this.projectNode) return
       const value = this.editor.getValue()
-      const terminal = document.querySelector('app-terminal')
+      const coTerminal = document.querySelector('app-terminal')
+      const coProperties = document.querySelector('app-properties')
 
       this.writeDebounce = setTimeout(() => {
         if (this.projectNode.label === 'settings.json' && this.projectNode.parent.id === 'root') {
@@ -282,10 +283,12 @@ class AppEditor extends Tonic {
           try {
             this.props.parent.state.settings = JSON.parse(value)
           } catch (err) {
-            terminal.error(`Unable to parse settings file (${err.message})`)
+            coTerminal.error(`Unable to parse settings file (${err.message})`)
             return
           }
-          terminal.info(`Settings file updated.`)
+          coTerminal.info(`Settings file updated.`)
+          coProperties.reRender()
+          parent.activatePreviewWindows()
         }
 
         this.writeToDisk(this.projectNode, value)

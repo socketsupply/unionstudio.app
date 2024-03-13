@@ -32,7 +32,8 @@ export default async function (req, env, ctx) {
   }
 
   let css = `
-    #SOCKET_NOTCH {
+    body::after {
+      content: ' ';
       position: fixed;
       transform: translateX(-50%);
       background: ${bgColor};
@@ -42,7 +43,7 @@ export default async function (req, env, ctx) {
 
   if (params.get('device') === 'iphone-15') {
     css += `
-      #SOCKET_NOTCH {
+      body::after {
         top: 2%;
         left: 50%;
         width: 35%;
@@ -54,7 +55,7 @@ export default async function (req, env, ctx) {
 
   if (params.get('device') === 'iphone-13') {
     css += `
-      #SOCKET_NOTCH {
+      body::after {
         top: 0;
         left: 50%;
         width: 45%;
@@ -66,7 +67,7 @@ export default async function (req, env, ctx) {
 
   if (url.pathname.endsWith('index.html')) {
     data = data.replace(/<html(?:[^\n\r]*)>/, `<html style="zoom: ${params.get('zoom')}">`)
-    data = data.replace('</body>', `<style>${css}</style><div id="SOCKET_NOTCH"></div></body>`)
+    data = data.replace('</head>', `<style>${css}</style></head>`)
   }
 
   const types = await lookup(path.extname(url.pathname).slice(1))

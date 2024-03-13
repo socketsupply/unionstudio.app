@@ -584,8 +584,8 @@ class AppProject extends Tonic {
         child.icon = entry.isDirectory() ? 'folder' : 'file'
 
         if (parent.id === 'root' && entry.isDirectory()) {
-          if (!this.props.parent.currentProject) {
-            this.props.parent.currentProject = child
+          if (!this.props.parent.state.currentProject) {
+            this.props.parent.state.currentProject = child
           }
 
           child.icon = 'package'
