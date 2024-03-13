@@ -8,7 +8,6 @@ const navigatorPath = path.DATA.replace(path.HOME, mount)
 
 export default async function (req, env, ctx) {
   const url = new URL(req.url)
-
   const pattern = new URLPattern({ pathname: '/preview/*' })
   const route = pattern.exec(url)
 
@@ -17,12 +16,13 @@ export default async function (req, env, ctx) {
   const p = path.join(navigatorPath, route.pathname.groups[0])
   const params = url.searchParams
   const res = await fetch(p)
-
-  let data = await res.text()
-
+  const data = await res.text()
   const id = ctx.event.clientId
   const windows = await application.getWindows()
   const w = Object.values(windows)[0]
+
+  const zoom = params.get('zoom')
+  const device = params.get('device')
 
   let bgColor = 'black'
 
@@ -41,7 +41,7 @@ export default async function (req, env, ctx) {
     }
   `
 
-  if (params.get('device') === 'iphone-15') {
+  if (device === 'iphone-15') {
     css += `
       body::after {
         top: 2%;
@@ -53,7 +53,7 @@ export default async function (req, env, ctx) {
     `
   }
 
-  if (params.get('device') === 'iphone-13') {
+  if (device === 'iphone-13') {
     css += `
       body::after {
         top: 0;
@@ -65,9 +65,23 @@ export default async function (req, env, ctx) {
     `
   }
 
+  if (device === 'galaxy-23') {
+    css += `
+      body::after {
+        top: 2%;
+        left: 50%;
+        width: 4.5%;
+        height: 2%;
+        border-radius: 99em;
+      }
+    `
+  }
+
+  let html = data
+
   if (url.pathname.endsWith('index.html')) {
-    data = data.replace(/<html(?:[^\n\r]*)>/, `<html style="zoom: ${params.get('zoom')}">`)
-    data = data.replace('</head>', `<style>${css}</style></head>`)
+    html = html.replace(/<html(?:[^\n\r]*)>/, `<html style="zoom: ${zoom}">`)
+    html = html.replace('</head>', `<style>${css}</style></head>`)
   }
 
   const types = await lookup(path.extname(url.pathname).slice(1))
@@ -78,5 +92,5 @@ export default async function (req, env, ctx) {
     'Cache-Control': 'no-cache'
   }
 
-  return new Response(data, { status: 200, headers })
+  return new Response(html, { status: 200, headers })
 }

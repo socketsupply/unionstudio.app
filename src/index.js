@@ -250,9 +250,12 @@ class AppView extends Tonic {
 
         this.previewWindows[w.index] = w
       } catch (err) {
-        console.log(err)
       }
     }
+  }
+
+  async initNetwork () {
+
   }
 
   async initData () {
@@ -293,8 +296,6 @@ class AppView extends Tonic {
         }
       })
     }
-
-
   }
 
   async initApplication () {
@@ -401,9 +402,7 @@ class AppView extends Tonic {
     })
   }
 
-  async setupWindow () {
-    document.title = 'Socket App Studio'
-
+  async initMenu () {
     let itemsMac = ''
 
     if (process.platform === 'darwin') {
@@ -567,13 +566,14 @@ class AppView extends Tonic {
   }
 
   async connected () {
-    this.setupWindow()
+    this.initMenu()
   }
 
   async render () {
     await navigator.serviceWorker.ready
 
     await this.initData()
+    await this.initNetwork()
     await this.initApplication()
 
     return this.html`
@@ -644,6 +644,8 @@ class AppView extends Tonic {
 }
 
 window.onload = () => {
+  document.title = 'Socket App Studio'
+
   Tonic.add(AppEditor)
   Tonic.add(AppProperties)
   Tonic.add(AppProject)
