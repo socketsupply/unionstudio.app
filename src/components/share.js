@@ -44,7 +44,7 @@ export class DialogShare extends TonicDialog {
         }
       }
 
-      console.log('initialized')
+      console.log('init -', output)
 
       // try to get the status of the project
       try {
@@ -61,7 +61,7 @@ export class DialogShare extends TonicDialog {
         })
       }
       
-      console.log('status ok')
+      console.log('status -', output)
 
       try {
         output = await exec('git', ['add', '-A'], { cwd })
@@ -77,7 +77,7 @@ export class DialogShare extends TonicDialog {
         })
       }
 
-      console.log('add ok')
+      console.log('add -', output)
       // try to commit the code to the project
       try {
         output = await exec('git', ['commit', '-m', '"share"'], { cwd })
@@ -92,7 +92,7 @@ export class DialogShare extends TonicDialog {
           message: output.stderr
         })
       }
-      console.log('commit ok')
+      console.log('commit -', output)
 
       // Now we can share
     }
