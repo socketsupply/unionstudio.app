@@ -7,17 +7,12 @@ dialog-share {
   font-family: var(--tonic-monospace);
 }
 
-body.mobile dialog-share {
-  width: 90vw !important;
-  height: 50vh !important;
-}
-
 dialog-share header {
   height: 46px;
   text-align: center;
   padding: 14px;
   font-size: 12px;
-  color: var(--tonic-secondary);
+  color: var(--tonic-info);
 }
 
 dialog-share footer {
