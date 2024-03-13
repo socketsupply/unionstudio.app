@@ -1,21 +1,25 @@
-import application from 'socket:application'
-import { inspect } from 'socket:util'
-
 globalThis.RUNTIME_APPLICATION_ALLOW_MULTI_WINDOWS = true
 
-const currentWindow = await application.getCurrentWindow()
-setTimeout(() => {
-  const consoleMethods = ['log', 'error', 'info', 'warn', 'debug']
-  for (const method of consoleMethods) {
-    const original = console[method]
-    globalThis.console[method] = (...args) => {
-      original.call(console, ...args)
+let currentWindow = null
+const consoleMethods = ['log', 'error', 'info', 'warn', 'debug']
+for (const method of consoleMethods) {
+  const original = console[method]
+  globalThis.console[method] = async (...args) => {
+    if (!currentWindow) {
+      currentWindow = await application.getCurrentWindow()
+    }
+    original.call(console, ...args)
+    if (currentWindow) {
+      // @ts-ignore
       currentWindow.channel.postMessage({
         [method]: [inspect(...args)]
       })
     }
   }
-}, 2048)
+}
+
+import application from 'socket:application'
+import { inspect } from 'socket:util'
 
 const previewWindowTitleBar = 38
 const previewWindowMargin = 12
