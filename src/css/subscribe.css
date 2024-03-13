@@ -1,13 +1,13 @@
-dialog-share {
+dialog-subscribe {
   display: grid;
   grid-template-rows: auto 1fr;
   max-width: 500px;
-  min-height: 280px;
+  min-height: 380px;
   display: grid;
   font-family: var(--tonic-monospace);
 }
 
-dialog-share header {
+dialog-subscribe header {
   height: 46px;
   text-align: center;
   padding: 14px;
@@ -15,7 +15,7 @@ dialog-share header {
   color: var(--tonic-info);
 }
 
-dialog-share footer {
+dialog-subscribe footer {
   height: 50px;
   display: grid;
   grid-template-columns: 1fr auto;
@@ -23,20 +23,22 @@ dialog-share footer {
   padding: 0 16px;
 }
 
-dialog-share .centered {
+dialog-subscribe .centered {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   display: grid;
-  justtify-content: center;
+  justify-content: center;
   align-content: center;
 }
 
-dialog-share .centered .message {
-  display: inline-block;
-  width: 80%;
-  margin: auto;
+dialog-subscribe tonic-input {
+  display: block;
 }
 
-dialog-share main {
-  padding: 16px;
+dialog-subscribe tonic-input:first-of-type {
+  margin-bottom: 30px;
+}
+
+dialog-subscribe main {
+  padding: 16px 16%;
 }

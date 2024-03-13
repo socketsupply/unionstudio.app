@@ -86,3 +86,7 @@ tonic-toggle .tonic--toggle--wrapper {
 tonic-button[type="icon"] tonic-icon {
   margin-top: 2px;
 }
+
+tonic-input[symbol-id] .tonic--right tonic-icon, tonic-input[src] .tonic--right tonic-icon {
+  display: grid;
+}

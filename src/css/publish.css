@@ -1,0 +1,42 @@
+dialog-publish {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  max-width: 500px;
+  min-height: 280px;
+  display: grid;
+  font-family: var(--tonic-monospace);
+}
+
+dialog-publish header {
+  height: 46px;
+  text-align: center;
+  padding: 14px;
+  font-size: 12px;
+  color: var(--tonic-info);
+}
+
+dialog-publish footer {
+  height: 50px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 0 16px;
+}
+
+dialog-publish .centered {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: grid;
+  justify-content: center;
+  align-content: center;
+}
+
+dialog-publish .centered .message {
+  display: inline-block;
+  width: 80%;
+  margin: auto;
+}
+
+dialog-publish main {
+  padding: 16px 16%;
+}

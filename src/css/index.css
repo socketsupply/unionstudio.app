@@ -251,6 +251,12 @@ main-component {
   bottom: 0;
 }
 
+header {
+  cursor: default;
+  app-region: drag; /* windows */
+  --app-region: drag; /* mac & linux */
+}
+
 app-view > header {
   display: grid;
   grid-template-columns: 68px 1fr 34px 250px 34px 1fr 34px 34px;
@@ -263,9 +269,6 @@ app-view > header {
   top: 0;
   left: 0;
   right: 0;
-  cursor: default;
-  app-region: drag; /* windows */
-  --app-region: drag; /* mac & linux */
 }
 
 app-view > header [platform="darwin"] {

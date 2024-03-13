@@ -17,7 +17,8 @@ import { AppProject } from './components/project.js'
 import { AppProperties } from './components/properties.js'
 import { AppSprite } from './components/sprite.js'
 import { AppEditor } from './components/editor.js'
-import { DialogShare } from './components/share.js'
+import { DialogPublish } from './components/publish.js'
+import { DialogSubscribe } from './components/subscribe.js'
 
 components(Tonic)
 
@@ -274,28 +275,39 @@ class AppView extends Tonic {
     let socket = this.socket
 
     if (!this.state.isInitialized) {
-      socket = this.socket = await network({ ...dataPeer, signingKeys })
-      const info = await socket.getInfo()
-      console.log(info)
+      const opts = { ...dataPeer, signingKeys }
+      socket = this.socket = await network(opts)
+
+      socket.on('#ready', async (info) => {
+        const coTerminal = document.querySelector('app-terminal')
+
+        if (coTerminal) {
+          coTerminal.info(`Peer Ready (address=${info.address}:${info.port}, nat=${info.natName})`)
+        }
+
+        for (const sub of [...socket.subclusters.values()]) {
+          await sub.join()
+        }
+      })
     }
 
-    const { data: dataSubscriptions } = await this.db.subscriptions.readAll()
+    const { data: dataSubscriptions } = await this.db.channels.readAll()
 
-    for (const [subscriptionId, subscription] of dataSubscriptions.entries()) {
-      if (!subscription.sharedKey) continue
-      if (socket.subclusters.get(subscriptionId)) continue
+    for (const [channelId, channel] of dataSubscriptions.entries()) {
+      if (!channel.sharedKey) continue
+      if (socket.subclusters.get(channelId)) continue
 
-      const subcluster = await socket.subcluster({ sharedKey: subscription.sharedKey })
+      const subcluster = await socket.subcluster({ sharedKey: channel.sharedKey })
 
       const onMessage = async (value, packet) => {
         const pid = Buffer.from(packet.packetId).toString('hex')
         const scid = Buffer.from(packet.subclusterId).toString('base64')
         const key = [channelId, pid].join('\xFF')
 
-        const { data: hasPacket } = await this.db.messages.has(key)
+        const { data: hasPacket } = await this.db.patches.has(key)
         if (hasPacket) return
 
-
+        
       }
 
       subcluster.on('message', (value, packet) => {
@@ -323,7 +335,8 @@ class AppView extends Tonic {
     }
 
     this.db = {
-      subscriptions: await Database.open('subscriptions'),
+      channels: await Database.open('channels'),
+      patches: await Database.open('patches'),
       state: await Database.open('state')
     }
 
@@ -632,9 +645,14 @@ class AppView extends Tonic {
       this.exportProject()
     }
 
-    if (event === 'open-dialog-share') {
-      const coDialogShare = document.querySelector('dialog-share')
-      if (coDialogShare) coDialogShare.show()
+    if (event === 'subscribe') {
+      const coDialogSubscribe = document.querySelector('dialog-subscribe')
+      if (coDialogSubscribe) coDialogSubscribe.show()
+    }
+
+    if (event === 'publish') {
+      const coDialogPublish = document.querySelector('dialog-publish')
+      if (coDialogPublish) coDialogPublish.show()
     }
   }
 
@@ -672,18 +690,18 @@ class AppView extends Tonic {
         <tonic-button
           type="icon"
           size="18px"
-          symbol-id="plus"
-          title="Add a shared project"
-          data-event="get-share"
+          symbol-id="download-icon"
+          title="Subscribe to a shared project"
+          data-event="subscribe"
         >
         </tonic-button>
 
         <tonic-button
           type="icon"
           size="18px"
-          symbol-id="link"
-          title="Share this project"
-          data-event="open-dialog-share"
+          symbol-id="link-icon"
+          title="Publish this project"
+          data-event="publish"
         >
         </tonic-button>
       </header>
@@ -713,13 +731,21 @@ class AppView extends Tonic {
         </tonic-split-right>
       </tonic-split>
 
-      <dialog-share
-        id="dialog-share"
+      <dialog-publish
+        id="dialog-publish"
         width="50%"
         height="30%"
         parent=${this}
       >
-      </dialog-share>
+      </dialog-publish>
+
+      <dialog-subscribe
+        id="dialog-subscribe"
+        width="50%"
+        height="30%"
+        parent=${this}
+      >
+      </dialog-subscribe>
 
       <app-sprite></app-sprite>
     `
@@ -735,5 +761,6 @@ window.onload = () => {
   Tonic.add(AppSprite)
   Tonic.add(AppTerminal)
   Tonic.add(AppView)
-  Tonic.add(DialogShare)
+  Tonic.add(DialogPublish)
+  Tonic.add(DialogSubscribe)
 }

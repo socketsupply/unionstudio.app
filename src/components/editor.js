@@ -128,7 +128,7 @@ class AppEditor extends Tonic {
 
     if (type.length) {
       if (/image/.test(type[0].mime)) {
-        elImagePreview.style.display = 'block'
+        elImagePreview.style.display = 'grid'
         // Display a preview for this type.
         return
       }
