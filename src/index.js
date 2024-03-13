@@ -215,8 +215,8 @@ class AppView extends Tonic {
         height: Math.floor(height / scale)
       }
 
+      opts.userScript = this.state.userScript
       if (scale > 1) {
-        opts.userScript = this.state.userScript
         opts.minWidth = Math.floor(width / scale)
         opts.minHeight = Math.floor(height / scale)
       }
