@@ -273,29 +273,25 @@ class AppEditor extends Tonic {
     const model = this.editor.getModel()
 
     model.onDidChangeContent(async () => {
-      clearTimeout(this.writeDebounce)
-
       if (!this.projectNode) return
       const value = this.editor.getValue()
       const coTerminal = document.querySelector('app-terminal')
       const coProperties = document.querySelector('app-properties')
 
-      this.writeDebounce = setTimeout(() => {
-        if (this.projectNode.label === 'settings.json' && this.projectNode.parent.id === 'root') {
+      if (this.projectNode.label === 'settings.json' && this.projectNode.parent.id === 'root') {
 
-          try {
-            this.props.parent.state.settings = JSON.parse(value)
-          } catch (err) {
-            coTerminal.error(`Unable to parse settings file (${err.message})`)
-            return
-          }
-          coTerminal.info(`Settings file updated.`)
-          coProperties.reRender()
-          parent.activatePreviewWindows()
+        try {
+          this.props.parent.state.settings = JSON.parse(value)
+        } catch (err) {
+          coTerminal.error(`Unable to parse settings file (${err.message})`)
+          return
         }
+        coTerminal.info(`Settings file updated.`)
+        coProperties.reRender()
+        parent.activatePreviewWindows()
+      }
 
-        this.writeToDisk(this.projectNode, value)
-      }, 620)
+      this.writeToDisk(this.projectNode, value)
     })
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {

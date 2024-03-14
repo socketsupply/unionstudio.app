@@ -19,6 +19,7 @@ for (const method of consoleMethods) {
 }
 
 import application from 'socket:application'
+import process from 'socket:process'
 import { inspect } from 'socket:util'
 
 const previewWindowTitleBar = 38
@@ -55,4 +56,6 @@ const scaleToFit = e => {
   }
 }
 
-window.addEventListener('resize', scaleToFit)
+if (process.platform === 'ios' || process.platform === 'android') {
+  window.addEventListener('resize', scaleToFit)
+}

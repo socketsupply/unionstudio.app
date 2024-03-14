@@ -61,7 +61,6 @@ export class DialogPublish extends TonicDialog {
       try {
         // if not, initialize the directory as a git project
         output = await exec('git init', { cwd })
-        console.log('???', output)
       } catch (err) {
         output.stderr = err.message
       }
@@ -84,8 +83,6 @@ export class DialogPublish extends TonicDialog {
       coTerminal.error(output.stderr)
       return this.html``
     }
-
-    return this.html``
 
     try {
       output = await exec('git add . --ignore-errors', { cwd })
