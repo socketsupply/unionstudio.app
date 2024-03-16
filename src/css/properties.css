@@ -1,0 +1,31 @@
+app-properties {
+  overflow: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+app-properties #project-status {
+  border: 1px solid var(--tonic-border);
+  padding: 20px 12px;
+  margin-top: 10px;
+  background: var(--tonic-background);
+  overflow: auto;
+  max-width: 100%;
+  border-radius: 2px;
+}
+
+app-properties label {
+  color: var(--tonic-medium, #999);
+  font-weight: 500;
+  font: 12px/14px var(--tonic-subheader, 'Arial', sans-serif);
+  text-transform: uppercase;
+  margin-top: 20px;
+  letter-spacing: 1px;
+}
+
+app-properties .pull-right {
+  place-self: end;
+}

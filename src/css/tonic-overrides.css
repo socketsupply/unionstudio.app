@@ -31,22 +31,8 @@ tonic-split .tonic--split-handle {
   z-index: 20 !important;
 }
 
-.tonic--accordion-panel {
-  display: grid;
-}
-
-tonic-accordion-section:not(:last-of-type) {
-  border: none !important;
-}
-
-tonic-accordion-section .tonic--accordion-header button .tonic--label {
-  font-family: var(--tonic-body);
-  color: var(--tonic-primary);
-  font-weight: 100;
-}
-
 tonic-accordion-section .tonic--accordion-panel {
-  padding: 10px 30px 20px 20px !important;
+  padding: 0px 20px 20px 14px !important
 }
 
 .tonic--split-handle.tonic--split-horizontal {
@@ -68,11 +54,47 @@ tonic-toggle {
 
 tonic-accordion {
   border: none !important;
+  cursor: default;
+  padding: 2px 10px;
 }
 
 tonic-accordion-section .tonic--accordion-header .tonic--arrow:before {
   width: 6px !important;
   height: 6px !important;
+}
+
+tonic-accordion-section:not(:last-of-type) {
+  border: none !important;
+}
+
+tonic-accordion-section .tonic--accordion-header button .tonic--label {
+  font-family: var(--tonic-body);
+  padding: 14px;
+  color: var(--tonic-info);
+  font-weight: 100;
+}
+
+tonic-accordion-section .tonic--accordion-header button[aria-expanded="true"] .tonic--label {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: var(--tonic-accent);
+}
+
+tonic-accordion-section .tonic--accordion-header button {
+  cursor: pointer;
+  padding: 14px 0 !important;
+}
+
+.tonic--accordion-panel {
+  display: grid;
+}
+
+tonic-checkbox > div {
+  padding: 6px 0 !important;
+}
+
+tonic-checkbox .tonic--icon {
+  margin: 4px 0 0px 1px !important;
 }
 
 tonic-range {

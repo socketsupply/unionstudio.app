@@ -292,39 +292,39 @@ class AppView extends Tonic {
       })
     }
 
-    const { data: dataSubscriptions } = await this.db.channels.readAll()
+    const { data: dataProjects } = await this.db.projects.readAll()
 
-    for (const [channelId, channel] of dataSubscriptions.entries()) {
-      if (!channel.sharedKey) continue
-      if (socket.subclusters.get(channelId)) continue
+    for (const [projectId, project] of dataProjects.entries()) {
+      if (!project.sharedKey) continue
+      if (socket.subclusters.get(project.subclusterId)) continue
 
-      const subcluster = await socket.subcluster({ sharedKey: channel.sharedKey })
+      const subcluster = await socket.subcluster({ sharedKey: project.sharedKey })
 
-      const onMessage = async (value, packet) => {
+      subcluster.on('patch', async (value, packet) => {
+        console.log('GOT PATCH!', value, packet)
+        if (!packet.verified) return // gtfoa
+        if (packet.index !== -1) return // not interested
+
         const pid = Buffer.from(packet.packetId).toString('hex')
         const scid = Buffer.from(packet.subclusterId).toString('base64')
-        const key = [channelId, pid].join('\xFF')
+        const key = [projectId, pid].join('\xFF')
 
         const { data: hasPacket } = await this.db.patches.has(key)
         if (hasPacket) return
 
-        
-      }
+      })
 
-      subcluster.on('message', (value, packet) => {
+      subcluster.on('tag', async (value, packet) => {
         if (!packet.verified) return // gtfoa
         if (packet.index !== -1) return // not interested
 
-        // messages must be parsable
-        try { value = JSON.parse(value) } catch { return }
+        const pid = Buffer.from(packet.packetId).toString('hex')
+        const scid = Buffer.from(packet.subclusterId).toString('base64')
+        const key = [projectId, pid].join('\xFF')
 
-        // messages must have content
-        if (!value || !value.content) return
+        const { data: hasPacket } = await this.db.patches.has(key)
+        if (hasPacket) return
 
-        // messages must have a type
-        if (typeof value.type !== 'string') return
-
-        onMessage(value, packet)
       })
     }
   }
@@ -336,8 +336,13 @@ class AppView extends Tonic {
     }
 
     this.db = {
-      channels: await Database.open('channels'),
+      projects: await Database.open('projects'),
+      // patches are the primary type of data associated with a
+      // channel a patch can be reviewed, applied or discarded.
+      // in the future this could include other things like build
+      // artifacts, messages, comments, etc.
       patches: await Database.open('patches'),
+      // state contains state data for the underlying peer.
       state: await Database.open('state')
     }
 
@@ -505,6 +510,7 @@ class AppView extends Tonic {
 
       File:
         New Project: n + CommandOrControl
+        Add Shared Project: G + CommandOrControl
         ---
         Reset Demo Project: _
       ;
@@ -570,6 +576,12 @@ class AppView extends Tonic {
       case 'Find': {
         const coEditor = document.querySelector('app-editor')
         coEditor.editor.getAction('actions.find').run()
+        break
+      }
+
+      case 'Add Shared Project': {
+        const coDialogSubscribe = document.querySelector('dialog-subscribe')
+        if (coDialogSubscribe) coDialogSubscribe.show()
         break
       }
 
@@ -646,14 +658,7 @@ class AppView extends Tonic {
       this.exportProject()
     }
 
-    if (event === 'subscribe') {
-      const coDialogSubscribe = document.querySelector('dialog-subscribe')
-      if (coDialogSubscribe) coDialogSubscribe.show()
-    }
-
     if (event === 'publish') {
-      const coDialogPublish = document.querySelector('dialog-publish')
-      if (coDialogPublish) coDialogPublish.show()
     }
   }
 
@@ -671,7 +676,6 @@ class AppView extends Tonic {
     return this.html`
       <header>
         <span class="spacer"></span>
-        <span class="spacer"></span>
 
         <tonic-button type="icon" size="18px" symbol-id="play" title="Build & Run The Project" data-event="run">
         </tonic-button>
@@ -688,26 +692,9 @@ class AppView extends Tonic {
         </tonic-button>
 
         <span class="spacer"></span>
-        <tonic-button
-          type="icon"
-          size="18px"
-          symbol-id="download-icon"
-          title="Subscribe to a shared project"
-          data-event="subscribe"
-        >
-        </tonic-button>
-
-        <tonic-button
-          type="icon"
-          size="18px"
-          symbol-id="link-icon"
-          title="Publish this project"
-          data-event="publish"
-        >
-        </tonic-button>
       </header>
 
-      <tonic-split id="split-main" type="vertical">
+      <tonic-split min="100" max="280" id="split-main" type="vertical">
         <tonic-split-left width="80%">
           <tonic-split id="split-editor" type="vertical">
             <tonic-split-left width="25%">

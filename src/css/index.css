@@ -11,6 +11,7 @@ body {
   font-size: 14px;
   overflow: hidden;
   background-color: var(--tonic-window);
+  color: var(--tonic-primary);
 }
 
 body.no-labels section {
@@ -19,6 +20,15 @@ body.no-labels section {
 
 body.no-labels label {
   display: none;
+}
+
+tonic-accordion h3 {
+  text-transform: uppercase;
+  margin: 20px 14px 6px;
+  color: var(--tonic-primary);
+  font-family: var(--tonic-body);
+  font-weight: 100;
+  font-size: 14px;
 }
 
 #inputs {
@@ -185,7 +195,7 @@ tonic-tab-panel {
 }
 
 #options .option p {
-  margin-left: 10px;
+  margin-left: 0px;
   padding-bottom: 10px;
   margin-top: 0;
   border-bottom: 1px solid var(--tonic-border);
@@ -259,7 +269,7 @@ header {
 
 app-view > header {
   display: grid;
-  grid-template-columns: 68px 1fr 34px 250px 34px 1fr 34px 34px;
+  grid-template-columns: 1fr 34px 250px 34px 1fr;
   gap: 12px;
   grid-template-rows: auto;
   align-content: center;
@@ -269,11 +279,6 @@ app-view > header {
   top: 0;
   left: 0;
   right: 0;
-}
-
-app-view > header [platform="darwin"] {
-  padding-left: 35%;
-  padding-right: 35%;
 }
 
 #split-main {

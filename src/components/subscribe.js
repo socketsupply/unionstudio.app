@@ -31,7 +31,7 @@ export class DialogSubscribe extends TonicDialog {
 
         <tonic-input
           id="shared-secret-subscribe"
-          label="Shared Secret"
+          label="Project Link"
           width="100%"
         >
         </tonic-input>

@@ -6,11 +6,63 @@ import { spawn, exec } from 'socket:child_process'
 import Tonic from '@socketsupply/tonic'
 import { TonicDialog } from '@socketsupply/components/dialog'
 
-export class DialogPublish extends TonicDialog {
-  async publish (value) {
-    const app = this.props.parent
+import * as ini from '../lib/ini.js'
 
-    console.log(app.socket)
+export class DialogPublish extends TonicDialog {
+  click (e) {
+    super.click(e)
+
+    const el = Tonic.match(e.target, '[data-event]')
+    if (!el) return
+
+    if (el.dataset.event === 'close') {
+      super.hide()
+    }
+  }
+
+  async getProject () {
+    const app = this.props.parent
+    const currentProject = app.state.currentProject
+    if (!currentProject) return
+
+    let src
+
+    try {
+      const fp = path.join(currentProject.id, 'socket.ini')
+      src = await fs.promises.readFile(fp, 'utf8')
+    } catch (err) {
+      const notifications = document.querySelector('#notifications')
+      notifications?.create({
+        type: 'error',
+        title: 'Error',
+        message: err.message
+      })
+
+      return
+    }
+
+    let bundleId = ini.get(src, 'meta', 'bundle_identifier')
+    bundleId = bundleId.replace(/"/g, '')
+
+    const { data: hasProject } = await app.db.projects.has(bundleId)
+
+    if (hasProject) {
+      const { data: dataProject } = await app.db.projects.get(bundleId)
+      return dataProject
+    }
+  }
+
+  async publish (type, value) {
+    const app = this.props.parent
+    const settings = app.state.settings
+    const dataProject = await this.getProject()
+
+    const opts = {
+
+    }
+
+    const subcluster = app.socket.subclusters.get(dataProject.subclusterId)
+    const packets = await subcluster.emit(type, value, opts)
   }
 
   async show () {
@@ -23,40 +75,28 @@ export class DialogPublish extends TonicDialog {
     const currentProject = app.state.currentProject
     const cwd = currentProject?.id
 
-    if (!cwd) return this.html``
-
-    yield this.html`
-      <tonic-loader></tonic-loader>
-    `
-
-    const { data: dataPeer } = await app.db.state.get('peer')
-    let sharedSecret = this.state.sharedSecret || await Encryption.createId()
-
-    // if there is no subscription for this, create one
-    if (!dataPeer.config?.clusterId) {
-      // TODO(@heapwolf): project ids should be agnostic of paths in case the user wants to change the path
-      await app.db.subscriptions.put(currentProject.id, {
-        name: currentProject.label,
-        clusterId,
-        channelId: scid,
-        sharedKey,
-        description: 'The default channel.',
-        rateLimit: 32,
-        lastUpdate: Date.now(),
-        nicks: 1,
-        unread: 0,
-        mentions: 0
-      })
-    }
-
     const notifications = document.querySelector('#notifications')
     const coTerminal = document.querySelector('app-terminal')
 
-    let output = { stdout: '' }
+    //
+    // these are cases where the app just isn't initialied yet.
+    //
+    if (!notifications || !coTerminal) return this.html``
+    if (!currentProject || !cwd) return this.html``
 
-    // Check if the project is a git directory.
+    //
+    // these git commands might take a few seconds so show the user a spinner
+    //
+    yield this.html`<tonic-loader></tonic-loader>`
+
+    let output = { stdout: '' }
+    let exists = false
+
+    //
+    // Check if there is a .git directory, if not run git init.
+    //
     try {
-      await fs.promises.stat(path.join(cwd, '.git'))
+      exists = await fs.promises.stat(path.join(cwd, '.git'))
     } catch (err) {
       try {
         // if not, initialize the directory as a git project
@@ -72,18 +112,24 @@ export class DialogPublish extends TonicDialog {
       }
     }
 
-    // try to get the status of the project
+    //
+    // Get the current hash, it will go into packet.usr3
+    //
     try {
-      output = await exec('git status', { cwd })
+      output = await exec('git rev-parse HEAD', { cwd })
     } catch (err) {
       output.stderr = err.message
-    }
-
-    if (output.stderr) {
-      coTerminal.error(output.stderr)
+      coTerminal.writeln(output.stderr)
+      await this.hide()
       return this.html``
     }
 
+    const currentHash = output.stdout.trim()
+    const commitMessage = '' // TODO(@heapwolf): option user to specify
+
+    //
+    // Add any files to the repo
+    //
     try {
       output = await exec('git add . --ignore-errors', { cwd })
     } catch (err) {
@@ -99,10 +145,20 @@ export class DialogPublish extends TonicDialog {
     coTerminal.info('git add .')
     coTerminal.writeln(output.stdout)
 
-    if (!output.stdout.includes('nothing to commit')) {
-      // try to commit the code to the project
+    //
+    // If there is something to commit...
+    //
+    if (output.stdout.includes('nothing to commit') === false) {
+      //
+      // Try to commit the changes.
+      //
+      const msg = {
+        parent: currentHash,
+        message: commitMessage
+      }
+
       try {
-        output = await exec('git commit -m "share"', { cwd })
+        output = await exec(`git commit -m '${JSON.stringify(msg)}'`, { cwd })
       } catch (err) {
         output.stderr = err.message
       }
@@ -116,21 +172,44 @@ export class DialogPublish extends TonicDialog {
       coTerminal.info('git commit .')
       coTerminal.writeln(output.stdout)
 
-      try {
-        output = await exec('git show HEAD', { cwd })
-      } catch (err) {
-        output.stderr = err.message
+      if (!exists) {
+        //
+        // This is the first time, so publish the whole .git directory
+        //
+        try {
+          output = await exec('git bundle create repo.bundle --all', { cwd })
+        } catch (err) {
+          output.stderr = err.message
+          coTerminal.writeln(output.stderr)
+          await this.hide()
+          return this.html``
+        }
+
+        coTerminal.info('Publishing bundle')
+        const data = await fs.promises.readFile(path.join(cwd, 'repo.bundle'))
+        this.publish('clone', data) // into the background
+      } else {
+        //
+        // Just publish the diff
+        //
+        try {
+          output = await exec(`git format-patch -1 HEAD --stdout`, { cwd })
+        } catch (err) {
+          output.stderr = err.message
+        }
+
+        if (output.stderr) {
+          coTerminal.error(output.stderr)
+          await this.hide()
+          return this.html``
+        }
+
+        coTerminal.info('Publishing patch')
+        this.publish('patch', Buffer.from(output.stdout)) // into the background
       }
 
-      if (output.stderr) {
-        await this.hide()
-        coTerminal.error(output.stderr)
-        return this.html``
-      }
-
-      // Now we're ready to share the diff, which can be applied as a patch when
-      // received by another user who is subscribing to this user's subcluster.
-      // this.publish(output.stdout)
+      const coProperties = document.querySelector('app-properties')
+      coProperties.reRender()
     }
 
     return this.html`
@@ -138,25 +217,11 @@ export class DialogPublish extends TonicDialog {
         Publish
       </header>
       <main>
-        <p>
-          This is a unique shared secret for <b>${app.state.currentProject.label}</b>,
-          share it only with people that you want to access this code.
-        </p>
-
-        <tonic-input
-          id="shared-secret-publish"
-          label="Shared Secret"
-          symbol-id="copy-icon"
-          position="right"
-          readonly="true"
-          width="100%"
-          value="${sharedSecret.toString('hex')}"
-        >
-        </tonic-input>
+        <h1>🎉</h1>
+        <p>Success!</p>
       </main>
       <footer>
-        <div></div>
-        <!-- tonic-button width="164px" data-event="force">Force Publish</tonic-button -->
+        <tonic-button data-event="close">OK</tonic-button>
       </footer>
     `
   }

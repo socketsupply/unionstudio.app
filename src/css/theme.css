@@ -59,7 +59,7 @@ body {
     --tonic-button-background-focus: rgba(84, 84, 84, 1);
     --tonic-input-text: rgba(255, 255, 255, 1);
     --tonic-input-text-hover: rgba(255, 255, 255, 1);
-    --tonic-input-background: rgba(45, 45, 45, 1);
+    --tonic-input-background: rgba(40, 40, 40, 1);
     --tonic-input-background-focus: rgba(30, 30, 30, 1);
     --tonic-input-border: rgba(80, 80, 80, 1);
     --tonic-input-border-hover: rgba(105, 105, 105, 1);

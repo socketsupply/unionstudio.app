@@ -5,6 +5,9 @@ dialog-publish {
   min-height: 280px;
   display: grid;
   font-family: var(--tonic-monospace);
+  text-align: center;
+  app-region: drag;
+  --app-region: drag;
 }
 
 dialog-publish header {
@@ -16,27 +19,23 @@ dialog-publish header {
 }
 
 dialog-publish footer {
-  height: 50px;
+  height: 60px;
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 10px;
-  padding: 0 16px;
+  gap: 12px;
 }
 
-dialog-publish .centered {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  display: grid;
-  justify-content: center;
-  align-content: center;
+dialog-publish tonic-button {
+  app-region: unset;
+  --app-region: unset;
+  place-self: center end;
 }
 
-dialog-publish .centered .message {
-  display: inline-block;
-  width: 80%;
-  margin: auto;
+dialog-publish .centered p {
+  margin: 0;
 }
 
 dialog-publish main {
-  padding: 16px 16%;
+  justify-content: center;
+  align-content: center;
 }

@@ -7,6 +7,15 @@ import Tonic from '@socketsupply/tonic'
 
 import { resizePNG } from '../lib/icon.js'
 
+function escapeCommitMessage (commitMessage) {
+  return commitMessage
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function rgbaToHex (rgbaString) {
   const rgbaValues = rgbaString.match(/\d+/g)
 
@@ -138,6 +147,22 @@ class AppEditor extends Tonic {
 
     const fileName = projectNode.label
     const imagePreview = this.querySelector('.image-preview')
+
+    if (projectNode.isDirectory && projectNode.parent.id === 'root') {
+      // in this case we can read all the patch files in the database
+      // and present them to the user in the form of "patch requests".
+
+      /*
+       * Each patch file has a header like this, so we can parse it, present
+       * it, and the user can decide if they want to apply the patch or not.
+       *
+       * From 97d72567aeb446e2b58262e88623f77ad0f7044f Mon Sep 17 00:00:00 2001
+       * From: heapwolf <paolo@socketsupply.co>
+       * Date: Thu, 14 Mar 2024 10:48:03 +0100
+       * Subject: [PATCH] fix write method and preview script
+       *
+      */
+    }
 
     if (projectNode.isDirectory && fileName === 'icons') {
       const iconPath = path.join(projectNode.id, 'icon.png')
@@ -276,7 +301,6 @@ class AppEditor extends Tonic {
       if (!this.projectNode) return
       const value = this.editor.getValue()
       const coTerminal = document.querySelector('app-terminal')
-      const coProperties = document.querySelector('app-properties')
 
       if (this.projectNode.label === 'settings.json' && this.projectNode.parent.id === 'root') {
 
@@ -286,10 +310,16 @@ class AppEditor extends Tonic {
           coTerminal.error(`Unable to parse settings file (${err.message})`)
           return
         }
+
         coTerminal.info(`Settings file updated.`)
-        coProperties.reRender()
         parent.activatePreviewWindows()
       }
+
+      clearTimeout(this.debouncePropertiesRerender)
+      this.debouncePropertiesRerender = setTimeout(() => {
+        const coProperties = document.querySelector('app-properties')
+        coProperties.reRender()
+      }, 1024)
 
       this.writeToDisk(this.projectNode, value)
     })
