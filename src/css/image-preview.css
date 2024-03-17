@@ -1,0 +1,83 @@
+app-image-preview {
+  position: absolute;
+  top: 0; bottom: 0; left: 0; right: 0;
+  overflow: auto;
+  z-index: -1;
+  transition: z-index .1s ease, opacity .1s ease;
+}
+
+app-image-preview.show {
+  opacity: 1;
+  z-index: 30;
+}
+
+app-image-preview {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1;
+  opacity: 0;
+  transition: all .2s ease;
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  grid-template-rows: 1fr 1fr;
+  grid-template-columns: 1fr;
+  background-color: var(--tonic-background);
+}
+
+app-image-preview .top {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+}
+
+app-image-preview .bottom {
+  padding: 10%;
+}
+
+app-image-preview .bottom h2 {
+  border-bottom: 1px solid var(--tonic-info);
+  font-size: 14px;
+  text-transform: uppercase;
+  font-weight: 100;
+  color: var(--tonic-info);
+}
+
+app-image-preview .bottom .icon-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 60px 0;
+  gap: 40px;
+  align-items: end;
+  justify-content: center;
+}
+
+app-image-preview tonic-button {
+  margin: auto;
+}
+
+app-image-preview h1 {
+  color: var(--tonic-border);
+  font-size: 28px;
+  font-family: var(--tonic-body);
+}
+
+app-image-preview img {
+  margin: auto;
+}
+
+app-image-preview .size {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+}
+
+app-image-preview .size label {
+  text-align: center;
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--tonic-primary);
+}
+
+app-image-preview .size icon {
+  cursor: pointer;
+}

@@ -1,4 +1,5 @@
 app-properties {
+  min-width: 250px;
   overflow: auto;
   position: absolute;
   top: 0;

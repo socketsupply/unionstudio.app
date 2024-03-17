@@ -17,6 +17,7 @@ import { AppProject } from './components/project.js'
 import { AppProperties } from './components/properties.js'
 import { AppSprite } from './components/sprite.js'
 import { AppEditor } from './components/editor.js'
+import { AppImagePreview } from './components/image-preview.js'
 import { DialogPublish } from './components/publish.js'
 import { DialogSubscribe } from './components/subscribe.js'
 
@@ -694,7 +695,7 @@ class AppView extends Tonic {
         <span class="spacer"></span>
       </header>
 
-      <tonic-split min="100" max="280" id="split-main" type="vertical">
+      <tonic-split id="split-main" type="vertical">
         <tonic-split-left width="80%">
           <tonic-split id="split-editor" type="vertical">
             <tonic-split-left width="25%">
@@ -710,6 +711,7 @@ class AppView extends Tonic {
                   <app-terminal id="app-terminal" parent=${this}></app-terminal>
                 </tonic-split-bottom>
               </tonic-split>
+              <app-image-preview id="image-preview" parent=${this}></app-image-preview>
             </tonic-split-right>
           </tonic-split>
         </tonic-split-left>
@@ -744,6 +746,7 @@ window.onload = () => {
   document.title = 'Socket App Studio'
 
   Tonic.add(AppEditor)
+  Tonic.add(AppImagePreview)
   Tonic.add(AppProperties)
   Tonic.add(AppProject)
   Tonic.add(AppSprite)

@@ -464,6 +464,7 @@ class AppProject extends Tonic {
 
       const projectNode = this.getProjectNode(node)
 
+      // Check if the project has changed, refresh the props component
       if (this.state.currentProject !== projectNode.id) {
         this.props.parent.state.currentProject = projectNode
         this.props.parent.reloadPreviewWindows()
@@ -474,6 +475,22 @@ class AppProject extends Tonic {
 
       this.state.currentProject = projectNode.id
 
+      // Check if this is an image type that we can present
+      const ext = path.extname(node.id)
+      const type = await lookup(ext.slice(1))
+      const coImagePreview = document.querySelector('app-image-preview')
+
+      if (type.length) {
+        if (/image/.test(type[0].mime)) {
+          coImagePreview.load(node)
+          coImagePreview.show()
+          return
+        }
+      }
+
+      coImagePreview.hide()
+
+      // Load the code editor
       const coEditor = document.querySelector('app-editor')
       coEditor.loadProjectNode(node)
     }
