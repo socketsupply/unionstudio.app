@@ -1,11 +1,11 @@
 {
-  "name": "socket-app-studio",
-  "productName": "socket-app-studio",
+  "name": "union-app-studio",
+  "productName": "union-app-studio",
   "version": "1.0.0",
   "type": "module",
-  "description": "A fiddle for Socket Runtime",
+  "description": "Like CodePen, but for Native Apps!",
   "repository": {
-    "url": "git@github.com:socketsupply/socket-app-studio.git",
+    "url": "git@github.com:socketsupply/union-app-studio.git",
     "type": "git"
   },
   "devDependencies": {
