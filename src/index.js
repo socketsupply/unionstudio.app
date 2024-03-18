@@ -502,8 +502,8 @@ class AppView extends Tonic {
     }
 
     const menu = `
-      Socket App Studio:
-        About Socket App Studio: _
+      Union App Studio:
+        About Union App Studio: _
         ---
         ${itemsMac}
         Quit: q + CommandOrControl
@@ -743,7 +743,7 @@ class AppView extends Tonic {
 }
 
 window.onload = () => {
-  document.title = 'Socket App Studio'
+  document.title = 'Union App Studio'
 
   Tonic.add(AppEditor)
   Tonic.add(AppImagePreview)
