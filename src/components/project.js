@@ -153,6 +153,7 @@ class AppProject extends Tonic {
   async mouseup (e) {
     const mouseDragged = this.mouseIsDragging
     this.resetMouse()
+    const notifications = document.querySelector('#notifications')
 
     if (mouseDragged) {
       this.load()
@@ -307,7 +308,7 @@ class AppProject extends Tonic {
     input.setAttribute('spellcheck', 'false')
     input.addEventListener('blur', () => {
       container.innerHTML = ''
-      container.textContent = n.writelnode.label
+      container.textContent = node.label
     })
 
     container.innerHTML = ''

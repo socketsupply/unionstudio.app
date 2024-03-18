@@ -65,7 +65,7 @@ class AppEditor extends Tonic {
     try {
       await fs.promises.writeFile(projectNode.id, data)
     } catch (err) {
-      console.error(`Unable to write to ${dest}`, err)
+      console.error(`Unable to write to ${projectNode.id}`, err)
     }
 
     app.reloadPreviewWindows()
