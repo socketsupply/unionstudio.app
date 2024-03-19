@@ -183,7 +183,7 @@ header {
 }
 
 app-view > header {
-  display: grid;
+  display: none;
   grid-template-columns: 1fr 34px 250px 34px 1fr;
   gap: 12px;
   grid-template-rows: auto;
@@ -197,8 +197,16 @@ app-view > header {
 }
 
 #split-main {
-  top: 50px;
+  top: 0px;
   border-top: 1px solid var(--tonic-border);
+}
+
+body[platform="macos"] app-view > header {
+  display: grid;
+}
+
+body[platform="macos"] #split-main {
+  top: 50px;
 }
 
 #split-main tonic-split-right {

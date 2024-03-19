@@ -60,6 +60,8 @@ class AppEditor extends Tonic {
   }
 
   async writeToDisk (projectNode, data) {
+    if (projectNode.isDirectory) return
+
     const app = this.props.parent
 
     try {
