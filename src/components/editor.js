@@ -59,15 +59,15 @@ class AppEditor extends Tonic {
     this.editor.getModel().getValueInRange(this.editor.getSelection())
   }
 
-  async writeToDisk (projectNode, data) {
-    if (projectNode.isDirectory) return
+  async writeToDisk (data) {
+    if (!this.state.projectNode && this.state.projectNode.isDirectory) return
 
     const app = this.props.parent
 
     try {
-      await fs.promises.writeFile(projectNode.id, data)
+      await fs.promises.writeFile(this.state.projectNode.id, data)
     } catch (err) {
-      console.error(`Unable to write to ${projectNode.id}`, err)
+      console.error(`Unable to write to ${this.state.projectNode.id}`, err)
     }
 
     app.reloadPreviewWindows()
@@ -75,6 +75,8 @@ class AppEditor extends Tonic {
 
   async loadProjectNode (projectNode) {
     if (!projectNode) return
+
+    this.state.projectNode = projectNode
 
     const app = this.props.parent
 
@@ -207,7 +209,6 @@ class AppEditor extends Tonic {
       const coTerminal = document.querySelector('app-terminal')
 
       if (currentProject.label === 'settings.json' && currentProject.parent.id === 'root') {
-
         try {
           app.state.settings = JSON.parse(value)
         } catch (err) {
@@ -225,7 +226,7 @@ class AppEditor extends Tonic {
         coProperties.reRender()
       }, 1024)
 
-      this.writeToDisk(currentProject, value)
+      this.writeToDisk(value)
     })
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
