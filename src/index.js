@@ -315,7 +315,8 @@ class AppView extends Tonic {
 
       })
 
-      subcluster.on('tag', async (value, packet) => {
+      subcluster.on('clone', async (value, packet) => {
+        console.log('GOT CLONE!', value, packet)
         if (!packet.verified) return // gtfoa
         if (packet.index !== -1) return // not interested
 
@@ -743,8 +744,6 @@ class AppView extends Tonic {
 }
 
 window.onload = () => {
-  document.title = 'Union App Studio'
-
   Tonic.add(AppEditor)
   Tonic.add(AppImagePreview)
   Tonic.add(AppProperties)

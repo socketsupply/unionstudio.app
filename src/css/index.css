@@ -201,11 +201,11 @@ app-view > header {
   border-top: 1px solid var(--tonic-border);
 }
 
-body[platform="macos"] app-view > header {
+app-view[platform="darwin"] > header {
   display: grid;
 }
 
-body[platform="macos"] #split-main {
+app-view[platform="darwin"] #split-main {
   top: 50px;
 }
 

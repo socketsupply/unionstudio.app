@@ -82,6 +82,10 @@ class AppProperties extends Tonic {
 
     const { event, propertyValue } = el.dataset
 
+    if (event === 'copy-link') {
+      navigator.clipboard.writeText(el.value)
+    }
+
     if (event === 'publish') {
       const coDialogPublish = document.querySelector('dialog-publish')
       if (coDialogPublish) coDialogPublish.show()
@@ -284,6 +288,7 @@ class AppProperties extends Tonic {
             id="shared-secret"
             symbol-id="copy-icon"
             position="right"
+            data-event="copy-link"
             value="${sharedSecret}"
             readonly="true"
           ></tonic-input>
