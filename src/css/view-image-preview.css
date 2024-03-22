@@ -1,4 +1,4 @@
-app-image-preview {
+view-image-preview {
   position: absolute;
   top: 0; bottom: 0; left: 0; right: 0;
   overflow: auto;
@@ -15,12 +15,12 @@ app-image-preview {
   padding: 10%;
 }
 
-app-image-preview.show {
+view-image-preview.show {
   opacity: 1;
   z-index: 30;
 }
 
-app-image-preview .top {
+view-image-preview .top {
   display: grid;
   justify-content: center;
   align-items: center;
@@ -28,10 +28,10 @@ app-image-preview .top {
   margin-bottom: 100px;
 }
 
-app-image-preview .bottom {
+view-image-preview .bottom {
 }
 
-app-image-preview .bottom h2 {
+view-image-preview .bottom h2 {
   border-bottom: 1px solid var(--tonic-info);
   font-size: 14px;
   text-transform: uppercase;
@@ -39,7 +39,7 @@ app-image-preview .bottom h2 {
   color: var(--tonic-info);
 }
 
-app-image-preview .bottom .icon-grid {
+view-image-preview .bottom .icon-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   padding: 60px 0;
@@ -48,33 +48,33 @@ app-image-preview .bottom .icon-grid {
   justify-content: center;
 }
 
-app-image-preview tonic-button {
+view-image-preview tonic-button {
   margin: auto;
 }
 
-app-image-preview h1 {
+view-image-preview h1 {
   color: var(--tonic-border);
   font-size: 28px;
   font-family: var(--tonic-body);
 }
 
-app-image-preview img {
+view-image-preview img {
   margin: auto;
 }
 
-app-image-preview .size {
+view-image-preview .size {
   display: grid;
   justify-content: center;
   align-items: center;
 }
 
-app-image-preview .size label {
+view-image-preview .size label {
   text-align: center;
   display: inline-block;
   margin-top: 10px;
   color: var(--tonic-primary);
 }
 
-app-image-preview .size icon {
+view-image-preview .size icon {
   cursor: pointer;
 }

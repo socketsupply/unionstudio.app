@@ -35,7 +35,7 @@ async function cp (srcDir, destDir) {
     const destPath = path.join(destDir, file.name)
 
     if (file.isDirectory()) {
-      await copyDirectory(srcPath, destPath)
+      await cp(srcPath, destPath)
     } else {
       await fs.promises.copyFile(srcPath, destPath, fs.constants.COPYFILE_FICLONE)
     }
@@ -462,7 +462,6 @@ class AppProject extends Tonic {
 
   async onSelection (node, isToggle) {
     if (!isToggle) {
-
       const projectNode = this.getProjectNode(node)
 
       // Check if the project has changed, refresh the props component
@@ -476,10 +475,20 @@ class AppProject extends Tonic {
 
       this.state.currentProject = projectNode.id
 
+      const coImagePreview = document.querySelector('view-image-preview')
+      const coHome = document.querySelector('view-home')
+
+      coImagePreview.hide()
+      coHome.hide()
+
+      if (projectNode.id === 'home') {
+        coHome.show()
+        return
+      }
+
       // Check if this is an image type that we can present
       const ext = path.extname(node.id)
       const type = await lookup(ext.slice(1))
-      const coImagePreview = document.querySelector('app-image-preview')
 
       if (type.length) {
         if (/image/.test(type[0].mime)) {
@@ -488,8 +497,6 @@ class AppProject extends Tonic {
           return
         }
       }
-
-      coImagePreview.hide()
 
       // Load the code editor
       const coEditor = document.querySelector('app-editor')
@@ -568,11 +575,23 @@ class AppProject extends Tonic {
 
   async load () {
     const oldState = this.state.tree
+    const oldChild = this.getNodeByProperty('id', 'home', oldState)
 
     const tree = {
       id: 'root',
       children: []
     }
+
+    tree.children.push({
+      id: 'home',
+      parent: tree,
+      selected: oldChild?.selected ?? 0,
+      state: oldChild?.state ?? 0,
+      isDirectory: false,
+      icon: 'home-icon',
+      label: 'Home',
+      children: []
+    })
 
     const readDir = async (dirPath, parent) => {
       let entries = []
@@ -626,8 +645,6 @@ class AppProject extends Tonic {
         }
       }
     }
-
-    const app = document.querySelector('app-view')
 
     try {
       await readDir(path.join(path.DATA, 'projects'), tree)

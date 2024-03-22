@@ -4,13 +4,9 @@ import path from 'socket:path'
 import { exec } from 'socket:child_process'
 import { Encryption, sha256 } from 'socket:network'
 
-import * as ini from '../lib/ini.js'
+import Config from '../lib/config.js'
 
 class AppProperties extends Tonic {
-  constructor () {
-    super()
-  }
-
   async change (e) {
     const el = Tonic.match(e.target, '[data-event]')
     if (!el) return
@@ -21,7 +17,29 @@ class AppProperties extends Tonic {
     const notifications = document.querySelector('#notifications')
     const editor = document.querySelector('app-editor')
     const project = document.querySelector('app-project')
+    const config = new Config(app.currentProject?.id)
 
+    //
+    // if the user changes the project link, we need to update the project.
+    // projects are keyed on the bundle id, so get the bundle id from the
+    // config, then update the sharedSecret, then await configt the network.
+    //
+    if (event === 'project-link') {
+      if (!config) return
+
+      let bundleId = await config.get('meta', 'bundle_identifier')
+      if (bundleId) bundleId = bundleId.replace(/"/g, '')
+
+      const { data: dataBundle } = await app.db.projects.get(bundleId)
+      dataBundle.sharedSecret = el.value
+
+      await app.db.projects.put(bundleId, dataBundle)
+      await app.initNetwork()
+    }
+
+    //
+    // when the user wants to toggle one of the preview windows they have configured
+    //
     if (event === 'preview') {
       const pathToSettingsFile = path.join(path.DATA, 'projects', 'settings.json')
       const previewWindow = app.state.settings.previewWindows.find(o => o.title === value)
@@ -59,13 +77,11 @@ class AppProperties extends Tonic {
       }
     }
 
+    //
+    // When the user wants to make a change to the one of the properties in the await config file
+    //
     if (event === 'property') {
-      const node = project.getNodeByProperty('id', 'socket.ini')
-      node.data = ini.set(node.data, section, el.id, el.value)
-
-      const dest = path.join(app.state.cwd, node.id)
-      await fs.promises.writeFile(dest, node.data)
-
+      await config.set(section, el.id, el.value)
       editor.loadProjectNode(node)
 
       notifications?.create({
@@ -77,14 +93,17 @@ class AppProperties extends Tonic {
   }
 
   async click (e) {
+    const elCopy = Tonic.match(e.target, '[symbol-id="copy-icon"]')
+
+    if (elCopy) {
+      navigator.clipboard.writeText('union://' + elCopy.nextElementSibling.value)
+      return
+    }
+
     const el = Tonic.match(e.target, '[data-event]')
     if (!el) return
 
-    const { event, propertyValue } = el.dataset
-
-    if (event === 'copy-link') {
-      navigator.clipboard.writeText(el.value)
-    }
+    const { event } = el.dataset
 
     if (event === 'publish') {
       const coDialogPublish = document.querySelector('dialog-publish')
@@ -98,27 +117,9 @@ class AppProperties extends Tonic {
   }
 
   async render () {
-    let src = ''
-
     const app = this.props.parent
     const settings = app.state.settings
-    const currentProject = app.state.currentProject
-    const cwd = currentProject?.id
-
-    if (currentProject) {
-      try {
-        const pathToConfigFile = path.join(cwd, 'socket.ini')
-        src = await fs.promises.readFile(pathToConfigFile, 'utf8')
-      } catch (err) {
-        const notifications = document.querySelector('#notifications')
-        notifications?.create({
-          type: 'error',
-          title: 'Error',
-          message: err.message
-        })
-      }
-    }
-
+    const config = new Config(settings.currentProject?.id)
     const previewWindows = []
 
     if (settings?.previewWindows) {
@@ -143,10 +144,11 @@ class AppProperties extends Tonic {
       }
     }
 
-    let bundleId = ini.get(src, 'meta', 'bundle_identifier')
+    let bundleId = await config.get('meta', 'bundle_identifier')
     if (bundleId) bundleId = bundleId.replace(/"/g, '')
 
     let sharedSecret = ''
+    const cwd = app.state.currentProject?.id
 
     const { data: hasBundle } = await app.db.projects.has(bundleId)
 
@@ -175,7 +177,7 @@ class AppProperties extends Tonic {
         clusterId,
         subclusterId,
         sharedKey,
-        sharedSecret // TODO(@heapwolf): encrypt sharedSecret via initial global password
+        sharedSecret // TODO(@heapwolf): encrypt sharedSecret via await configtial global password
       })
 
       //
@@ -189,13 +191,13 @@ class AppProperties extends Tonic {
 
     if (cwd) {
       //
-      // If there is a current project, check if its been git initialized.
+      // If there is a current project, check if its been git await configtialized.
       //
       try {
         await fs.promises.stat(path.join(cwd, '.git'))
       } catch (err) {
         try {
-          gitStatus = await exec('git init', { cwd })
+          gitStatus = await exec('git await configt', { cwd })
         } catch (err) {
           gitStatus.stderr = err.message
         }
@@ -256,27 +258,27 @@ class AppProperties extends Tonic {
           id="application"
           label="Desktop Features"
         >
-          <tonic-checkbox data-section="build" id="headless" checked="${ini.get(src, 'build', 'headless')}" data-event="property" label="Headless" title="Headless"></tonic-checkbox>
-          <tonic-checkbox data-section="application" id="tray" checked="${ini.get(src, 'application', 'tray')}" label="Tray" data-event="property" title="Tray"></tonic-checkbox>
-          <tonic-checkbox data-section="application" id="agent" checked="${ini.get(src, 'application', 'agent')}" data-event="property" label="Agent" title="Agent"></tonic-checkbox>
+          <tonic-checkbox data-section="build" id="headless" checked="${await config.get('build', 'headless')}" data-event="property" label="Headless" title="Headless"></tonic-checkbox>
+          <tonic-checkbox data-section="application" id="tray" checked="${await config.get('application', 'tray')}" label="Tray" data-event="property" title="Tray"></tonic-checkbox>
+          <tonic-checkbox data-section="application" id="agent" checked="${await config.get('application', 'agent')}" data-event="property" label="Agent" title="Agent"></tonic-checkbox>
         </tonic-accordion-section>
         <tonic-accordion-section
           name="permissions"
           id="permissions"
           label="Permissions"
         >
-          <tonic-checkbox data-section="permissions" id="allow_fullscreen" checked="${ini.get(src, 'permissions', 'allow_fullscreen')}" data-event="property" label="Full Screen"></tonic-checkbox>
-          <tonic-checkbox data-section="permissions" id="allow_microphone" checked="${ini.get(src, 'permissions', 'allow_microphone')}" data-event="property" label="Microphone"></tonic-checkbox>
-          <tonic-checkbox data-section="permissions" id="allow_camera" checked="${ini.get(src, 'permissions', 'allow_camera')}" data-event="property" label="Camera"></tonic-checkbox>
-          <tonic-checkbox data-section="permissions" id="allow_user_media" checked="${ini.get(src, 'permissions', 'allow_user_media')}" data-event="property" label="User Media"></tonic-checkbox>
-          <tonic-checkbox data-section="permissions" id="allow_geolocation" checked="${ini.get(src, 'permissions', 'allow_geolocation')}" data-event="property" label="Geolocation"></tonic-checkbox>
-          <tonic-checkbox data-section="permissions" id="allow_notifications" checked="${ini.get(src, 'permissions', 'allow_notifications')}" data-event="property" label="Notifications"></tonic-checkbox>
-          <tonic-checkbox data-section="permissions" id="allow_sensors" checked="${ini.get(src, 'permissions', 'allow_sensors')}" data-event="property" label="Sensors"></tonic-checkbox>
-          <tonic-checkbox data-section="permissions" id="allow_clipboard" checked="${ini.get(src, 'permissions', 'allow_clipboard')}" data-event="property" label="Clipboard"></tonic-checkbox>
-          <tonic-checkbox data-section="permissions" id="allow_bluetooth" checked="${ini.get(src, 'permissions', 'allow_bluetooth')}" data-event="property" label="Bluetooth"></tonic-checkbox>
-          <tonic-checkbox data-section="permissions" id="allow_data_access" checked="${ini.get(src, 'permissions', 'allow_data_access')}" data-event="property" label="Data Access"></tonic-checkbox>
-          <tonic-checkbox data-section="permissions" id="allow_airplay" checked="${ini.get(src, 'permissions', 'allow_airplay')}" data-event="property" label="AirPlay"></tonic-checkbox>
-          <tonic-checkbox data-section="permissions" id="allow_hotkeys" checked="${ini.get(src, 'permissions', 'allow_hotkeys')}" data-event="property" label="AirPlay"></tonic-checkbox>
+          <tonic-checkbox data-section="permissions" id="allow_fullscreen" checked="${await config.get('permissions', 'allow_fullscreen')}" data-event="property" label="Full Screen"></tonic-checkbox>
+          <tonic-checkbox data-section="permissions" id="allow_microphone" checked="${await config.get('permissions', 'allow_microphone')}" data-event="property" label="Microphone"></tonic-checkbox>
+          <tonic-checkbox data-section="permissions" id="allow_camera" checked="${await config.get('permissions', 'allow_camera')}" data-event="property" label="Camera"></tonic-checkbox>
+          <tonic-checkbox data-section="permissions" id="allow_user_media" checked="${await config.get('permissions', 'allow_user_media')}" data-event="property" label="User Media"></tonic-checkbox>
+          <tonic-checkbox data-section="permissions" id="allow_geolocation" checked="${await config.get('permissions', 'allow_geolocation')}" data-event="property" label="Geolocation"></tonic-checkbox>
+          <tonic-checkbox data-section="permissions" id="allow_notifications" checked="${await config.get('permissions', 'allow_notifications')}" data-event="property" label="Notifications"></tonic-checkbox>
+          <tonic-checkbox data-section="permissions" id="allow_sensors" checked="${await config.get('permissions', 'allow_sensors')}" data-event="property" label="Sensors"></tonic-checkbox>
+          <tonic-checkbox data-section="permissions" id="allow_clipboard" checked="${await config.get('permissions', 'allow_clipboard')}" data-event="property" label="Clipboard"></tonic-checkbox>
+          <tonic-checkbox data-section="permissions" id="allow_bluetooth" checked="${await config.get('permissions', 'allow_bluetooth')}" data-event="property" label="Bluetooth"></tonic-checkbox>
+          <tonic-checkbox data-section="permissions" id="allow_data_access" checked="${await config.get('permissions', 'allow_data_access')}" data-event="property" label="Data Access"></tonic-checkbox>
+          <tonic-checkbox data-section="permissions" id="allow_airplay" checked="${await config.get('permissions', 'allow_airplay')}" data-event="property" label="AirPlay"></tonic-checkbox>
+          <tonic-checkbox data-section="permissions" id="allow_hotkeys" checked="${await config.get('permissions', 'allow_hotkeys')}" data-event="property" label="AirPlay"></tonic-checkbox>
         </tonic-accordion-section>
         <tonic-accordion-section
           name="share-settings"
@@ -288,9 +290,8 @@ class AppProperties extends Tonic {
             id="shared-secret"
             symbol-id="copy-icon"
             position="right"
-            data-event="copy-link"
+            data-event="project-link"
             value="${sharedSecret}"
-            readonly="true"
           ></tonic-input>
 
           <label>Project Status</label>

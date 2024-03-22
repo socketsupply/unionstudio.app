@@ -1,6 +1,5 @@
 import path from 'socket:path'
 import { lookup } from 'socket:mime'
-import fs from 'socket:fs'
 import application from 'socket:application'
 
 const mount = '/user/home'
@@ -8,7 +7,7 @@ const navigatorPath = path.DATA.replace(path.HOME, mount)
 
 export default async function (req, env, ctx) {
   const url = new URL(req.url)
-  const pattern = new URLPattern({ pathname: '/preview/*' })
+  const pattern = new globalThis.URLPattern({ pathname: '/preview/*' })
   const route = pattern.exec(url)
 
   if (!route) return
@@ -17,7 +16,6 @@ export default async function (req, env, ctx) {
   const params = url.searchParams
   const res = await fetch(p)
   const data = await res.text()
-  const id = ctx.event.clientId
   const windows = await application.getWindows()
   const w = Object.values(windows)[0]
 

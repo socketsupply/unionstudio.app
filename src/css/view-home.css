@@ -1,0 +1,59 @@
+view-home {
+  display: none;
+  grid-template-rows: auto 1fr;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  opacity: 0;
+  background: var(--tonic-background);
+  padding: 6%;
+}
+
+view-home.show {
+  display: grid;
+  z-index: 40;
+  opacity: 1;
+}
+
+view-home h1 {
+  font-family: var(--tonic-body);
+  text-transform: uppercase;
+  font-size: 38px;
+  margin-top: 0;
+  font-weight: 100;
+}
+
+view-home h1 b {
+  font-family: var(--tonic-header);
+  text-transform: uppercase;
+  font-size: 38px;
+  font-weight: 900;
+}
+
+view-home section {
+  position: relative;
+}
+
+view-home section.hero {
+  height: 80px;
+}
+
+view-home tonic-tabs {
+  margin-left: -6px;
+}
+
+view-home tonic-tab a {
+  padding: 6px 10px;
+  border-radius: 4px;
+  text-decoration: none;
+  text-transform: uppercase;
+  color: var(--tonic-primary);
+}
+
+view-home tonic-tab a[aria-selected="true"] {
+  background: var(--tonic-accent);
+  color: white;
+}

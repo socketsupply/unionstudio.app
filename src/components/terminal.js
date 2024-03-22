@@ -10,7 +10,6 @@ const getComputedStyle = window.getComputedStyle
 const INFO = '\x1b[32mINFO\x1b[0m'
 const WARN = '\x1b[33mWARN\x1b[0m'
 const ERROR = '\x1b[31mERROR\x1b[0m'
-const RE_ISJSON = /^{/
 
 /**
  * @typedef {{

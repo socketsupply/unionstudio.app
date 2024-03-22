@@ -1,3 +1,6 @@
+import { inspect } from 'socket:util'
+import application from 'socket:application'
+
 globalThis.RUNTIME_APPLICATION_ALLOW_MULTI_WINDOWS = true
 
 let currentWindow = null
@@ -18,16 +21,12 @@ for (const method of consoleMethods) {
   }
 }
 
-import application from 'socket:application'
 import process from 'socket:process'
-import { inspect } from 'socket:util'
 
 const previewWindowTitleBar = 38
 const previewWindowMargin = 12
 const deviceWidth = (1179 / 4) - previewWindowMargin
 const deviceHeight = (2556 / 4) - previewWindowTitleBar
-
-let timeout
 
 const scaleToFit = e => {
   const windowWidth = window.innerWidth

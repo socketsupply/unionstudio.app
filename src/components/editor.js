@@ -1,11 +1,8 @@
 import fs from 'socket:fs'
 import path from 'socket:path'
-import { lookup } from 'socket:mime'
 
 import * as monaco from 'monaco-editor'
 import Tonic from '@socketsupply/tonic'
-
-import { resizePNG } from '../lib/icon.js'
 
 function rgbaToHex (rgbaString) {
   const rgbaValues = rgbaString.match(/\d+/g)
@@ -216,7 +213,7 @@ class AppEditor extends Tonic {
           return
         }
 
-        coTerminal.info(`Settings file updated.`)
+        coTerminal.info('Settings file updated.')
         app.activatePreviewWindows()
       }
 

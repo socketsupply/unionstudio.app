@@ -1,12 +1,11 @@
 import fs from 'socket:fs'
 import path from 'socket:path'
-import { Encryption } from 'socket:network'
-import { spawn, exec } from 'socket:child_process'
+import { exec } from 'socket:child_process'
 
 import Tonic from '@socketsupply/tonic'
 import { TonicDialog } from '@socketsupply/components/dialog'
 
-import * as ini from '../lib/ini.js'
+import Config from '../lib/config.js'
 
 export class DialogPublish extends TonicDialog {
   click (e) {
@@ -25,23 +24,8 @@ export class DialogPublish extends TonicDialog {
     const currentProject = app.state.currentProject
     if (!currentProject) return
 
-    let src
-
-    try {
-      const fp = path.join(currentProject.id, 'socket.ini')
-      src = await fs.promises.readFile(fp, 'utf8')
-    } catch (err) {
-      const notifications = document.querySelector('#notifications')
-      notifications?.create({
-        type: 'error',
-        title: 'Error',
-        message: err.message
-      })
-
-      return
-    }
-
-    let bundleId = ini.get(src, 'meta', 'bundle_identifier')
+    let config = new Config(currentProject.id)
+    let bundleId = await config.get('meta', 'bundle_identifier')
     bundleId = bundleId.replace(/"/g, '')
 
     const { data: hasProject } = await app.db.projects.has(bundleId)
@@ -54,11 +38,10 @@ export class DialogPublish extends TonicDialog {
 
   async publish (type, value) {
     const app = this.props.parent
-    const settings = app.state.settings
     const dataProject = await this.getProject()
 
     const opts = {
-
+      // TODO(@heapwolf): probably chain with previousId
     }
 
     const subcluster = app.socket.subclusters.get(dataProject.subclusterId)
@@ -193,7 +176,7 @@ export class DialogPublish extends TonicDialog {
         // Just publish the diff
         //
         try {
-          output = await exec(`git format-patch -1 HEAD --stdout`, { cwd })
+          output = await exec('git format-patch -1 HEAD --stdout', { cwd })
         } catch (err) {
           output.stderr = err.message
         }

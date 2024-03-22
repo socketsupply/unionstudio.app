@@ -133,20 +133,6 @@ app-container {
   bottom: 00;
 }
 
-section > div,
-section {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-}
-
-section {
-  top: 22px;
-}
-
 label.title {
   position: absolute;
   top: 0;
@@ -160,12 +146,6 @@ label.title {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
-}
-
-section.render {
-  padding: 10%;
-  text-align: center;
-  overflow: auto;
 }
 
 main-component {
@@ -184,7 +164,7 @@ header {
 
 app-view > header {
   display: none;
-  grid-template-columns: 1fr 34px 250px 34px 1fr;
+  grid-template-columns: 1fr 280px 34px 34px 1fr;
   gap: 12px;
   grid-template-rows: auto;
   align-content: center;
@@ -194,6 +174,22 @@ app-view > header {
   top: 0;
   left: 0;
   right: 0;
+}
+
+
+app-view > header .build-controls {
+  position: relative;  
+}
+
+app-view > header .build-controls tonic-button {
+  position: absolute;
+  top: 4px;
+  left: 12px;
+  z-index: 1;
+}
+
+app-view > header .build-controls tonic-select select {
+  text-indent: 26px;
 }
 
 #split-main {

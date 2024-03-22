@@ -12,6 +12,10 @@ export class DialogSubscribe extends TonicDialog {
     await this.reRender()
   }
 
+  async click (e) {
+    // TODO(@heapwolf): create project entry, call initNetwork
+  }
+
   async render () {
     return this.html`
       <header>
@@ -19,15 +23,8 @@ export class DialogSubscribe extends TonicDialog {
       </header>
       <main>
         <p>
-          Enter the unique shared secret for the project you want to subscribe to.
+          Enter the unique link for the project you want to subscribe to.
         </p>
-
-        <tonic-input
-          id="name-subscribe"
-          label="Name of Project"
-          width="100%"
-        >
-        </tonic-input>
 
         <tonic-input
           id="shared-secret-subscribe"

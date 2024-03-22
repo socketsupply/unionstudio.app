@@ -12,12 +12,14 @@ import components from '@socketsupply/components'
 
 import Database from './db/index.js'
 
+import { ViewHome } from './views/home.js'
+import { ViewImagePreview } from './views/image-preview.js'
+
 import { AppTerminal } from './components/terminal.js'
 import { AppProject } from './components/project.js'
 import { AppProperties } from './components/properties.js'
 import { AppSprite } from './components/sprite.js'
 import { AppEditor } from './components/editor.js'
-import { AppImagePreview } from './components/image-preview.js'
 import { DialogPublish } from './components/publish.js'
 import { DialogSubscribe } from './components/subscribe.js'
 
@@ -53,7 +55,7 @@ class AppView extends Tonic {
 
       // if the user currently has the config file open in the editor...
       if (currentProject.label === 'settings.json' && currentProject.parent.id === 'root') {
-        const coEditor = document.querySelctor('app-editor')
+        const coEditor = document.querySelector('app-editor')
 
         try {
           coEditor.value = JSON.stringify(this.state.settings, null, 2)
@@ -511,6 +513,7 @@ class AppView extends Tonic {
       ;
 
       File:
+        Save: s + CommandOrControl
         New Project: n + CommandOrControl
         Add Shared Project: G + CommandOrControl
         ---
@@ -540,7 +543,8 @@ class AppView extends Tonic {
       ;
 
       Build & Run:
-        Evaluate Editor Source: r + CommandOrControl + Shift
+        Evaluate Source: r + CommandOrControl + Shift
+        Toggle Realtime Preview: k + CommandOrControl + Shift
         ---
         Android: s + CommandOrControl
         iOS: s + CommandOrControl
@@ -679,18 +683,22 @@ class AppView extends Tonic {
       <header>
         <span class="spacer"></span>
 
-        <tonic-button type="icon" size="18px" symbol-id="play" title="Build & Run The Project" data-event="run">
+        <div class="build-controls">
+          <tonic-button type="icon" size="18px" symbol-id="play" title="Build & Run The Project" data-event="run">
+          </tonic-button>
+          <tonic-select id="device" value="${process.platform}" title="Build Target Platform">
+            <option value="ios-simulator" data-value="--platform=ios-simulator">iOS Simulator</option>
+            <option value="android-emulator" data-value="--platform=android-emulator">Android Emulator</option>
+            <option value="linux" data-value="" disabled>Linux</option>
+            <option value="darwin" data-value="">MacOS</option>
+            <option value="win32" data-value="" disabled>Windows</option>
+          </tonic-select>
+        </div>
+
+        <tonic-button type="icon" size="22px" symbol-id="run-icon" title="Evalulate The current selection or all code in the editor" data-event="eval">
         </tonic-button>
 
-        <tonic-select id="device" value="${process.platform}" title="Build Target Platform">
-          <option value="ios-simulator" data-value="--platform=ios-simulator">iOS Simulator</option>
-          <option value="android-emulator" data-value="--platform=android-emulator">Android Emulator</option>
-          <option value="linux" data-value="" disabled>Linux</option>
-          <option value="darwin" data-value="">MacOS</option>
-          <option value="win32" data-value="" disabled>Windows</option>
-        </tonic-select>
-
-        <tonic-button type="icon" size="18px" symbol-id="eval" title="Evalulate The Current Code In The Editor" data-event="eval">
+        <tonic-button type="icon" size="24px" symbol-id="speed-icon" title="Toggle real-time preview mode, save changes as you type" data-event="preview-toggle">
         </tonic-button>
 
         <span class="spacer"></span>
@@ -712,7 +720,9 @@ class AppView extends Tonic {
                   <app-terminal id="app-terminal" parent=${this}></app-terminal>
                 </tonic-split-bottom>
               </tonic-split>
-              <app-image-preview id="image-preview" parent=${this}></app-image-preview>
+
+              <view-home id="view-home"></view-home>
+              <view-image-preview id="image-preview" parent=${this}></view-image-preview>
             </tonic-split-right>
           </tonic-split>
         </tonic-split-left>
@@ -733,7 +743,7 @@ class AppView extends Tonic {
       <dialog-subscribe
         id="dialog-subscribe"
         width="50%"
-        height="30%"
+        height="20%"
         parent=${this}
       >
       </dialog-subscribe>
@@ -745,7 +755,6 @@ class AppView extends Tonic {
 
 window.onload = () => {
   Tonic.add(AppEditor)
-  Tonic.add(AppImagePreview)
   Tonic.add(AppProperties)
   Tonic.add(AppProject)
   Tonic.add(AppSprite)
@@ -753,4 +762,6 @@ window.onload = () => {
   Tonic.add(AppView)
   Tonic.add(DialogPublish)
   Tonic.add(DialogSubscribe)
+  Tonic.add(ViewHome)
+  Tonic.add(ViewImagePreview)
 }

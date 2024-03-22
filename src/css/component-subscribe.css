@@ -2,7 +2,7 @@ dialog-subscribe {
   display: grid;
   grid-template-rows: auto 1fr;
   max-width: 500px;
-  min-height: 380px;
+  min-height: 280px;
   display: grid;
   font-family: var(--tonic-monospace);
 }
