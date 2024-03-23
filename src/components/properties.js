@@ -17,24 +17,35 @@ class AppProperties extends Tonic {
     const notifications = document.querySelector('#notifications')
     const editor = document.querySelector('app-editor')
     const project = document.querySelector('app-project')
-    const config = new Config(app.currentProject?.id)
+    const config = new Config(app.state.currentProject?.id)
 
-    //
-    // if the user changes the project link, we need to update the project.
-    // projects are keyed on the bundle id, so get the bundle id from the
-    // config, then update the sharedSecret, then await configt the network.
-    //
-    if (event === 'project-link') {
+    if (event === 'org-name' || event === 'shared-secret') {
+      const app = this.props.parent
+      const config = new Config(app.state.currentProject?.id)
       if (!config) return
 
       let bundleId = await config.get('meta', 'bundle_identifier')
       if (bundleId) bundleId = bundleId.replace(/"/g, '')
-
       const { data: dataBundle } = await app.db.projects.get(bundleId)
-      dataBundle.sharedSecret = el.value
+
+      if (event === 'org-name') {
+        dataBundle.orgName = el.value
+        dataBundle.clusterId = await sha256(el.value, { bytes: true })
+      }
+
+      if (event === 'shared-secret') {
+        const sharedKey = await Encryption.createSharedKey(el.value)
+        const derivedKeys = await Encryption.createKeyPair(sharedKey)
+        const subclusterId = Buffer.from(derivedKeys.publicKey)
+
+        dataBundle.sharedKey = sharedKey
+        dataBundle.sharedSecret = el.value
+        dataBundle.subclusterId = subclusterId
+      }
 
       await app.db.projects.put(bundleId, dataBundle)
       await app.initNetwork()
+      this.reRender()
     }
 
     //
@@ -96,7 +107,7 @@ class AppProperties extends Tonic {
     const elCopy = Tonic.match(e.target, '[symbol-id="copy-icon"]')
 
     if (elCopy) {
-      navigator.clipboard.writeText('union://' + elCopy.nextElementSibling.value)
+      navigator.clipboard.writeText(elCopy.nextElementSibling.value)
       return
     }
 
@@ -119,7 +130,9 @@ class AppProperties extends Tonic {
   async render () {
     const app = this.props.parent
     const settings = app.state.settings
-    const config = new Config(settings.currentProject?.id)
+    const currentProject = app.state.currentProject
+    const cwd = currentProject?.id
+    const config = new Config(cwd)
     const previewWindows = []
 
     if (settings?.previewWindows) {
@@ -147,38 +160,37 @@ class AppProperties extends Tonic {
     let bundleId = await config.get('meta', 'bundle_identifier')
     if (bundleId) bundleId = bundleId.replace(/"/g, '')
 
-    let sharedSecret = ''
-    const cwd = app.state.currentProject?.id
+    let project = {}
 
     const { data: hasBundle } = await app.db.projects.has(bundleId)
 
     if (hasBundle) {
-      const { data: dataBundle } = await app.db.projects.get(bundleId)
-      sharedSecret = dataBundle.sharedSecret
+      const { data } = await app.db.projects.get(bundleId)
+      project = data
     } else if (cwd) {
+      console.log('NO BUNDLE FOUND, CREATING', bundleId, cwd)
       //
       // The clusterId is hard coded for now.
       //
-      const cluster = await sha256('socket-app-studio', { bytes: true })
-      const clusterId = cluster.toString('base64')
+      const clusterId = await sha256('socket-app-studio', { bytes: true })
 
-      sharedSecret = (await Encryption.createId()).toString('hex')
-      const sharedKey = await Encryption.createSharedKey(sharedSecret)
+      project.sharedSecret = (await Encryption.createId()).toString('hex')
+      const sharedKey = await Encryption.createSharedKey(project.sharedSecret)
       const derivedKeys = await Encryption.createKeyPair(sharedKey)
-
-      const subcluster = Buffer.from(derivedKeys.publicKey)
-      const subclusterId = subcluster.toString('base64')
+      const subclusterId = Buffer.from(derivedKeys.publicKey)
 
       //
       // Projects are keyed off the bundleId
       //
-      await app.db.projects.put(bundleId, {
+      Object.assign(project, {
         bundleId,
         clusterId,
         subclusterId,
         sharedKey,
-        sharedSecret // TODO(@heapwolf): encrypt sharedSecret via await configtial global password
+        orgName: 'socket-app-studio',
       })
+
+      await app.db.projects.put(bundleId, project)
 
       //
       // We need to tell the network to start listening for this subcluster
@@ -286,12 +298,29 @@ class AppProperties extends Tonic {
           label="Sharing"
         >
           <tonic-input
-            label="Project Link"
+            label="Organization"
+            id="org-name"
+            data-event="org-name"
+            spellcheck="false"
+            value="${project.orgName}"
+          ></tonic-input>
+
+          <tonic-input
+            label="Shared Secret"
             id="shared-secret"
+            data-event="shared-secret"
+            spellcheck="false"
+            value="${project.sharedSecret}"
+          ></tonic-input>
+
+          <tonic-input
+            label="Project Link"
+            id="project-link"
             symbol-id="copy-icon"
             position="right"
-            data-event="project-link"
-            value="${sharedSecret}"
+            spellcheck="false"
+            readonly="true"
+            value="union://${project.sharedSecret}?bundleId=${encodeURIComponent(bundleId)}&orgName=${project.orgName}"
           ></tonic-input>
 
           <label>Project Status</label>

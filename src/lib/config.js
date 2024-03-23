@@ -3,9 +3,12 @@ import path from 'socket:path'
 
 class Config {
   #src = ''
+  #data = ''
 
   constructor (src) {
-    if (src) this.#src = path.join(src, 'socket.ini')
+    if (src) {
+      this.#src = path.join(src, 'socket.ini')
+    }
   }
 
   /*
@@ -60,15 +63,17 @@ class Config {
     }
   }
 
-  async get (section, key) {
+  async get (section, key, fromCache = true) {
     if (!this.#src) return ''
 
-    let src = ''
+    let src = this.#data
 
-    try {
-      src = await fs.promises.readFile(this.#src, 'utf8')
-    } catch {
-      return ''
+    if (!src || !fromCache) {
+      try {
+        src = this.#data = await fs.promises.readFile(this.#src, 'utf8')
+      } catch (err) {
+        return ''
+      }
     }
 
     const lines = src.split(/\r?\n/).map(s => s.trim())

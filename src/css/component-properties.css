@@ -30,21 +30,3 @@ app-properties label {
 app-properties .pull-right {
   place-self: end;
 }
-
-app-properties #shared-secret {
-  position: relative;
-}
-
-app-properties #shared-secret input {
-  text-indent: 70px;
-}
-
-app-properties #shared-secret:before {
-  content: 'union://';
-  position: absolute;
-  height: 18px;
-  width: auto;
-  top: 53px;
-  left: 11px;
-  z-index: 1;
-}

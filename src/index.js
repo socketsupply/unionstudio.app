@@ -119,7 +119,7 @@ class AppView extends Tonic {
       currentProjectPath = path.join(path.DATA, 'projects', 'demo-project')
     }
 
-    currentProjectPath = path.join(currentProjectPath, this.state.settings.rootFile)
+    currentProjectPath = path.join(currentProjectPath, this.state.settings?.rootFile || 'src')
     return currentProjectPath.replace(path.DATA, '/preview')
   }
 
@@ -410,7 +410,8 @@ class AppView extends Tonic {
 
     try {
       settings = JSON.parse(await fs.promises.readFile(settingsFile, 'utf8'))
-    } catch {
+    } catch (err) {
+      console.log('NO SETTINGS', err)
       // NOPE
       return
     }
@@ -721,7 +722,7 @@ class AppView extends Tonic {
                 </tonic-split-bottom>
               </tonic-split>
 
-              <view-home id="view-home"></view-home>
+              <view-home id="view-home" parent=${this}></view-home>
               <view-image-preview id="image-preview" parent=${this}></view-image-preview>
             </tonic-split-right>
           </tonic-split>
@@ -742,8 +743,8 @@ class AppView extends Tonic {
 
       <dialog-subscribe
         id="dialog-subscribe"
-        width="50%"
-        height="20%"
+        width="65%"
+        height="30%"
         parent=${this}
       >
       </dialog-subscribe>

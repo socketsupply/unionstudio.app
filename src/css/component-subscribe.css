@@ -1,8 +1,8 @@
 dialog-subscribe {
   display: grid;
   grid-template-rows: auto 1fr;
-  max-width: 500px;
-  min-height: 280px;
+  max-width: 750px;
+  min-height: 300px;
   display: grid;
   font-family: var(--tonic-monospace);
 }
@@ -40,5 +40,5 @@ dialog-subscribe tonic-input:first-of-type {
 }
 
 dialog-subscribe main {
-  padding: 16px 16%;
+  padding: 16px 10%;
 }

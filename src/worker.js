@@ -44,7 +44,7 @@ export default async function (req, env, ctx) {
       body::after {
         top: 2%;
         left: 50%;
-        width: 35%;
+        width: 30%;
         height: 4%;
         border-radius: 50px;
       }
