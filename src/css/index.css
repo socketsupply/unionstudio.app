@@ -24,7 +24,7 @@ body.no-labels label {
 
 tonic-accordion h3 {
   text-transform: uppercase;
-  margin: 20px 14px 6px;
+  margin: 16px 14px 6px;
   color: var(--tonic-primary);
   font-family: var(--tonic-body);
   font-weight: 100;
@@ -83,11 +83,7 @@ tonic-split-top {
   background-color: var(--tonic-background);
 }
 
-.editor {
-  overflow: auto;
-}
-
-.editor, tonic-tab-panel {
+tonic-tab-panel {
   position: absolute;
   top: 2px;
   left: 2px;
@@ -162,9 +158,8 @@ header {
   --app-region: drag; /* mac & linux */
 }
 
-app-view > header {
-  display: none;
-  grid-template-columns: 1fr 280px 34px 34px 1fr;
+header.component {
+  display: grid;
   gap: 12px;
   grid-template-rows: auto;
   align-content: center;
@@ -174,22 +169,22 @@ app-view > header {
   top: 0;
   left: 0;
   right: 0;
+  border-bottom: 1px solid var(--tonic-border);
 }
 
-
-app-view > header .build-controls {
-  position: relative;  
+header.component tonic-button {
+  width: 34px;
+  height: 34px;
 }
 
-app-view > header .build-controls tonic-button {
-  position: absolute;
-  top: 4px;
-  left: 12px;
-  z-index: 1;
+header.component#header-properties {
+  display: grid;
+  grid-template-columns: 34px 34px 34px 1fr;
 }
 
-app-view > header .build-controls tonic-select select {
-  text-indent: 26px;
+header.component#header-project {
+  display: grid;
+  grid-template-columns: 1fr 34px 34px;
 }
 
 #split-main {
@@ -197,41 +192,6 @@ app-view > header .build-controls tonic-select select {
   border-top: 1px solid var(--tonic-border);
 }
 
-app-view[platform="darwin"] > header {
-  display: grid;
-}
-
-app-view[platform="darwin"] #split-main {
-  top: 50px;
-}
-
 #split-main tonic-split-right {
   overflow: auto;
-}
-
-.monaco-menu-container {
-  z-index: 10000 !important; /* Adjust the value as needed */
-}
-
-.monaco-editor .view-lines, .monaco-editor .view-lines * {
-  -webkit-user-select: initial;
-  user-select: initial;
-}
-
-.monaco-editor .margin:after {
-  content: ' ';
-  position: absolute;
-  right: 4px;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  border-right: 1px solid var(--tonic-border);
-}
-
-.monaco-editor .margin-view-overlays .line-numbers {
-  color: var(--tonic-info);
-}
-
-.monaco-editor .scroll-decoration {
-  box-shadow: var(--vscode-scrollbar-shadow) 0 6px 10px -12px inset;
 }

@@ -2,28 +2,16 @@ app-project {
   user-select: none;
   content-visibility: auto;
   -webkit-user-select: none;
-  padding: 16px 20px;
+  padding: 14px 20px;
   display: block;
   position: absolute;
   background-color: var(--tonic-window);
-  top: 0px;
+  top: 50px;
   left: 0;
   right: 0;
   bottom: 0;
   overflow: hidden;
   overflow-y: auto;
-}
-
-body.mobile app-project {
-  transition: all .2s ease;
-  top: 40px;
-  bottom: 40px;
-  left: 20%;
-  transform: translateX(100%);
-}
-
-body[sidebar="true"] app-project {
-  transform: translateX(0%);
 }
 
 app-project * {

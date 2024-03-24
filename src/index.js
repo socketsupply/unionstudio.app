@@ -278,7 +278,7 @@ class AppView extends Tonic {
 
     let socket = this.socket
 
-    if (!this.state.isInitialized) {
+    if (!this.socket) {
       const opts = { ...dataPeer, signingKeys }
       socket = this.socket = await network(opts)
 
@@ -293,6 +293,9 @@ class AppView extends Tonic {
           await sub.join()
         }
       })
+    } else {
+      // If the user has changed the clusterId and or subclusterId, we need to tell the peer about it
+      // TODO(@heapwolf): we need a nice way to send config updates to the peer worker.
     }
 
     const { data: dataProjects } = await this.db.projects.readAll()
@@ -681,34 +684,17 @@ class AppView extends Tonic {
     await this.initApplication()
 
     return this.html`
-      <header>
-        <span class="spacer"></span>
-
-        <div class="build-controls">
-          <tonic-button type="icon" size="18px" symbol-id="play" title="Build & Run The Project" data-event="run">
-          </tonic-button>
-          <tonic-select id="device" value="${process.platform}" title="Build Target Platform">
-            <option value="ios-simulator" data-value="--platform=ios-simulator">iOS Simulator</option>
-            <option value="android-emulator" data-value="--platform=android-emulator">Android Emulator</option>
-            <option value="linux" data-value="" disabled>Linux</option>
-            <option value="darwin" data-value="">MacOS</option>
-            <option value="win32" data-value="" disabled>Windows</option>
-          </tonic-select>
-        </div>
-
-        <tonic-button type="icon" size="22px" symbol-id="run-icon" title="Evalulate The current selection or all code in the editor" data-event="eval">
-        </tonic-button>
-
-        <tonic-button type="icon" size="24px" symbol-id="speed-icon" title="Toggle real-time preview mode, save changes as you type" data-event="preview-toggle">
-        </tonic-button>
-
-        <span class="spacer"></span>
-      </header>
-
       <tonic-split id="split-main" type="vertical">
         <tonic-split-left width="80%">
           <tonic-split id="split-editor" type="vertical">
             <tonic-split-left width="25%">
+              <header class="component" id="header-project">
+                <span class="spacer"></span>
+                <tonic-button type="icon" size="18px" symbol-id="plus-icon" title="Create a new project" data-event="run">
+                </tonic-button>
+                <tonic-button type="icon" size="24px" symbol-id="collaborate-icon" title="Import a shared project" data-event="run">
+                </tonic-button>
+              </header>
               <app-project id="app-project" parent=${this}></app-project>
             </tonic-split-left>
 
@@ -729,6 +715,19 @@ class AppView extends Tonic {
         </tonic-split-left>
 
         <tonic-split-right width="20%">
+          <header class="component" id="header-properties">
+
+            <tonic-button type="icon" size="18px" symbol-id="play" title="Build & Run The Project" data-event="run">
+            </tonic-button>
+
+            <tonic-button type="icon" size="22px" symbol-id="run-icon" title="Evalulate The current selection or all code in the editor" data-event="eval">
+            </tonic-button>
+
+            <tonic-button type="icon" size="24px" symbol-id="speed-icon" title="Toggle real-time preview mode, save changes as you type" data-event="preview-toggle">
+            </tonic-button>
+
+            <span class="spacer"></span>
+          </header>
           <app-properties id="app-properties" parent=${this}></app-properties>
         </tonic-split-right>
       </tonic-split>

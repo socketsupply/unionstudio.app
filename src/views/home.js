@@ -56,6 +56,7 @@ class ViewHome extends Tonic {
     const bio = dataUser.bio || ''
 
     return this.html`
+      <header class="component"></header>
       <section class="hero">
         <h1><b>Union</b> App Studio</h1>
       </section>

@@ -56,6 +56,7 @@ export class DialogSubscribe extends TonicDialog {
       }
 
       await app.db.projects.put(bundleId, project)
+      await app.initNetwork()
     }
   }
 

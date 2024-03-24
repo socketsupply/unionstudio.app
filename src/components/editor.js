@@ -43,6 +43,151 @@ globalThis.MonacoEnvironment = {
   }
 }
 
+class EditorTabs extends Tonic {
+  selectedTabId = null
+  scrollLeft = 0
+
+  constructor () {
+    super()
+
+    this.state = {
+      tabs: new Map(),
+      ...this.state
+    }
+  }
+
+  mousewheel (e) {
+    this.state.scrollLeft = this.firstElementChild.scrollLeft
+  }
+
+  updated () {
+    this.firstElementChild.scrollLeft = this.state.scrollLeft
+  }
+
+  add (node) {
+    const parent = this.props.parent
+    const count = this.state.tabs.size
+
+    const tab = {
+      label: node.label,
+      id: node.id,
+      path: node.id,
+      model: monaco.editor.createModel(),
+      state: null,
+      unsaved: false,
+      index: count + 1
+    }
+
+    tab.model.onDidChangeContent((...args) => editor.changes(tab, ...args))
+
+    this.state.tabs.set(node.id, tab)
+    parent.editor.setModel(tab.model)
+    this.selectTab(tab.id)
+
+    this.reRender()
+  }
+
+  remove (id) {
+    if (this.state.tabs.has(id)) {
+      this.state.tabs.delete(id)
+    }
+    
+    this.reRender()
+  }
+
+  setCurrentTabValue (data) {
+    const tab = this.state.tabs.get(this.state.selectedTabId)
+    if (!tab) return
+
+    tab.model.setValue(data)
+  }
+
+  selectTab (id) {
+    if (!this.state.tabs.has(id)) return
+    const parent = this.props.parent
+
+    // if there was a previously selected tab, unselect it
+    const previouslySelected = this.state.tabs.get(this.state.selectedTabId)
+
+    if (previouslySelected) {
+      previouslySelected.state = parent.editor.saveViewState()
+      previouslySelected.selected = false
+    }
+
+    const tab = this.state.tabs.get(id)
+    tab.selected = true
+
+    if (tab.state) {
+      parent.editor.restoreViewState(tab.state)
+    }
+
+    this.state.selectedTabId = id
+    parent.editor.setModel(tab.model)
+    parent.editor.focus()
+    this.reRender()
+  }
+
+  click (e) {
+    const el = Tonic.match(e.target, '[data-event]')
+    if (!el) return
+
+    const { event } = el.dataset
+
+    if (event === 'select') {
+      this.selectTab(el.dataset.id)
+    }
+
+    if (event === 'close') {
+      const parent = el.closest('.tab')
+      const id = parent.dataset.id
+      if (!this.state.tabs.has(id)) return
+
+      const tab = this.state.tabs.get(id)
+      this.remove(id)
+
+      // if this tab was selected
+      if (this.state.selectedTabId === id) {
+        // check if there are any other tabs
+        if (this.state.tabs.size > 0) {
+          const tabs = [...this.state.tabs.values()]
+          const previousSibling = tabs.find(t => t.index < tab.index)
+          if (previousSibling) {
+            previousSibling.selected = true
+            this.state.selectedTabId = previousSibling.id
+            this.selectTab(previousSibling.id)
+          }
+        }
+      }
+
+      this.reRender()
+    }
+  }
+
+  async render () {
+    let tabs
+
+    if (this.state.tabs?.size) {
+      tabs = [...this.state.tabs.values()].map(tab => {
+        const selected = tab.selected ? 'selected' : ''
+        const unsaved = tab.unsaved ? 'unsaved' : ''
+
+        return this.html`
+          <div class="tab ${selected} ${unsaved}" data-event="select" data-id="${tab.id}">
+            <div class="label">${tab.label}</div>
+            <div class="close"><tonic-button type="icon" symbol-id="close" data-event="close" size="18px"></tonic-button></div>
+          </div>
+        `
+      })
+    }
+
+    return this.html`
+      <header class="component">${tabs}</header>
+    `
+  }
+}
+
+Tonic.add(EditorTabs)
+
 class AppEditor extends Tonic {
   get value () {
     return this.editor.getValue()
@@ -56,15 +201,13 @@ class AppEditor extends Tonic {
     this.editor.getModel().getValueInRange(this.editor.getSelection())
   }
 
-  async writeToDisk (data) {
-    if (!this.state.projectNode && this.state.projectNode.isDirectory) return
-
+  async writeToDisk (pathToFile, data) {
     const app = this.props.parent
 
     try {
-      await fs.promises.writeFile(this.state.projectNode.id, data)
+      await fs.promises.writeFile(pathToFile, data)
     } catch (err) {
-      console.error(`Unable to write to ${this.state.projectNode.id}`, err)
+      console.error(`Unable to write to ${pathToFile}`, err)
     }
 
     app.reloadPreviewWindows()
@@ -77,7 +220,15 @@ class AppEditor extends Tonic {
 
     const app = this.props.parent
 
-    if (!projectNode.isDirectory && this.editor) {
+    if (!projectNode.isDirectory) {
+      const tabs = this.querySelector('editor-tabs')
+
+      if (projectNode.label === 'settings.json' && projectNode.parent.id === 'root') {
+        projectNode.isRootSettingsFile = true
+      }
+
+      tabs.add(projectNode)
+
       const ext = path.extname(projectNode.id)
 
       const mappings = app.state.settings.extensionLanguageMappings
@@ -90,11 +241,15 @@ class AppEditor extends Tonic {
           data = JSON.stringify(JSON.parse(data), null, 2)
         } catch {}
       }
-      this.editor.setValue(data)
+
+      tabs.setCurrentTabValue(data)
     }
   }
 
-  refreshColors (theme) {
+  refreshColors (event) {
+    const isDark = event || (window.matchMedia('(prefers-color-scheme: dark)'))
+    const theme = isDark.matches ? 'tonic-dark' : 'tonic-light'
+
     const styles = window.getComputedStyle(document.body)
 
     const colors = {
@@ -174,9 +329,34 @@ class AppEditor extends Tonic {
     }
   }
 
-  async refreshSettings () {
+  async updateSettings (options) {
     const app = this.props.parent
-    this.editor.updateOptions(app.state.settings?.editorOptions || {})
+    this.editor.updateOptions(options || app.state.settings?.editorOptions || {})
+  }
+
+  async changes (tab, ...args) {
+    const value = this.editor.getValue()
+    const coTerminal = document.querySelector('app-terminal')
+
+    if (tab.isRootSettingsFile) {
+      try {
+        app.state.settings = JSON.parse(value)
+      } catch (err) {
+        coTerminal.error(`Unable to parse settings file (${err.message})`)
+        return
+      }
+
+      coTerminal.info('Settings file updated.')
+      app.activatePreviewWindows()
+    }
+
+    clearTimeout(this.debouncePropertiesRerender)
+    this.debouncePropertiesRerender = setTimeout(() => {
+      const coProperties = document.querySelector('app-properties')
+      coProperties.reRender()
+    }, 1024)
+
+    this.writeToDisk(tab.path, value)
   }
 
   connected () {
@@ -194,49 +374,19 @@ class AppEditor extends Tonic {
       renderLineHighlight: 'none'
     })
 
-    this.refreshSettings()
-
-    const model = this.editor.getModel()
-
-    model.onDidChangeContent(async () => {
-      const currentProject = app.state.currentProject
-      if (!currentProject) return
-
-      const value = this.editor.getValue()
-      const coTerminal = document.querySelector('app-terminal')
-
-      if (currentProject.label === 'settings.json' && currentProject.parent.id === 'root') {
-        try {
-          app.state.settings = JSON.parse(value)
-        } catch (err) {
-          coTerminal.error(`Unable to parse settings file (${err.message})`)
-          return
-        }
-
-        coTerminal.info('Settings file updated.')
-        app.activatePreviewWindows()
-      }
-
-      clearTimeout(this.debouncePropertiesRerender)
-      this.debouncePropertiesRerender = setTimeout(() => {
-        const coProperties = document.querySelector('app-properties')
-        coProperties.reRender()
-      }, 1024)
-
-      this.writeToDisk(value)
-    })
+    this.updateSettings()
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-      this.refreshColors(event.matches ? 'tonic-dark' : 'tonic-light')
+      this.refreshColors(event)
     })
 
-    const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    this.refreshColors(isDark ? 'tonic-dark' : 'tonic-light')
+    this.refreshColors()
     this.loadAPIs()
   }
 
   render () {
     return this.html`
+      <editor-tabs id="editor-tabs" parent=${this}></editor-tabs>
       <div class="editor"></div>
     `
   }

@@ -1,6 +1,7 @@
 import Tonic from '@socketsupply/tonic'
 import fs from 'socket:fs'
 import path from 'socket:path'
+import process from 'socket:process'
 import { exec } from 'socket:child_process'
 import { Encryption, sha256 } from 'socket:network'
 
@@ -167,8 +168,7 @@ class AppProperties extends Tonic {
     if (hasBundle) {
       const { data } = await app.db.projects.get(bundleId)
       project = data
-    } else if (cwd) {
-      console.log('NO BUNDLE FOUND, CREATING', bundleId, cwd)
+    } else if (currentProject?.isDirectory) {
       //
       // The clusterId is hard coded for now.
       //
@@ -262,6 +262,21 @@ class AppProperties extends Tonic {
           label="Preview Windows"
         >
           ${previewWindows}
+        </tonic-accordion-section>
+        <tonic-accordion-section
+          name="build-target"
+          id="build-target"
+          label="Build Target"
+        >
+          <div class="build-controls">
+            <tonic-select id="device" value="${process.platform}" title="Build Target Platform">
+              <option value="ios-simulator" data-value="--platform=ios-simulator">iOS Simulator</option>
+              <option value="android-emulator" data-value="--platform=android-emulator">Android Emulator</option>
+              <option value="linux" data-value="" disabled>Linux</option>
+              <option value="darwin" data-value="">MacOS</option>
+              <option value="win32" data-value="" disabled>Windows</option>
+            </tonic-select>
+          </div>
         </tonic-accordion-section>
 
         <h3>Project Settings</h3>

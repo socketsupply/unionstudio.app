@@ -2,7 +2,7 @@ app-properties {
   min-width: 250px;
   overflow: auto;
   position: absolute;
-  top: 0;
+  top: 50px;
   left: 0;
   right: 0;
   bottom: 0;
