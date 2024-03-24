@@ -77,7 +77,6 @@ tonic-accordion-section .tonic--accordion-header button .tonic--label {
 tonic-accordion-section .tonic--accordion-header button[aria-expanded="true"] .tonic--label {
   text-decoration: underline;
   text-underline-offset: 2px;
-  color: var(--tonic-accent);
 }
 
 tonic-accordion-section .tonic--accordion-header button {

@@ -425,6 +425,10 @@ class AppView extends Tonic {
     this.activatePreviewWindows()
   }
 
+  async addSharedProject () {
+    const coDialogSubscribe = document.querySelector('dialog-subscribe')
+    if (coDialogSubscribe) coDialogSubscribe.show()
+  }
 
   async createProject () {
     const dest = path.join(path.DATA, 'projects', 'new-project')
@@ -597,8 +601,7 @@ class AppView extends Tonic {
       }
 
       case 'Add Shared Project': {
-        const coDialogSubscribe = document.querySelector('dialog-subscribe')
-        if (coDialogSubscribe) coDialogSubscribe.show()
+        this.addSharedProject()
         break
       }
 
@@ -675,7 +678,12 @@ class AppView extends Tonic {
       this.exportProject()
     }
 
-    if (event === 'publish') {
+    if (event === 'create-new-project') {
+      this.createProject()
+    }
+
+    if (event === 'add-shared-project') {
+      this.addSharedProject()
     }
   }
 
@@ -697,9 +705,9 @@ class AppView extends Tonic {
             <tonic-split-left width="25%">
               <header class="component" id="header-project">
                 <span class="spacer"></span>
-                <tonic-button type="icon" size="18px" symbol-id="plus-icon" title="Create a new project" data-event="run">
+                <tonic-button type="icon" size="18px" symbol-id="plus-icon" title="Create a new project" data-event="create-new-project">
                 </tonic-button>
-                <tonic-button type="icon" size="24px" symbol-id="collaborate-icon" title="Import a shared project" data-event="run">
+                <tonic-button type="icon" size="24px" symbol-id="collaborate-icon" title="Import a shared project" data-event="add-shared-project">
                 </tonic-button>
               </header>
               <app-project id="app-project" parent=${this}></app-project>
