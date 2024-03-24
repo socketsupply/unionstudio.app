@@ -184,6 +184,9 @@ class EditorTabs extends Tonic {
             this.state.selectedTabId = previousSibling.id
             this.selectTab(previousSibling.id)
           }
+        } else {
+          // there are no more tabs. empty the editor
+          this.props.parent.editor.setValue('')
         }
       }
 

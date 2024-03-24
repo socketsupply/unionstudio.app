@@ -96,11 +96,6 @@ app-project:not([dragging]) .item .handle:hover {
   cursor: pointer;
 }
 
-app-project .item .handle[data-selected="1"] .node-data .label {
-  color: var(--tonic-accent);
-  text-decoration: underline;
-}
-
 app-project .item .node-data .label[disabled] {
   color: var(--tonic-disabled);
 }

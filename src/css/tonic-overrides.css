@@ -105,6 +105,10 @@ tonic-toggle .tonic--toggle--wrapper {
   height: 24px !important;
 }
 
+tonic-button button {
+  border-radius: 4px !important;
+}
+
 tonic-button[type="icon"] tonic-icon {
   margin-top: 2px;
 }
