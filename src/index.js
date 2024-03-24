@@ -20,6 +20,7 @@ import { AppProject } from './components/project.js'
 import { AppProperties } from './components/properties.js'
 import { AppSprite } from './components/sprite.js'
 import { AppEditor } from './components/editor.js'
+import { DialogConfirm } from './components/confirm.js'
 import { DialogPublish } from './components/publish.js'
 import { DialogSubscribe } from './components/subscribe.js'
 
@@ -550,11 +551,11 @@ class AppView extends Tonic {
         Evaluate Source: r + CommandOrControl + Shift
         Toggle Realtime Preview: k + CommandOrControl + Shift
         ---
-        Android: s + CommandOrControl
-        iOS: s + CommandOrControl
-        Linux: s + CommandOrControl
-        MacOS: s + CommandOrControl
-        Windows: s + CommandOrControl
+        Android: _
+        iOS: _
+        Linux: _
+        MacOS: _
+        Windows: _
       ;
     `
 
@@ -580,6 +581,12 @@ class AppView extends Tonic {
 
       case 'New Project': {
         this.createProject()
+        break
+      }
+
+      case 'Save': {
+        const coEditor = document.querySelector('app-editor')
+        coEditor.saveCurrentTab()
         break
       }
 
@@ -748,6 +755,13 @@ class AppView extends Tonic {
       >
       </dialog-subscribe>
 
+      <dialog-confirm
+        id="dialog-confirm"
+        width="50%"
+        height="30%"
+      >
+      </dialog-confirm>
+
       <app-sprite></app-sprite>
     `
   }
@@ -760,6 +774,7 @@ window.onload = () => {
   Tonic.add(AppSprite)
   Tonic.add(AppTerminal)
   Tonic.add(AppView)
+  Tonic.add(DialogConfirm)
   Tonic.add(DialogPublish)
   Tonic.add(DialogSubscribe)
   Tonic.add(ViewHome)

@@ -1,5 +1,6 @@
 import fs from 'socket:fs'
 import path from 'socket:path'
+import { sha256 } from 'socket:network'
 
 import * as monaco from 'monaco-editor'
 import Tonic from '@socketsupply/tonic'
@@ -74,6 +75,7 @@ class EditorTabs extends Tonic {
       path: node.id,
       model: monaco.editor.createModel(),
       state: null,
+      hash: null,
       unsaved: false,
       index: count + 1
     }
@@ -95,10 +97,15 @@ class EditorTabs extends Tonic {
     this.reRender()
   }
 
-  setCurrentTabValue (data) {
+  get tab () {
+    return this.state.tabs.get(this.state.selectedTabId)
+  }
+
+  async setCurrentTabValue (data) {
     const tab = this.state.tabs.get(this.state.selectedTabId)
     if (!tab) return
 
+    tab.hash = await sha256(data)
     tab.model.setValue(data)
   }
 
@@ -127,7 +134,7 @@ class EditorTabs extends Tonic {
     this.reRender()
   }
 
-  click (e) {
+  async click (e) {
     const el = Tonic.match(e.target, '[data-event]')
     if (!el) return
 
@@ -138,11 +145,32 @@ class EditorTabs extends Tonic {
     }
 
     if (event === 'close') {
-      const parent = el.closest('.tab')
-      const id = parent.dataset.id
+      const parentTab = el.closest('.tab')
+      const id = parentTab.dataset.id
       if (!this.state.tabs.has(id)) return
 
       const tab = this.state.tabs.get(id)
+
+      if (tab.unsaved) {
+        this.selectTab(id)
+
+        const coDialogConfirm = document.querySelector('dialog-confirm')
+        const result = await coDialogConfirm.prompt({
+          type: 'question',
+          message: 'This file has changes, what do you want to do?',
+          buttons: [
+            { label: 'Abandon', value: 'abandon' },
+            { label: 'Save', value: 'save' }
+          ]
+        })
+
+        if (!result.abandon && !result.save) return
+
+        if (result.save) {
+          await this.props.parent.saveCurrentTab()
+        }
+      }
+
       this.remove(id)
 
       // if this tab was selected
@@ -201,11 +229,37 @@ class AppEditor extends Tonic {
     this.editor.getModel().getValueInRange(this.editor.getSelection())
   }
 
-  async writeToDisk (pathToFile, data) {
+  async saveCurrentTab () {
+    const coTerminal = document.querySelector('app-terminal')
+    const coProperties = document.querySelector('app-properties')
+    const coTabs = document.querySelector('editor-tabs')
+
+    if (!coTabs.tab) return
+
     const app = this.props.parent
+    const value = this.editor.getValue()
+
+    if (coTabs.tab?.isRootSettingsFile) {
+      try {
+        app.state.settings = JSON.parse(value)
+      } catch (err) {
+        coTerminal.error(`Unable to parse settings file (${err.message})`)
+        return
+      }
+
+      coTerminal.info('Settings file updated.')
+      app.activatePreviewWindows()
+    }
+
+    clearTimeout(this.debouncePropertiesRerender)
+    this.debouncePropertiesRerender = setTimeout(() => {
+      coProperties.reRender()
+    }, 512)
 
     try {
-      await fs.promises.writeFile(pathToFile, data)
+      await fs.promises.writeFile(coTabs.tab.path, value)
+      coTabs.tab.unsaved = false
+      coTabs.reRender()
     } catch (err) {
       console.error(`Unable to write to ${pathToFile}`, err)
     }
@@ -242,7 +296,7 @@ class AppEditor extends Tonic {
         } catch {}
       }
 
-      tabs.setCurrentTabValue(data)
+      await tabs.setCurrentTabValue(data)
     }
   }
 
@@ -336,27 +390,22 @@ class AppEditor extends Tonic {
 
   async changes (tab, ...args) {
     const value = this.editor.getValue()
-    const coTerminal = document.querySelector('app-terminal')
+    const app = this.props.parent
 
-    if (tab.isRootSettingsFile) {
-      try {
-        app.state.settings = JSON.parse(value)
-      } catch (err) {
-        coTerminal.error(`Unable to parse settings file (${err.message})`)
-        return
-      }
-
-      coTerminal.info('Settings file updated.')
-      app.activatePreviewWindows()
+    if (app.state.settings.previewMode) {
+      this.saveCurrentTab()
+      return
     }
 
-    clearTimeout(this.debouncePropertiesRerender)
-    this.debouncePropertiesRerender = setTimeout(() => {
-      const coProperties = document.querySelector('app-properties')
-      coProperties.reRender()
-    }, 1024)
+    const hash = await sha256(value)
 
-    this.writeToDisk(tab.path, value)
+    if (hash !== tab.hash) {
+      tab.unsaved = true
+      tab.hash = hash
+
+      const tabs = this.querySelector('editor-tabs')
+      tabs.reRender()
+    }
   }
 
   connected () {
