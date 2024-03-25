@@ -430,6 +430,15 @@ class AppView extends Tonic {
     if (coDialogSubscribe) coDialogSubscribe.show()
   }
 
+  async togglePreviewMode () {
+    const coPreviewModeButton = document.querySelector('#toggle-preview-mode')
+    coPreviewModeButton.classList.toggle('selected')
+
+    const coProperties = document.querySelector('app-properties')
+    this.state.settings.previewMode = !this.state.settings.previewMode
+    coProperties.saveSettingsFile()
+  }
+
   async createProject () {
     const dest = path.join(path.DATA, 'projects', 'new-project')
     await fs.promises.mkdir(dest, { recursive: true })
@@ -678,6 +687,10 @@ class AppView extends Tonic {
       this.exportProject()
     }
 
+    if (event === 'preview-mode') {
+      this.togglePreviewMode()
+    }
+
     if (event === 'create-new-project') {
       this.createProject()
     }
@@ -732,13 +745,13 @@ class AppView extends Tonic {
         <tonic-split-right width="20%">
           <header class="component" id="header-properties">
 
-            <tonic-button type="icon" size="18px" symbol-id="play" title="Build & Run The Project" data-event="run">
+            <tonic-button type="icon" size="18px" symbol-id="play-icon" title="Build & Run The Project" data-event="run">
             </tonic-button>
 
             <tonic-button type="icon" size="22px" symbol-id="run-icon" title="Evalulate The current selection or all code in the editor" data-event="eval">
             </tonic-button>
 
-            <tonic-button type="icon" size="24px" symbol-id="speed-icon" title="Toggle real-time preview mode, save changes as you type" data-event="preview-toggle">
+            <tonic-button type="icon" size="24px" symbol-id="speed-icon" id="toggle-preview-mode" title="Toggle real-time preview mode, save changes as you type" data-event="preview-mode">
             </tonic-button>
 
             <span class="spacer"></span>

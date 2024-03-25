@@ -19,6 +19,16 @@ view-home.show {
   opacity: 1;
 }
 
+view-home .content {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6%;
+  overflow: scroll;
+}
+
 view-home h1 {
   font-family: var(--tonic-body);
   text-transform: uppercase;
@@ -75,8 +85,8 @@ view-home tonic-tab a {
 }
 
 view-home tonic-tab a[aria-selected="true"] {
-  background: var(--tonic-accent);
-  color: white;
+  background: var(--tonic-border);
+  color: var(--tonic-primary);
 }
 
 view-home #tab-panel-profile section {

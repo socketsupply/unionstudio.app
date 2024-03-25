@@ -35,8 +35,8 @@ editor-tabs .tab.selected {
   opacity: 1;
 }
 
-editor-tabs .tab.unsaved {
-  border: 1px dashed;
+editor-tabs .tab.unsaved .label {
+  border-bottom: 1px solid var(--tonic-warning);
 }
 
 editor-tabs .tab .label {

@@ -160,7 +160,6 @@ header {
 
 header.component {
   display: grid;
-  gap: 12px;
   grid-template-rows: auto;
   align-content: center;
   height: 50px;
@@ -175,6 +174,10 @@ header.component {
 header.component tonic-button {
   width: 34px;
   height: 34px;
+}
+
+header.component tonic-button.selected svg use {
+  color: var(--tonic-accent);
 }
 
 header.component#header-properties {

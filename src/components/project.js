@@ -498,6 +498,10 @@ class AppProject extends Tonic {
         }
       }
 
+      if (node.label === 'settings.json' && node.parent.id === 'root') {
+        node.isRootSettingsFile = true
+      }
+
       // Load the code editor
       const coEditor = document.querySelector('app-editor')
       coEditor.loadProjectNode(node)

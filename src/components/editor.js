@@ -73,6 +73,7 @@ class EditorTabs extends Tonic {
       label: node.label,
       id: node.id,
       path: node.id,
+      isRootSettingsFile: node.isRootSettingsFile,
       model: monaco.editor.createModel(),
       state: null,
       hash: null,
@@ -179,10 +180,13 @@ class EditorTabs extends Tonic {
         if (this.state.tabs.size > 0) {
           const tabs = [...this.state.tabs.values()]
           const previousSibling = tabs.find(t => t.index < tab.index)
-          if (previousSibling) {
-            previousSibling.selected = true
-            this.state.selectedTabId = previousSibling.id
-            this.selectTab(previousSibling.id)
+          const nextSibling = tabs.find(t => t.index > tab.index)
+          const sibling = previousSibling || nextSibling
+
+          if (sibling) {
+            sibling.selected = true
+            this.state.selectedTabId = sibling.id
+            this.selectTab(sibling.id)
           }
         } else {
           // there are no more tabs. empty the editor
@@ -203,7 +207,12 @@ class EditorTabs extends Tonic {
         const unsaved = tab.unsaved ? 'unsaved' : ''
 
         return this.html`
-          <div class="tab ${selected} ${unsaved}" data-event="select" data-id="${tab.id}">
+          <div
+            class="tab ${selected} ${unsaved}"
+            data-event="select"
+            data-id="${tab.id}"
+            title="${tab.id}"
+          >
             <div class="label">${tab.label}</div>
             <div class="close"><tonic-button type="icon" symbol-id="close" data-event="close" size="18px"></tonic-button></div>
           </div>
@@ -279,10 +288,6 @@ class AppEditor extends Tonic {
 
     if (!projectNode.isDirectory) {
       const tabs = this.querySelector('editor-tabs')
-
-      if (projectNode.label === 'settings.json' && projectNode.parent.id === 'root') {
-        projectNode.isRootSettingsFile = true
-      }
 
       tabs.add(projectNode)
 

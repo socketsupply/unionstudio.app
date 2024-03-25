@@ -8,6 +8,38 @@ import { Encryption, sha256 } from 'socket:network'
 import Config from '../lib/config.js'
 
 class AppProperties extends Tonic {
+  async saveSettingsFile () {
+    const app = this.props.parent
+    const currentProject = app.state.currentProject
+    const pathToSettingsFile = path.join(path.DATA, 'projects', 'settings.json')
+    const coTabs = document.querySelector('editor-tabs')
+    const coEditor = document.querySelector('app-editor')
+
+    // if the user currently has the config file open in the editor...
+    if (coTabs.tab?.isRootSettingsFile) {
+      try {
+        coEditor.value = JSON.stringify(app.state.settings, null, 2)
+      } catch (err) {
+        return notifications.create({
+          type: 'error',
+          title: 'Unable to save config file',
+          message: err.message
+        })
+      }
+    }
+
+    try {
+      const str = JSON.stringify(app.state.settings)
+      await fs.promises.writeFile(pathToSettingsFile, str)
+    } catch (err) {
+      return notifications?.create({
+        type: 'error',
+        title: 'Error',
+        message: 'Unable to update settings'
+      })
+    }
+  }
+
   async change (e) {
     const el = Tonic.match(e.target, '[data-event]')
     if (!el) return
@@ -53,40 +85,14 @@ class AppProperties extends Tonic {
     // when the user wants to toggle one of the preview windows they have configured
     //
     if (event === 'preview') {
-      const pathToSettingsFile = path.join(path.DATA, 'projects', 'settings.json')
       const previewWindow = app.state.settings.previewWindows.find(o => o.title === value)
 
       if (previewWindow) {
         previewWindow.active = !previewWindow.active
-
-        const currentProject = app.state.currentProject
-
-        // if the user currently has the config file open in the editor...
-        if (currentProject.label === 'settings.json' && currentProject.parent.id === 'root') {
-          try {
-            editor.value = JSON.stringify(app.state.settings, null, 2)
-          } catch (err) {
-            return notifications.create({
-              type: 'error',
-              title: 'Unable to save config file',
-              message: err.message
-            })
-          }
-        }
-
-        try {
-          const str = JSON.stringify(app.state.settings)
-          await fs.promises.writeFile(pathToSettingsFile, str)
-        } catch (err) {
-          return notifications?.create({
-            type: 'error',
-            title: 'Error',
-            message: 'Unable to update settings'
-          })
-        }
-
-        app.activatePreviewWindows()
       }
+
+      await this.saveSettingsFile()
+      app.activatePreviewWindows()
     }
 
     //

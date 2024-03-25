@@ -1,0 +1,43 @@
+dialog-confirm {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  max-width: 500px;
+  min-height: 280px;
+  display: grid;
+  font-family: var(--tonic-monospace);
+  text-align: center;
+  app-region: drag;
+  --app-region: drag;
+}
+
+dialog-confirm header {
+  height: 46px;
+  text-align: center;
+  padding: 14px;
+  font-size: 12px;
+  color: var(--tonic-info);
+}
+
+dialog-confirm footer {
+  height: 60px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 0 14px;
+}
+
+dialog-confirm tonic-button {
+  app-region: unset;
+  --app-region: unset;
+  place-self: center end;
+}
+
+dialog-confirm p {
+  margin: 0;
+}
+
+dialog-confirm main {
+  justify-content: center;
+  align-content: center;
+  padding: 0 6%;
+}
