@@ -713,6 +713,8 @@ class AppView extends Tonic {
     await this.initNetwork()
     await this.initApplication()
 
+    const previewMode = this.state.settings?.previewMode === true ? 'selected' : ''
+
     return this.html`
       <tonic-split id="split-main" type="vertical">
         <tonic-split-left width="80%">
@@ -753,7 +755,7 @@ class AppView extends Tonic {
             <tonic-button type="icon" size="22px" symbol-id="run-icon" title="Evalulate The current selection or all code in the editor" data-event="eval">
             </tonic-button>
 
-            <tonic-button type="icon" size="24px" symbol-id="speed-icon" id="toggle-preview-mode" title="Toggle real-time preview mode, save changes as you type" data-event="preview-mode">
+            <tonic-button type="icon" size="24px" symbol-id="speed-icon" id="toggle-preview-mode" class="${previewMode}" title="Toggle real-time preview mode, save changes as you type" data-event="preview-mode">
             </tonic-button>
 
             <span class="spacer"></span>

@@ -246,15 +246,17 @@ class AppProperties extends Tonic {
         <pre id="project-status"><code>No changes.</code></pre>
       `
 
-      if (!gitStatus.stderr && gitStatus.stdout.length) {
+      const notInitialized = gitStatus.stderr.includes('not a git repo')
+
+      if (notInitialized || (!gitStatus.stderr && gitStatus.stdout.length)) {
         projectUpdates = this.html`
-          <pre id="project-status"><code>${gitStatus.stdout}</code></pre>
+          <pre id="project-status"><code>${gitStatus.stdout || 'No Changes.'}</code></pre>
           <tonic-button
             id="publish"
             data-event="publish"
             width="180px"
             class="pull-right"
-          >Publish Changes</tonic-button>
+          >Publish</tonic-button>
         `
       }
     }

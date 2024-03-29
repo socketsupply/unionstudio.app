@@ -35,14 +35,16 @@ editor-tabs .tab.selected {
   opacity: 1;
 }
 
-editor-tabs .tab.unsaved .label {
-  border-bottom: 1px solid var(--tonic-warning);
-}
-
 editor-tabs .tab .label {
   justify-content: center;
   align-content: center;
   margin: 0 4px;
+  border-bottom: 1px solid transparent;
+  white-space: nowrap;
+}
+
+editor-tabs .tab.unsaved .label {
+  border-bottom: 1px solid var(--tonic-warning);
 }
 
 editor-tabs .tab tonic-button {

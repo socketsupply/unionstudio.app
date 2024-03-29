@@ -1,3 +1,4 @@
+import application from 'socket:application'
 import fs from 'socket:fs'
 import path from 'socket:path'
 
@@ -10,6 +11,40 @@ class ViewHome extends Tonic {
 
   hide () {
     this.classList.remove('show')
+  }
+
+  async click (e) {
+    const el = Tonic.match(e.target, '[data-event]')
+    if (!el) return
+
+    const { event } = el.dataset
+
+    if (event === 'upgrade') {
+      const opts = {
+        config: {
+          webview_auto_register_service_workers: false,
+          webview_service_worker_frame: false
+        },
+        path: 'pages/account.html',
+        index: 14,
+        closable: true,
+        maximizable: false,
+        title: 'Signup',
+        titleBarStyle: 'hiddenInset',
+        trafficLightPosition: '10x26',
+        backgroundColorDark: 'rgba(46, 46, 46, 1)',
+        backgroundColorLight: 'rgba(255, 255, 255, 1)',
+        resizable: false,
+        width: 450,
+        height: 300
+      }
+
+      const w = await application.createWindow(opts)
+
+      w.channel.addEventListener('message', e => {
+        console.log(e.data)
+      })
+    }
   }
 
   async change (e) {
@@ -53,7 +88,7 @@ class ViewHome extends Tonic {
     const { data: dataUser } = await app.db.state.get('user')
 
     const publicKey = Buffer.from(dataUser.publicKey).toString('base64')
-    const bio = dataUser.bio || ''
+    const bio = dataUser.bio || undefined
 
     return this.html`
       <header class="component">
@@ -80,16 +115,12 @@ class ViewHome extends Tonic {
           </tonic-tabs>
 
           <tonic-tab-panel id="tab-panel-news">
-            <h2>What's New!</h2>
-            <label class="panel-label">A social feed of code that you can subscribe to.</label>
             <section>
               Content One
             </section>
           </tonic-tab-panel>
 
           <tonic-tab-panel id="tab-panel-docs">
-            <h2>Platform Documentation</h2>
-            <label class="panel-label">This section provides all documents for the current version of Socket Runtime.</label>
             <section>
               <tonic-input
                 width="100%"
@@ -102,8 +133,6 @@ class ViewHome extends Tonic {
           </tonic-tab-panel>
 
           <tonic-tab-panel id="tab-panel-profile">
-            <h2>User Profile</h2>
-            <label class="panel-label">Your profile information is used to secure and share code with others.</label>
             <section>
               <tonic-profile-image
                 id="profile-image-example-editable"
@@ -113,11 +142,18 @@ class ViewHome extends Tonic {
                 editable="true">
               </tonic-profile-image>
 
-              <tonic-button
-                id="profile-regenerate-keypair"
-                data-event="regenerate-keypair"
-                width="180px"
-              >Regenerate Keys</tonic-button>
+              <div class="buttons">
+                <tonic-button
+                  id="profile-regenerate-keypair"
+                  data-event="regenerate-keypair"
+                  width="180px"
+                >Regenerate Keys</tonic-button>
+                <!-- tonic-button
+                  id="profile-upgrade"
+                  data-event="upgrade"
+                  width="140px"
+                >Upgrade</tonic-button -->
+              </div>
 
               <tonic-textarea
                 label="Bio"

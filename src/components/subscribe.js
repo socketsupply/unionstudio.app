@@ -49,6 +49,7 @@ export class DialogSubscribe extends TonicDialog {
 
       const project = {
         bundleId,
+        waiting: true,
         clusterId,
         subclusterId,
         sharedKey,
@@ -73,7 +74,8 @@ export class DialogSubscribe extends TonicDialog {
         <tonic-input
           id="subscribe-shared-secret"
           label="Project Link"
-          placeholder="union://abc?bundleId=com.beep.boop&clusterId=haxortown"
+          placeholder="union://foo?bundleId=com.beep.boop&clusterId=bar"
+          spellcheck="false"
           value=""
           width="100%"
         >

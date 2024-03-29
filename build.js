@@ -21,6 +21,7 @@ async function copy (target) {
   await cp('src/template', target)
   await cp('src/fonts', target)
   await cp('src/lib', target)
+  await cp('src/pages', target)
   await cp('src/css', target)
 }
 

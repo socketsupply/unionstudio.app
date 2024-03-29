@@ -44,7 +44,13 @@ export class DialogPublish extends TonicDialog {
       // TODO(@heapwolf): probably chain with previousId
     }
 
-    const subcluster = app.socket.subclusters.get(dataProject.subclusterId)
+    let subcluster = app.socket.subclusters.get(dataProject.subclusterId)
+
+    // user created a new subcluster but it's not yet been activated.
+    if (!subcluster) {
+      subcluster = await app.socket.subcluster({ sharedKey: dataProject.sharedKey })
+    }
+
     const packets = await subcluster.emit(type, value, opts)
   }
 

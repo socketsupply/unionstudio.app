@@ -47,6 +47,7 @@ globalThis.MonacoEnvironment = {
 class EditorTabs extends Tonic {
   selectedTabId = null
   scrollLeft = 0
+  index = 0
 
   constructor () {
     super()
@@ -67,7 +68,6 @@ class EditorTabs extends Tonic {
 
   add (node) {
     const parent = this.props.parent
-    const count = this.state.tabs.size
 
     const tab = {
       label: node.label,
@@ -78,7 +78,7 @@ class EditorTabs extends Tonic {
       state: null,
       hash: null,
       unsaved: false,
-      index: count + 1
+      index: this.index++
     }
 
     tab.model.onDidChangeContent((...args) => editor.changes(tab, ...args))
@@ -179,7 +179,7 @@ class EditorTabs extends Tonic {
         // check if there are any other tabs
         if (this.state.tabs.size > 0) {
           const tabs = [...this.state.tabs.values()]
-          const previousSibling = tabs.find(t => t.index < tab.index)
+          const previousSibling = tabs.findLast(t => t.index < tab.index)
           const nextSibling = tabs.find(t => t.index > tab.index)
           const sibling = previousSibling || nextSibling
 

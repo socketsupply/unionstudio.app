@@ -19,6 +19,12 @@ view-home.show {
   opacity: 1;
 }
 
+view-home iframe {
+  border: none;
+  height: 280px;
+  width: 100%;
+}
+
 view-home .content {
   position: absolute;
   top: 50px;
