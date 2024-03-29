@@ -52,6 +52,17 @@ class AppProject extends Tonic {
   mouseMoveThreshold = 0
   timeoutMouseMove = 0
 
+  constructor () {
+    super()
+
+    window.addEventListener('keyup', e => {
+      if (this.mouseIsDragging && e.key === 'Escape') {
+        this.resetMouse()
+        this.load()
+      }
+    })
+  }
+
   /**
    * auto-sort="false"
    */
@@ -136,6 +147,8 @@ class AppProject extends Tonic {
     if (!node) this.getNodeFromElement(el.parentElement)
     if (!node) return
 
+    if (node.nonMovable) return
+
     this.removeAttribute('dragging')
     this.mouseMoveThreshold = 0
 
@@ -211,6 +224,10 @@ class AppProject extends Tonic {
   }
 
   mousemove (e) {
+    if (Tonic.match(e.target, '[data-event="rename"]')) {
+      return // renaming, can't drag
+    }
+
     if (this.mouseIsDown) {
       ++this.mouseMoveThreshold
 
@@ -278,13 +295,26 @@ class AppProject extends Tonic {
     // Rename a node in the tree
     //
     if (Tonic.match(e.target, '[data-event="rename"]')) {
+      if (e.key === 'Escape') {
+        this.load()
+      }
+
       if (e.key === 'Enter') {
         const value = e.target.value.trim()
         if (this.getNodeByProperty('id', value)) return
 
-        const newId = path.join(path.dirname(node.id), value)
+        const dirname = path.dirname(node.id).replace(/%20/g, ' ')
+        const newId = path.join(dirname, value)
         await fs.promises.rename(node.id, newId)
+
+        const coTabs = document.querySelector('editor-tabs')
+        if (coTabs && coTabs.tab.id === node.id) {
+          coTabs.rename({ oldId: coTabs.tab.id, newId, label: value })
+        }
+
         node.label = value
+        node.id = newId
+
         this.load()
       }
     }
@@ -292,6 +322,10 @@ class AppProject extends Tonic {
 
   async dblclick (e) {
     this.resetMouse()
+
+    if (Tonic.match(e.target, '[data-event="rename"]')) {
+      return // already renaming
+    }
 
     const el = Tonic.match(e.target, '[data-path]')
     if (!el) return
@@ -475,6 +509,8 @@ class AppProject extends Tonic {
 
       this.state.currentProject = projectNode.id
 
+      if (node.isDirectory) return
+
       const coImagePreview = document.querySelector('view-image-preview')
       const coHome = document.querySelector('view-home')
 
@@ -578,8 +614,9 @@ class AppProject extends Tonic {
   }
 
   async load () {
-    const oldState = this.state.tree
-    const oldChild = this.getNodeByProperty('id', 'home', oldState)
+    const app = this.props.parent
+    let oldState = this.state.tree
+    let oldChild = this.getNodeByProperty('id', 'home', oldState)
 
     const tree = {
       id: 'root',
@@ -594,6 +631,7 @@ class AppProject extends Tonic {
       isDirectory: false,
       icon: 'home-icon',
       label: 'Home',
+      nonMovable: true,
       children: []
     })
 
@@ -619,7 +657,6 @@ class AppProject extends Tonic {
           state: oldChild?.state ?? 0,
           isDirectory: entry.isDirectory(),
           label: entry.name,
-          data: {},
           mime: await lookup(path.extname(entry.name)),
           children: []
         }
@@ -650,12 +687,49 @@ class AppProject extends Tonic {
       }
     }
 
-    try {
-      await readDir(path.join(path.DATA, 'projects'), tree)
-      this.state.tree = tree
-    } catch (err) {
-      console.error('Error initiating read directory operation:', err)
-      return
+    const settingsId = path.join(path.DATA, 'settings.json')
+    oldChild = this.getNodeByProperty('id', settingsId, oldState)
+
+    tree.children.push({
+      id: settingsId,
+      parent: tree,
+      selected: oldChild?.selected ?? 0,
+      state: oldChild?.state ?? 0,
+      isDirectory: false,
+      icon: 'settings-icon',
+      label: 'Settings',
+      nonMovable: true,
+      children: []
+    })
+
+    const { data: dataProjects } = await app.db.projects.readAll()
+
+    for (const [projectId, project] of dataProjects.entries()) {
+      const oldChild = this.getNodeByProperty('id', project.path, oldState)
+
+      const node = {
+        parent: tree,
+        selected: oldChild?.selected ?? 0,
+        state: oldChild?.state ?? 0,
+        id: project.path,
+        label: project.label,
+        isDirectory: true,
+        nonMovable: true,
+        icon: 'package',
+        children: []
+      }
+
+      tree.children.push(node)
+
+      if (project.path) {
+        try {
+          await readDir(project.path, node)
+          this.state.tree = tree
+        } catch (err) {
+          console.error('Error initiating read directory operation:', err)
+          return
+        }
+      }
     }
 
     this.reRender()

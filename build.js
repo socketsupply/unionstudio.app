@@ -18,7 +18,7 @@ async function copy (target) {
   await cp('src/preview.js', target)
   await cp('src/worker.js', target)
   await cp('icons/icon.png', target)
-  await cp('src/template', target)
+  await cp('src/settings.json', target)
   await cp('src/fonts', target)
   await cp('src/lib', target)
   await cp('src/pages', target)

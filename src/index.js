@@ -71,7 +71,7 @@ class AppView extends Tonic {
 
       // write the settings file to disk, its a well known location
       try {
-        const pathToSettingsFile = path.join(path.DATA, 'projects', 'settings.json')
+        const pathToSettingsFile = path.join(path.DATA, 'settings.json')
         await fs.promises.writeFile(pathToSettingsFile, JSON.stringify(this.state.settings))
       } catch (err) {
         return notifications.create({
@@ -83,48 +83,17 @@ class AppView extends Tonic {
     })
   }
 
-  async installTemplates () {
-    const readDir = async (dirPath) => {
-      const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
-
-      for (const entry of entries) {
-        const fullPath = path.join(dirPath, entry.name)
-
-        if (entry.isDirectory()) {
-          try {
-            await readDir(fullPath)
-          } catch (err) {
-            console.error(`Error reading directory ${fullPath}:`, err)
-          }
-        } else {
-          const file = await fs.promises.readFile(fullPath)
-          const basePath = path.relative('template', fullPath)
-          const destPath = path.join(path.DATA, 'projects', basePath)
-          await fs.promises.mkdir(path.dirname(destPath), { recursive: true })
-          await fs.promises.writeFile(destPath, file)
-        }
-      }
-    }
-
-    try {
-      await readDir('template')
-    } catch (err) {
-      console.error('Error initiating read directory operation:', err)
-    }
-  }
-
   getCurrentProjectPath () {
     let currentProjectPath = this.state.currentProject?.id
-
-    if (!currentProjectPath) {
-      currentProjectPath = path.join(path.DATA, 'projects', 'demo-project')
-    }
+    if (!currentProjectPath) return
 
     currentProjectPath = path.join(currentProjectPath, this.state.settings?.rootFile || 'src')
     return currentProjectPath.replace(path.DATA, '/preview')
   }
 
   async reloadPreviewWindows () {
+    if (!this.state.currentProject) return
+
     clearTimeout(this.debounce)
     this.debounce = setTimeout(() => {
       const currentProjectPath = this.getCurrentProjectPath() 
@@ -194,6 +163,7 @@ class AppView extends Tonic {
       }).toString()
 
       let currentProjectPath = this.getCurrentProjectPath() 
+      if (!currentProjectPath) return
 
       const opts = {
         __runtime_primordial_overrides__: {
@@ -304,8 +274,9 @@ class AppView extends Tonic {
     const { data: dataProjects } = await this.db.projects.readAll()
 
     for (const [projectId, project] of dataProjects.entries()) {
-      if (!project.sharedKey) continue
       if (socket.subclusters.get(project.subclusterId)) continue
+
+      console.log('REBINDING', project)
 
       const subcluster = await socket.subcluster({ sharedKey: project.sharedKey })
 
@@ -339,6 +310,38 @@ class AppView extends Tonic {
     }
   }
 
+  async createProject (opts = {}) {
+    const name = opts.name || 'project.' + Math.random().toString(16).slice(2, 6)
+    const bundleId = 'com.' + name
+    const sharedSecret = opts.sharedSecret || (await Encryption.createId()).toString('base64')
+    const sharedKey = await Encryption.createSharedKey(sharedSecret)
+    const derivedKeys = await Encryption.createKeyPair(sharedKey)
+    const clusterId = await Encryption.createClusterId(opts.clusterId || 'union-app-studio')
+    const subclusterId = Buffer.from(derivedKeys.publicKey)
+
+    const project = {
+      label: name,
+      waiting: opts.waiting || false,
+      path: opts.path || path.join(path.DATA, name),
+      bundleId,
+      clusterId,
+      subclusterId,
+      sharedKey,
+      sharedSecret
+    }
+
+    await this.db.projects.put(bundleId, project)
+    await fs.promises.mkdir(project.path, { recursive: true })
+
+    try {
+      await exec('ssc init', { cwd: project.path })
+    } catch (err) {
+      console.error(err)
+    }
+
+    return project
+  }
+
   async initData () {
     if (process.env.DEBUG === '1') {
       const databases = await window.indexedDB.databases()
@@ -370,55 +373,44 @@ class AppView extends Tonic {
     //
     // Create a default clusterId (used as the default group)
     //
-    const clusterId = await Encryption.createClusterId('socket-app-studio')
+    const clusterId = await Encryption.createClusterId('union-app-studio')
 
     const { data: dataPeer } = await this.db.state.has('peer')
 
-    if (!dataPeer) {
-      await this.db.state.put('peer', {
-        config: {
-          peerId: await Encryption.createId(),
-          clusterId
-        }
-      })
-    }
+    if (dataPeer) return
 
-    const { data: dataUser } = await this.db.state.has('user')
+    await this.db.state.put('peer', {
+      config: {
+        peerId: await Encryption.createId(),
+        clusterId
+      }
+    })
 
-    if (!dataUser) {
-      const signingKeys = await Encryption.createKeyPair()
+    await this.db.state.put('user', {
+      ...(await Encryption.createKeyPair())
+    })
 
-      await this.db.state.put('user', {
-        ...signingKeys
-      })
-    }
-
+    this.createProject()
   }
 
   async initApplication () {
     const notifications = document.querySelector('#notifications')
-    const settingsFile = path.join(path.DATA, 'projects', 'settings.json')
+    const userSettingsFile = path.join(path.DATA, 'settings.json')
 
     let exists
     let settings
 
     try {
-      exists = await fs.promises.stat(settingsFile)
+      exists = await fs.promises.stat(userSettingsFile)
     } catch (err) {
-      console.log(err)
-    }
-
-    if (!exists) {
-      const defaultProjectDir = path.join(path.DATA, 'projects', 'demo-project')
-      await fs.promises.mkdir(defaultProjectDir, { recursive: true })
-      await this.installTemplates()
+      const settings = await fs.promises.readFile('settings.json')
+      await fs.promises.writeFile(userSettingsFile, settings)
     }
 
     try {
-      settings = JSON.parse(await fs.promises.readFile(settingsFile, 'utf8'))
+      settings = JSON.parse(await fs.promises.readFile(userSettingsFile, 'utf8'))
     } catch (err) {
       console.log('NO SETTINGS', err)
-      // NOPE
       return
     }
 
@@ -439,21 +431,6 @@ class AppView extends Tonic {
     const coProperties = document.querySelector('app-properties')
     this.state.settings.previewMode = !this.state.settings.previewMode
     coProperties.saveSettingsFile()
-  }
-
-  async createProject () {
-    const dest = path.join(path.DATA, 'projects', 'new-project')
-    await fs.promises.mkdir(dest, { recursive: true })
-
-    //
-    // TODO(@heapwolf) check that exec is accepting cwd correctly
-    //
-    const c = await spawn('ssc', ['init'], { stdin: false, cwd: dest })
-
-    c.on('exit', () => {
-      const project = document.querySelector('app-project')
-      project.load()
-    })
   }
 
   //
@@ -596,6 +573,8 @@ class AppView extends Tonic {
 
       case 'New Project': {
         this.createProject()
+        const coProject = document.querySelector('app-project')
+        coProject.load()
         break
       }
 
@@ -695,6 +674,8 @@ class AppView extends Tonic {
 
     if (event === 'create-new-project') {
       this.createProject()
+      const coProject = document.querySelector('app-project')
+      coProject.load()
     }
 
     if (event === 'add-shared-project') {

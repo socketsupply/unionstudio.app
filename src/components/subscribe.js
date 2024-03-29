@@ -26,8 +26,10 @@ export class DialogSubscribe extends TonicDialog {
       const coInput = this.querySelector('#subscribe-shared-secret')
       const url = new URL(coInput.value.trim())
 
-      const cId = url.searchParams.get('clusterId')
-      const bundleId = url.searchParams.get('bundleId')
+      const cId = url.searchParams.get('org')
+      const bundleId = url.searchParams.get('id')
+
+      // union://foo?id=com.demo.project&org=test
 
       if (!bundleId || !cId) {
         const notifications = document.querySelector('#notifications')
@@ -58,10 +60,30 @@ export class DialogSubscribe extends TonicDialog {
 
       await app.db.projects.put(bundleId, project)
       await app.initNetwork()
+
+      const coProject = document.querySelector('app-project')
+      await this.close()
+      coProject.reRender()
     }
   }
 
   async render () {
+    const app = this.props.parent
+    const { data: dataProjects } = await app.db.projects.readAll()
+
+    /* const existingProjects
+
+    for (const [projectId, project] of dataProjects.entries()) {
+
+      tree.children.push({
+        id: project.bundleId,
+        label: project.bundleId,
+        isDirectory: false,
+        icon: 'package',
+        children: []
+      })
+    } */
+
     return this.html`
       <header>
         Create Subscription

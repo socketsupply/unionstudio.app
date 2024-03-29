@@ -13,6 +13,7 @@
     ".c": "cpp",
     ".js": "javascript"
   },
+  "previewMode": false,
   "rootFile": "src/index.html",
   "previewWindows": [
     {

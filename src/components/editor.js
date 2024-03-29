@@ -98,6 +98,70 @@ class EditorTabs extends Tonic {
     this.reRender()
   }
 
+  rename ({ oldId, newId, label }) {
+    if (!this.state.tabs.has(oldId)) return
+
+    const tab = this.state.tabs.get(oldId)
+    tab.id = newId
+    tab.path = newId
+    tab.label = label
+
+    this.state.tabs.delete(oldId)
+    this.state.tabs.set(newId, tab)
+
+    this.reRender()
+  }
+
+  async close (id) {
+    if (!this.state.tabs.has(id)) return
+
+    const tab = this.state.tabs.get(id)
+
+    if (tab.unsaved) {
+      this.selectTab(id)
+
+      const coDialogConfirm = document.querySelector('dialog-confirm')
+      const result = await coDialogConfirm.prompt({
+        type: 'question',
+        message: 'This file has changes, what do you want to do?',
+        buttons: [
+          { label: 'Abandon', value: 'abandon' },
+          { label: 'Save', value: 'save' }
+        ]
+      })
+
+      if (!result.abandon && !result.save) return
+
+      if (result.save) {
+        await this.props.parent.saveCurrentTab()
+      }
+    }
+
+    this.remove(id)
+
+    // if this tab was selected
+    if (this.state.selectedTabId === id) {
+      // check if there are any other tabs
+      if (this.state.tabs.size > 0) {
+        const tabs = [...this.state.tabs.values()]
+        const previousSibling = tabs.findLast(t => t.index < tab.index)
+        const nextSibling = tabs.find(t => t.index > tab.index)
+        const sibling = previousSibling || nextSibling
+
+        if (sibling) {
+          sibling.selected = true
+          this.state.selectedTabId = sibling.id
+          this.selectTab(sibling.id)
+        }
+      } else {
+        // there are no more tabs. empty the editor
+        this.props.parent.editor.setValue('')
+      }
+    }
+
+    this.reRender()
+  }
+
   get tab () {
     return this.state.tabs.get(this.state.selectedTabId)
   }
@@ -148,53 +212,7 @@ class EditorTabs extends Tonic {
     if (event === 'close') {
       const parentTab = el.closest('.tab')
       const id = parentTab.dataset.id
-      if (!this.state.tabs.has(id)) return
-
-      const tab = this.state.tabs.get(id)
-
-      if (tab.unsaved) {
-        this.selectTab(id)
-
-        const coDialogConfirm = document.querySelector('dialog-confirm')
-        const result = await coDialogConfirm.prompt({
-          type: 'question',
-          message: 'This file has changes, what do you want to do?',
-          buttons: [
-            { label: 'Abandon', value: 'abandon' },
-            { label: 'Save', value: 'save' }
-          ]
-        })
-
-        if (!result.abandon && !result.save) return
-
-        if (result.save) {
-          await this.props.parent.saveCurrentTab()
-        }
-      }
-
-      this.remove(id)
-
-      // if this tab was selected
-      if (this.state.selectedTabId === id) {
-        // check if there are any other tabs
-        if (this.state.tabs.size > 0) {
-          const tabs = [...this.state.tabs.values()]
-          const previousSibling = tabs.findLast(t => t.index < tab.index)
-          const nextSibling = tabs.find(t => t.index > tab.index)
-          const sibling = previousSibling || nextSibling
-
-          if (sibling) {
-            sibling.selected = true
-            this.state.selectedTabId = sibling.id
-            this.selectTab(sibling.id)
-          }
-        } else {
-          // there are no more tabs. empty the editor
-          this.props.parent.editor.setValue('')
-        }
-      }
-
-      this.reRender()
+      this.close(id)
     }
   }
 

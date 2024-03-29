@@ -1,23 +1,27 @@
 view-image-preview {
   position: absolute;
   top: 0; bottom: 0; left: 0; right: 0;
-  overflow: auto;
   z-index: -1;
   opacity: 0;
   transition: z-index .1s ease, opacity .1s ease;
-
-  display: grid;
-  justify-content: center;
-  align-items: center;
-  grid-template-rows: 1fr 1fr;
-  grid-template-columns: 1fr;
   background-color: var(--tonic-background);
-  padding: 10%;
 }
 
 view-image-preview.show {
   opacity: 1;
   z-index: 30;
+}
+
+view-image-preview .container {
+  position: absolute;
+  top: 50px; bottom: 0; left: 0; right: 0;
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  grid-template-rows: 1fr 1fr;
+  grid-template-columns: 1fr;
+  overflow: auto;
+  padding: 6%;
 }
 
 view-image-preview .top {

@@ -96,23 +96,28 @@ class ViewImagePreview extends Tonic {
     }
 
     return this.html`
-      <div class="top">
-        <h1>Icon Preview</h1>
-        <tonic-button data-event="size" data-value="all">Update</tonic-button>
-      </div>
+      <header class="component">
+      </header>
+      <div class="container">
 
-      <div class="bottom">
-        <h2>MacOS</h2>
-        <div class="icon-grid">${await templateSizes('mac')}</div>
+        <div class="top">
+          <h1>Icon Preview</h1>
+          <tonic-button data-event="size" data-value="all">Update</tonic-button>
+        </div>
 
-        <h2>iOS</h2>
-        <div class="icon-grid">${await templateSizes('ios')}</div>
+        <div class="bottom">
+          <h2>MacOS</h2>
+          <div class="icon-grid">${await templateSizes('mac')}</div>
 
-        <h2>Linux</h2>
-        <div class="icon-grid">${await templateSizes('linux')}</div>
+          <h2>iOS</h2>
+          <div class="icon-grid">${await templateSizes('ios')}</div>
 
-        <h2>Windows</h2>
-        <div class="icon-grid">${await templateSizes('win')}</div>
+          <h2>Linux</h2>
+          <div class="icon-grid">${await templateSizes('linux')}</div>
+
+          <h2>Windows</h2>
+          <div class="icon-grid">${await templateSizes('win')}</div>
+        </div>
       </div>
     `
   }
