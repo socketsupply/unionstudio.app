@@ -1,5 +1,6 @@
 import Tonic from '@socketsupply/tonic'
 import { exec } from 'socket:child_process'
+import { Encryption, sha256 } from 'socket:network'
 
 class ViewProjectSummary extends Tonic {
   show () {
@@ -36,23 +37,18 @@ class ViewProjectSummary extends Tonic {
     const { event, section, value } = el.dataset
 
     const app = this.props.parent
+    const currentProject = app.state.currentProject
+
     const notifications = document.querySelector('#notifications')
     const editor = document.querySelector('app-editor')
     const project = document.querySelector('app-project')
-    const config = new Config(app.state.currentProject?.id)
+
+    const { data: dataProject } = await app.db.projects.get(currentProject.projectId)
 
     if (event === 'org' || event === 'shared-secret') {
-      const app = this.props.parent
-      const config = new Config(app.state.currentProject?.id)
-      if (!config) return
-
-      let bundleId = await config.get('meta', 'bundle_identifier')
-      if (bundleId) bundleId = bundleId.replace(/"/g, '')
-      const { data: dataBundle } = await app.db.projects.get(bundleId)
-
       if (event === 'org') {
-        dataBundle.org = el.value
-        dataBundle.clusterId = await sha256(el.value, { bytes: true })
+        dataProject.org = el.value
+        dataProject.clusterId = await sha256(el.value, { bytes: true })
       }
 
       if (event === 'shared-secret') {
@@ -60,12 +56,12 @@ class ViewProjectSummary extends Tonic {
         const derivedKeys = await Encryption.createKeyPair(sharedKey)
         const subclusterId = Buffer.from(derivedKeys.publicKey)
 
-        dataBundle.sharedKey = sharedKey
-        dataBundle.sharedSecret = el.value
-        dataBundle.subclusterId = subclusterId
+        dataProject.sharedKey = sharedKey
+        dataProject.sharedSecret = el.value
+        dataProject.subclusterId = subclusterId
       }
 
-      await app.db.projects.put(bundleId, dataBundle)
+      await app.db.projects.put(currentProject.projectId, dataProject)
       await app.initNetwork()
       this.reRender()
     }
