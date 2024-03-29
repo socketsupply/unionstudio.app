@@ -37,3 +37,32 @@ view-project-summary .empty-state {
   justify-content: center;
   align-content: center;
 }
+
+view-project-summary .sharing {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 20px;
+  grid-template-rows: auto auto 1fr;
+  align-items: end;
+}
+
+view-project-summary #org-name {
+  grid-area: 1 / span 2;
+}
+
+view-project-summary #shared-secret {
+  grid-area: 1 / 2 span;
+}
+
+view-project-summary #project-link {
+  grid-area: 2 / span 3;
+}
+
+view-project-summary #publish {
+  grid-area: 2 / 4;
+}
+
+view-project-summary #project-status {
+  grid-area: 3 / span 4;
+  align-self: start;
+}

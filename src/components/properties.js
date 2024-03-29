@@ -2,7 +2,6 @@ import Tonic from '@socketsupply/tonic'
 import fs from 'socket:fs'
 import path from 'socket:path'
 import process from 'socket:process'
-import { exec } from 'socket:child_process'
 import { Encryption, sha256 } from 'socket:network'
 
 import Config from '../lib/config.js'
@@ -52,35 +51,6 @@ class AppProperties extends Tonic {
     const project = document.querySelector('app-project')
     const config = new Config(app.state.currentProject?.id)
 
-    if (event === 'org' || event === 'shared-secret') {
-      const app = this.props.parent
-      const config = new Config(app.state.currentProject?.id)
-      if (!config) return
-
-      let bundleId = await config.get('meta', 'bundle_identifier')
-      if (bundleId) bundleId = bundleId.replace(/"/g, '')
-      const { data: dataBundle } = await app.db.projects.get(bundleId)
-
-      if (event === 'org') {
-        dataBundle.org = el.value
-        dataBundle.clusterId = await sha256(el.value, { bytes: true })
-      }
-
-      if (event === 'shared-secret') {
-        const sharedKey = await Encryption.createSharedKey(el.value)
-        const derivedKeys = await Encryption.createKeyPair(sharedKey)
-        const subclusterId = Buffer.from(derivedKeys.publicKey)
-
-        dataBundle.sharedKey = sharedKey
-        dataBundle.sharedSecret = el.value
-        dataBundle.subclusterId = subclusterId
-      }
-
-      await app.db.projects.put(bundleId, dataBundle)
-      await app.initNetwork()
-      this.reRender()
-    }
-
     //
     // when the user wants to toggle one of the preview windows they have configured
     //
@@ -107,25 +77,6 @@ class AppProperties extends Tonic {
         title: 'Note',
         message: 'A restart of the app your building may be required.'
       })
-    }
-  }
-
-  async click (e) {
-    const elCopy = Tonic.match(e.target, '[symbol-id="copy-icon"]')
-
-    if (elCopy) {
-      navigator.clipboard.writeText(elCopy.nextElementSibling.value)
-      return
-    }
-
-    const el = Tonic.match(e.target, '[data-event]')
-    if (!el) return
-
-    const { event } = el.dataset
-
-    if (event === 'publish') {
-      const coDialogPublish = document.querySelector('dialog-publish')
-      if (coDialogPublish) coDialogPublish.show()
     }
   }
 
@@ -161,103 +112,6 @@ class AppProperties extends Tonic {
             ></tonic-checkbox>
           `)
         }
-      }
-    }
-
-    let bundleId = await config.get('meta', 'bundle_identifier')
-    if (bundleId) bundleId = bundleId.replace(/"/g, '')
-
-    let project = {}
-
-    const { data: hasBundle } = await app.db.projects.has(bundleId)
-
-    if (hasBundle) {
-      const { data } = await app.db.projects.get(bundleId)
-      project = data
-    } else if (currentProject?.isDirectory) {
-      //
-      // The clusterId is hard coded for now.
-      //
-      const clusterId = await sha256('socket-app-studio', { bytes: true })
-
-      project.sharedSecret = (await Encryption.createId()).toString('hex')
-      const sharedKey = await Encryption.createSharedKey(project.sharedSecret)
-      const derivedKeys = await Encryption.createKeyPair(sharedKey)
-      const subclusterId = Buffer.from(derivedKeys.publicKey)
-
-      //
-      // Projects are keyed off the bundleId
-      //
-      Object.assign(project, {
-        bundleId,
-        clusterId,
-        subclusterId,
-        sharedKey,
-        org: 'union-app-studio',
-      })
-
-      await app.db.projects.put(bundleId, project)
-
-      //
-      // We need to tell the network to start listening for this subcluster
-      //
-      await app.initNetwork()
-    }
-
-    let projectUpdates = []
-    let gitStatus = { stdout: '' }
-
-    if (cwd) {
-      //
-      // If there is a current project, check if its been git await configtialized.
-      //
-      try {
-        await fs.promises.stat(path.join(cwd, '.git'))
-      } catch (err) {
-        try {
-          gitStatus = await exec('git await configt', { cwd })
-        } catch (err) {
-          gitStatus.stderr = err.message
-        }
-
-        if (gitStatus?.stderr.includes('command not found')) {
-          projectUpdates.push(this.html`
-            <tonic-toaster-inline
-              id="git-not-installed"
-              dismiss="false"
-              display="true"
-            >Git is not installed and is required to use this program.
-            </tonic-toaster-inline>
-          `)
-        }
-      }
-
-      //
-      // Try to get the status of the project to tell the user what
-      // has changed and help them decide if they should publish.
-      //
-      try {
-        gitStatus = await exec('git status --porcelain', { cwd })
-      } catch (err) {
-        gitStatus.stderr = err.message
-      }
-
-      projectUpdates = this.html`
-        <pre id="project-status"><code>No changes.</code></pre>
-      `
-
-      const notInitialized = gitStatus.stderr.includes('not a git repo')
-
-      if (notInitialized || (!gitStatus.stderr && gitStatus.stdout.length)) {
-        projectUpdates = this.html`
-          <pre id="project-status"><code>${gitStatus.stdout || 'No Changes.'}</code></pre>
-          <tonic-button
-            id="publish"
-            data-event="publish"
-            width="180px"
-            class="pull-right"
-          >Publish</tonic-button>
-        `
       }
     }
 
@@ -314,40 +168,6 @@ class AppProperties extends Tonic {
           <tonic-checkbox data-section="permissions" id="allow_data_access" checked="${await config.get('permissions', 'allow_data_access')}" data-event="property" label="Data Access"></tonic-checkbox>
           <tonic-checkbox data-section="permissions" id="allow_airplay" checked="${await config.get('permissions', 'allow_airplay')}" data-event="property" label="AirPlay"></tonic-checkbox>
           <tonic-checkbox data-section="permissions" id="allow_hotkeys" checked="${await config.get('permissions', 'allow_hotkeys')}" data-event="property" label="AirPlay"></tonic-checkbox>
-        </tonic-accordion-section>
-        <tonic-accordion-section
-          name="share-settings"
-          id="share-settings"
-          label="Sharing"
-        >
-          <tonic-input
-            label="Organization"
-            id="org-name"
-            data-event="org"
-            spellcheck="false"
-            value="${project.org}"
-          ></tonic-input>
-
-          <tonic-input
-            label="Shared Secret"
-            id="shared-secret"
-            data-event="shared-secret"
-            spellcheck="false"
-            value="${project.sharedSecret}"
-          ></tonic-input>
-
-          <tonic-input
-            label="Project Link"
-            id="project-link"
-            symbol-id="copy-icon"
-            position="right"
-            spellcheck="false"
-            readonly="true"
-            value="union://${project.sharedSecret}?id=${encodeURIComponent(bundleId)}&org=${project.org}"
-          ></tonic-input>
-
-          <label>Project Status</label>
-          ${projectUpdates}
         </tonic-accordion-section>
       </tonic-accordion>
     `

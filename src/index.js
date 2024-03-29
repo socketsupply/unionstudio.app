@@ -312,16 +312,18 @@ class AppView extends Tonic {
   async createProject (opts = {}) {
     const name = opts.name || 'project.' + Math.random().toString(16).slice(2, 6)
     const bundleId = 'com.' + name
+    const org = opts.clusterId || 'union-app-studio'
     const sharedSecret = opts.sharedSecret || (await Encryption.createId()).toString('base64')
     const sharedKey = await Encryption.createSharedKey(sharedSecret)
     const derivedKeys = await Encryption.createKeyPair(sharedKey)
-    const clusterId = await Encryption.createClusterId(opts.clusterId || 'union-app-studio')
+    const clusterId = await Encryption.createClusterId(org)
     const subclusterId = Buffer.from(derivedKeys.publicKey)
 
     const project = {
       label: name,
       waiting: opts.waiting || false,
       path: opts.path || path.join(path.DATA, name),
+      org,
       bundleId,
       clusterId,
       subclusterId,
@@ -334,6 +336,7 @@ class AppView extends Tonic {
 
     try {
       await exec('ssc init', { cwd: project.path })
+      await exec('git init', { cwd: project.path })
     } catch (err) {
       console.error(err)
     }
