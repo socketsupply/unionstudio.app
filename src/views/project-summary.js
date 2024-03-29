@@ -2,6 +2,48 @@ import Tonic from '@socketsupply/tonic'
 import { exec } from 'socket:child_process'
 import { Encryption, sha256 } from 'socket:network'
 
+class ViewGitStatus extends Tonic {
+  async render () {
+    const app = this.props.app
+    const currentProject = app.state.currentProject
+
+    const { data: dataProject } = await app.db.projects.get(currentProject.projectId)
+
+    let gitStatus = { stdout: '', stderr: '' }
+
+    //
+    // Try to get the status of the project to tell the user what
+    // has changed and help them decide if they should publish.
+    //
+    try {
+      gitStatus = await exec('git status --porcelain', { cwd: dataProject.path })
+    } catch (err) {
+      gitStatus.stderr = err.message
+    }
+
+    if (gitStatus?.stderr.includes('command not found')) {
+      return this.html`
+        <tonic-toaster-inline
+          id="git-not-installed"
+          dismiss="false"
+          display="true"
+        >Git is not installed and is required to use this program.
+        </tonic-toaster-inline>
+      `
+    } else if (!gitStatus.stderr && gitStatus.stdout.length) {
+      return this.html`
+        <pre><code>${gitStatus.stdout || 'No Changes.'}</code></pre>
+      `
+    } else {
+      return this.html`
+        <pre><code>No changes.</code></pre>
+      `
+    }
+  }
+}
+
+Tonic.add(ViewGitStatus)
+
 class ViewProjectSummary extends Tonic {
   show () {
     this.classList.add('show')
@@ -85,42 +127,6 @@ class ViewProjectSummary extends Tonic {
       `
     }
 
-    let projectUpdates = []
-    let gitStatus = { stdout: '', stderr: '' }
-
-    if (dataProject.path) {
-      //
-      // Try to get the status of the project to tell the user what
-      // has changed and help them decide if they should publish.
-      //
-      try {
-        gitStatus = await exec('git status --porcelain', { cwd: dataProject.path })
-      } catch (err) {
-        gitStatus.stderr = err.message
-      }
-
-      if (gitStatus?.stderr.includes('command not found')) {
-        projectUpdates.push(this.html`
-          <tonic-toaster-inline
-            id="git-not-installed"
-            dismiss="false"
-            display="true"
-          >Git is not installed and is required to use this program.
-          </tonic-toaster-inline>
-        `)
-      } else {
-        projectUpdates = this.html`
-          <pre id="project-status"><code>No changes.</code></pre>
-        `
-
-        if (!gitStatus.stderr && gitStatus.stdout.length) {
-          projectUpdates = this.html`
-            <pre id="project-status"><code>${gitStatus.stdout || 'No Changes.'}</code></pre>
-          `
-        }
-      }
-    }
-
     if (!dataProject.waiting) {
       items = this.html`
         <div class="sharing">
@@ -157,7 +163,8 @@ class ViewProjectSummary extends Tonic {
             class="pull-right"
           >Publish</tonic-button>
 
-          ${projectUpdates}
+          <view-git-status id="git-status" app=${app} parent=${this}>
+          </view-git-status>
         </div>
       `
     }

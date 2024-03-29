@@ -62,7 +62,7 @@ view-project-summary #publish {
   grid-area: 2 / 4;
 }
 
-view-project-summary #project-status {
+view-project-summary view-git-status {
   grid-area: 3 / span 4;
   align-self: start;
 }

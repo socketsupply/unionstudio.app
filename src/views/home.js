@@ -88,7 +88,8 @@ class ViewHome extends Tonic {
     const { data: dataUser } = await app.db.state.get('user')
 
     const publicKey = Buffer.from(dataUser.publicKey).toString('base64')
-    const bio = dataUser.bio || undefined
+    const bio = dataUser.bio || ''
+    const avatar = dataUser.avatar || ''
 
     return this.html`
       <header class="component">
@@ -137,9 +138,10 @@ class ViewHome extends Tonic {
               <tonic-profile-image
                 id="profile-image-example-editable"
                 size="120px"
-                src="${dataUser.avatar}"
+                src="${avatar}"
                 data-event="change-avatar"
-                editable="true">
+                editable="true"
+              >
               </tonic-profile-image>
 
               <div class="buttons">

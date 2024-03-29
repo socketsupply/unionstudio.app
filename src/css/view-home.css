@@ -109,4 +109,6 @@ view-home #tab-panel-profile #profile-public-key textarea {
 
 view-home tonic-profile-image {
   margin-right: auto;
+  border: 1px solid var(--tonic-border);
+  border-radius: 4px;
 }
