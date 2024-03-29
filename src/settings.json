@@ -13,6 +13,10 @@
     ".c": "cpp",
     ".js": "javascript"
   },
+  "colors": [
+    { "token": "string.key.json", "foreground": "A31515" },
+    { "token": "string.value.json", "foreground": "0451A5" }
+  ],
   "previewMode": false,
   "rootFile": "src/index.html",
   "previewWindows": [

@@ -276,8 +276,6 @@ class AppView extends Tonic {
     for (const [projectId, project] of dataProjects.entries()) {
       if (socket.subclusters.get(project.subclusterId)) continue
 
-      console.log('REBINDING', project)
-
       const subcluster = await socket.subcluster({ sharedKey: project.sharedKey })
 
       subcluster.on('patch', async (value, packet) => {

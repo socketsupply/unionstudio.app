@@ -342,35 +342,70 @@ class AppEditor extends Tonic {
       success: rgbaToHex(styles.getPropertyValue('--tonic-success').trim())
     }
 
+
+    const userColors = this.props.parent.state.settings?.userColors ?? []
+
     const base = `vs${theme.includes('dark') ? '-dark' : ''}`
     monaco.editor.defineTheme(theme, {
       base,
       inherit: true,
       rules: [
-        {
-          token: 'identifier',
-          foreground: colors.primary
-        },
-        {
-          token: 'comment',
-          foreground: colors.info
-        },
-        {
-          token: 'keyword',
-          foreground: colors.accent
-        },
-        {
-          token: 'string',
-          foreground: colors.info
-        },
-        {
-          token: 'number',
-          foreground: colors.accent
-        },
-        {
-          token: 'punctuation',
-          foreground: colors.primary
-        }
+        { token: 'identifier', foreground: colors.primary },
+        { token: 'keyword', foreground: colors.accent },
+        { token: 'punctuation', foreground: colors.primary },
+
+        { token: '', foreground: 'D4D4D4', background: '1E1E1E' },
+        { token: 'invalid', foreground: 'f44747' },
+        { token: 'emphasis', fontStyle: 'italic' },
+        { token: 'strong', fontStyle: 'bold' },
+
+        { token: 'variable', foreground: '74B0DF' },
+        { token: 'variable.predefined', foreground: '4864AA' },
+        { token: 'variable.parameter', foreground: '9CDCFE' },
+        { token: 'constant', foreground: '569CD6' },
+        { token: 'comment', foreground: colors.info },
+        { token: 'number', foreground: colors.accent },
+        { token: 'number.hex', foreground: '5BB498' },
+        { token: 'regexp', foreground: 'B46695' },
+        { token: 'annotation', foreground: 'cc6666' },
+        { token: 'type', foreground: '3DC9B0' },
+
+        { token: 'delimiter', foreground: 'DCDCDC' },
+        { token: 'delimiter.html', foreground: '808080' },
+        { token: 'delimiter.xml', foreground: '808080' },
+
+        { token: 'tag', foreground: '569CD6' },
+        { token: 'meta.scss', foreground: 'A79873' },
+        { token: 'meta.tag', foreground: 'CE9178' },
+        { token: 'metatag', foreground: 'DD6A6F' },
+        { token: 'metatag.content.html', foreground: '9CDCFE' },
+        { token: 'metatag.html', foreground: '569CD6' },
+        { token: 'metatag.xml', foreground: '569CD6' },
+        { token: 'metatag.php', fontStyle: 'bold' },
+
+        { token: 'key', foreground: colors.info },
+        { token: 'string.key.json', foreground: colors.info },
+        { token: 'string.value.json', foreground: colors.primary },
+
+        { token: 'attribute.name', foreground: colors.info },
+        { token: 'attribute.value', foreground: colors.primary },
+        { token: 'attribute.value.number.css', foreground: colors.accent },
+        { token: 'attribute.value.unit.css', foreground: colors.accent },
+        { token: 'attribute.value.hex.css', foreground: colors.accent },
+
+        { token: 'string', foreground: colors.primary },
+        { token: 'string.sql', foreground: 'FF0000' },
+
+        { token: 'keyword', foreground: colors.accent },
+        { token: 'keyword.flow', foreground: 'C586C0' },
+        { token: 'keyword.json', foreground: 'CE9178' },
+        { token: 'keyword.flow.scss', foreground: '569CD6' },
+
+        { token: 'operator.scss', foreground: '909090' },
+        { token: 'operator.sql', foreground: '778899' },
+        { token: 'operator.swift', foreground: '909090' },
+        { token: 'predefined.sql', foreground: 'FF00FF' },
+        ...userColors
       ],
       colors: {
         'editor.background': colors.background
