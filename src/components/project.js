@@ -11,7 +11,7 @@ const NOT_SELECTED = 0
 const IS_SELECTED = 1
 
 async function rm (directory) {
-  const files = await fs.promises.readdir(directory, { withfiletypes: true })
+  const files = await fs.promises.readdir(directory, { withFileTypes: true })
 
   for (const file of files) {
     const filePath = path.join(directory, file.name)
@@ -334,6 +334,8 @@ class AppProject extends Tonic {
     if (!node) this.getNodeFromElement(el.parentElement)
     if (!node) return
 
+    if (node.nonMovable && !node.type === 'project') return
+
     const container = el.querySelector('.label')
 
     const input = document.createElement('input')
@@ -444,7 +446,11 @@ class AppProject extends Tonic {
     }
 
     if (value === 'delete') {
-      if (node.isDirectory) {
+      if (node.type === 'project') {
+        const app = this.props.parent
+        await app.db.projects.del(node.id)
+        await rm(node.id)
+      } else if (node.isDirectory) {
         try {
           await rm(node.id)
         } catch (err) {
@@ -496,10 +502,18 @@ class AppProject extends Tonic {
 
   async onSelection (node, isToggle) {
     if (!isToggle) {
+      const app = this.props.parent
       const projectNode = this.getProjectNode(node)
+      const coImagePreview = document.querySelector('view-image-preview')
+      const coProjectSummary = document.querySelector('view-project-summary')
+      const coHome = document.querySelector('view-home')
+
+      coImagePreview.hide()
+      coProjectSummary.hide()
+      coHome.hide()
 
       // Check if the project has changed, refresh the props component
-      if (this.state.currentProject !== projectNode.id) {
+      if (this.state.currentProjectId !== projectNode.id) {
         this.props.parent.state.currentProject = projectNode
         this.props.parent.reloadPreviewWindows()
 
@@ -507,15 +521,15 @@ class AppProject extends Tonic {
         coProperties.loadProjectNode(projectNode)
       }
 
-      this.state.currentProject = projectNode.id
+      this.state.currentProjectId = projectNode.id
+
+      if (node.type === 'project') {
+        await coProjectSummary.reRender()
+        coProjectSummary.show()
+        return
+      }
 
       if (node.isDirectory) return
-
-      const coImagePreview = document.querySelector('view-image-preview')
-      const coHome = document.querySelector('view-home')
-
-      coImagePreview.hide()
-      coHome.hide()
 
       if (projectNode.id === 'home') {
         coHome.show()
@@ -712,9 +726,11 @@ class AppProject extends Tonic {
         selected: oldChild?.selected ?? 0,
         state: oldChild?.state ?? 0,
         id: project.path,
+        projectId,
         label: project.label,
-        isDirectory: true,
+        isDirectory: false,
         nonMovable: true,
+        type: 'project',
         icon: 'package',
         children: []
       }

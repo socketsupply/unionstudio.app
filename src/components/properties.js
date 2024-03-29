@@ -52,7 +52,7 @@ class AppProperties extends Tonic {
     const project = document.querySelector('app-project')
     const config = new Config(app.state.currentProject?.id)
 
-    if (event === 'org-name' || event === 'shared-secret') {
+    if (event === 'org' || event === 'shared-secret') {
       const app = this.props.parent
       const config = new Config(app.state.currentProject?.id)
       if (!config) return
@@ -61,8 +61,8 @@ class AppProperties extends Tonic {
       if (bundleId) bundleId = bundleId.replace(/"/g, '')
       const { data: dataBundle } = await app.db.projects.get(bundleId)
 
-      if (event === 'org-name') {
-        dataBundle.orgName = el.value
+      if (event === 'org') {
+        dataBundle.org = el.value
         dataBundle.clusterId = await sha256(el.value, { bytes: true })
       }
 
@@ -193,7 +193,7 @@ class AppProperties extends Tonic {
         clusterId,
         subclusterId,
         sharedKey,
-        orgName: 'socket-app-studio',
+        org: 'union-app-studio',
       })
 
       await app.db.projects.put(bundleId, project)
@@ -323,9 +323,9 @@ class AppProperties extends Tonic {
           <tonic-input
             label="Organization"
             id="org-name"
-            data-event="org-name"
+            data-event="org"
             spellcheck="false"
-            value="${project.orgName}"
+            value="${project.org}"
           ></tonic-input>
 
           <tonic-input
@@ -343,7 +343,7 @@ class AppProperties extends Tonic {
             position="right"
             spellcheck="false"
             readonly="true"
-            value="union://${project.sharedSecret}?bundleId=${encodeURIComponent(bundleId)}&orgName=${project.orgName}"
+            value="union://${project.sharedSecret}?id=${encodeURIComponent(bundleId)}&org=${project.org}"
           ></tonic-input>
 
           <label>Project Status</label>

@@ -18,7 +18,7 @@ editor-tabs .tab {
   display: flex;
   align-items: center;
   margin: 10px 6px;
-  padding: 8px;
+  padding: 8px 6px;
   border-radius: 4px;
   background-color: var(--tonic-background);
   transition: opacity .2s ease-in-out, background-color .2s ease-in-out;

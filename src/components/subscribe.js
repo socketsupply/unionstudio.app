@@ -19,6 +19,7 @@ export class DialogSubscribe extends TonicDialog {
     if (!el) return
 
     const app = this.props.parent
+    const notifications = document.querySelector('#notifications')
 
     const { event } = el.dataset
 
@@ -32,7 +33,6 @@ export class DialogSubscribe extends TonicDialog {
       // union://foo?id=com.demo.project&org=test
 
       if (!bundleId || !cId) {
-        const notifications = document.querySelector('#notifications')
         notifications.create({
           type: 'error',
           title: 'Error',
@@ -48,10 +48,25 @@ export class DialogSubscribe extends TonicDialog {
       const sharedKey = await Encryption.createSharedKey(sharedSecret)
       const derivedKeys = await Encryption.createKeyPair(sharedKey)
       const subclusterId = Buffer.from(derivedKeys.publicKey)
+      const pathToProject = path.join(path.DATA, bundleId)
+
+      try {
+        await fs.promises.mkdir(pathToProject, { recursive: true })
+      } catch (err) {
+        notifications.create({
+          type: 'error',
+          title: 'Error',
+          message: err.message
+        })
+        super.hide()
+        return
+      }
 
       const project = {
         bundleId,
+        label: bundleId,
         waiting: true,
+        path: pathToProject,
         clusterId,
         subclusterId,
         sharedKey,
@@ -62,8 +77,8 @@ export class DialogSubscribe extends TonicDialog {
       await app.initNetwork()
 
       const coProject = document.querySelector('app-project')
-      await this.close()
-      coProject.reRender()
+      await this.hide()
+      coProject.load()
     }
   }
 
@@ -96,7 +111,7 @@ export class DialogSubscribe extends TonicDialog {
         <tonic-input
           id="subscribe-shared-secret"
           label="Project Link"
-          placeholder="union://foo?bundleId=com.beep.boop&clusterId=bar"
+          placeholder="union://foo?id=com.beep.boop&org=bar"
           spellcheck="false"
           value=""
           width="100%"

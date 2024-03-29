@@ -14,6 +14,7 @@ import Database from './db/index.js'
 
 import { ViewHome } from './views/home.js'
 import { ViewImagePreview } from './views/image-preview.js'
+import { ViewProjectSummary } from './views/project-summary.js'
 
 import { AppTerminal } from './components/terminal.js'
 import { AppProject } from './components/project.js'
@@ -509,7 +510,7 @@ class AppView extends Tonic {
 
       File:
         Save: s + CommandOrControl
-        New Project: n + CommandOrControl
+        New Project: N + CommandOrControl
         Add Shared Project: G + CommandOrControl
         ---
         Reset Demo Project: _
@@ -570,7 +571,7 @@ class AppView extends Tonic {
       }
 
       case 'New Project': {
-        this.createProject()
+        await this.createProject()
         const coProject = document.querySelector('app-project')
         coProject.load()
         break
@@ -671,7 +672,7 @@ class AppView extends Tonic {
     }
 
     if (event === 'create-new-project') {
-      this.createProject()
+      await this.createProject()
       const coProject = document.querySelector('app-project')
       coProject.load()
     }
@@ -721,6 +722,7 @@ class AppView extends Tonic {
 
               <view-home id="view-home" parent=${this}></view-home>
               <view-image-preview id="image-preview" parent=${this}></view-image-preview>
+              <view-project-summary id="project-summary" parent=${this}></view-project-summary>
             </tonic-split-right>
           </tonic-split>
         </tonic-split-left>
@@ -783,4 +785,5 @@ window.onload = () => {
   Tonic.add(DialogSubscribe)
   Tonic.add(ViewHome)
   Tonic.add(ViewImagePreview)
+  Tonic.add(ViewProjectSummary)
 }
