@@ -707,7 +707,7 @@ class AppView extends Tonic {
                 <span class="spacer"></span>
                 <tonic-button type="icon" size="18px" symbol-id="plus-icon" title="Create a new project" data-event="create-new-project">
                 </tonic-button>
-                <tonic-button type="icon" size="24px" symbol-id="collaborate-icon" title="Import a shared project" data-event="add-shared-project">
+                <tonic-button type="icon" size="24px" symbol-id="collaborate-icon" title="Subscribe to a shared project" data-event="add-shared-project">
                 </tonic-button>
               </header>
               <app-project id="app-project" parent=${this}></app-project>

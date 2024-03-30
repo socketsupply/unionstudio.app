@@ -30,15 +30,17 @@ class ViewGitStatus extends Tonic {
         >Git is not installed and is required to use this program.
         </tonic-toaster-inline>
       `
-    } else if (!gitStatus.stderr && gitStatus.stdout.length) {
-      return this.html`
-        <pre><code>${gitStatus.stdout || 'No Changes.'}</code></pre>
-      `
-    } else {
-      return this.html`
-        <pre><code>No changes.</code></pre>
-      `
     }
+
+    return this.html`
+      <tonic-textarea
+        id="git-status"
+        rows="10"
+        label="Git Status"
+        readonly="true"
+        resize="none"
+      >${gitStatus.stderr || gitStatus.stdout}</tonic-textarea>
+    `
   }
 }
 
