@@ -263,6 +263,7 @@ class AppEditor extends Tonic {
     const coTerminal = document.querySelector('app-terminal')
     const coProperties = document.querySelector('app-properties')
     const coTabs = document.querySelector('editor-tabs')
+    const coEditor = document.querySelector('app-editor')
 
     if (!coTabs.tab) return
 
@@ -278,13 +279,11 @@ class AppEditor extends Tonic {
       }
 
       coTerminal.info('Settings file updated.')
+      coEditor.refreshColors()
       app.activatePreviewWindows()
     }
 
-    clearTimeout(this.debouncePropertiesRerender)
-    this.debouncePropertiesRerender = setTimeout(() => {
-      coProperties.reRender()
-    }, 512)
+    coProperties.reRender()
 
     try {
       await fs.promises.writeFile(coTabs.tab.path, value)
@@ -364,7 +363,7 @@ class AppEditor extends Tonic {
         { token: 'variable.predefined', foreground: '4864AA' },
         { token: 'variable.parameter', foreground: '9CDCFE' },
         { token: 'constant', foreground: '569CD6' },
-        { token: 'comment', foreground: '338c32' },
+        { token: 'comment', foreground: colors.secondary },
         { token: 'number', foreground: colors.accent },
         { token: 'number.hex', foreground: '5BB498' },
         { token: 'regexp', foreground: 'B46695' },

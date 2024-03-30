@@ -16,11 +16,13 @@ import { ViewHome } from './views/home.js'
 import { ViewImagePreview } from './views/image-preview.js'
 import { ViewProjectSummary } from './views/project-summary.js'
 
+import { AppEditor } from './components/editor.js'
+import { GitStatus } from './components/git-status.js'
+import { PatchRequests } from './components/patch-requests.js'
 import { AppTerminal } from './components/terminal.js'
 import { AppProject } from './components/project.js'
 import { AppProperties } from './components/properties.js'
 import { AppSprite } from './components/sprite.js'
-import { AppEditor } from './components/editor.js'
 import { DialogConfirm } from './components/confirm.js'
 import { DialogPublish } from './components/publish.js'
 import { DialogSubscribe } from './components/subscribe.js'
@@ -163,7 +165,7 @@ class AppView extends Tonic {
         zoom: this.state.zoom[index] || '1'
       }).toString()
 
-      let currentProjectPath = this.getCurrentProjectPath() 
+      let currentProjectPath = this.getCurrentProjectPath()
       if (!currentProjectPath) return
 
       const opts = {
@@ -432,7 +434,38 @@ class AppView extends Tonic {
 
     const coProperties = document.querySelector('app-properties')
     this.state.settings.previewMode = !this.state.settings.previewMode
-    coProperties.saveSettingsFile()
+    this.saveSettingsFile()
+  }
+
+  async saveSettingsFile () {
+    const currentProject = this.state.currentProject
+    const pathToSettingsFile = path.join(path.DATA, 'settings.json')
+    const coTabs = document.querySelector('editor-tabs')
+    const coEditor = document.querySelector('app-editor')
+
+    // if the user currently has the config file open in the editor...
+    if (coTabs.tab?.isRootSettingsFile) {
+      try {
+        coEditor.value = JSON.stringify(this.state.settings, null, 2)
+      } catch (err) {
+        return notifications.create({
+          type: 'error',
+          title: 'Unable to save config file',
+          message: err.message
+        })
+      }
+    }
+
+    try {
+      const str = JSON.stringify(this.state.settings)
+      await fs.promises.writeFile(pathToSettingsFile, str)
+    } catch (err) {
+      return notifications?.create({
+        type: 'error',
+        title: 'Error',
+        message: 'Unable to update settings'
+      })
+    }
   }
 
   //
@@ -783,6 +816,8 @@ window.onload = () => {
   Tonic.add(AppSprite)
   Tonic.add(AppTerminal)
   Tonic.add(AppView)
+  Tonic.add(GitStatus)
+  Tonic.add(PatchRequests)
   Tonic.add(DialogConfirm)
   Tonic.add(DialogPublish)
   Tonic.add(DialogSubscribe)

@@ -334,7 +334,7 @@ class AppProject extends Tonic {
     if (!node) this.getNodeFromElement(el.parentElement)
     if (!node) return
 
-    if (node.nonMovable && !node.type === 'project') return
+    if (node.nonMovable && node.type !== 'project') return
 
     const container = el.querySelector('.label')
 
@@ -726,6 +726,7 @@ class AppProject extends Tonic {
         selected: oldChild?.selected ?? 0,
         state: oldChild?.state ?? 0,
         id: project.path,
+        bundleId: project.bundleId,
         projectId,
         label: project.label,
         isDirectory: false,
@@ -733,6 +734,11 @@ class AppProject extends Tonic {
         type: 'project',
         icon: 'package',
         children: []
+      }
+
+      if (!this.props.parent.state.currentProject) {
+        this.props.parent.state.currentProject = node
+        this.props.parent.reloadPreviewWindows()
       }
 
       tree.children.push(node)

@@ -1,50 +1,5 @@
 import Tonic from '@socketsupply/tonic'
-import { exec } from 'socket:child_process'
 import { Encryption, sha256 } from 'socket:network'
-
-class ViewGitStatus extends Tonic {
-  async render () {
-    const app = this.props.app
-    const currentProject = app.state.currentProject
-
-    const { data: dataProject } = await app.db.projects.get(currentProject.projectId)
-
-    let gitStatus = { stdout: '', stderr: '' }
-
-    //
-    // Try to get the status of the project to tell the user what
-    // has changed and help them decide if they should publish.
-    //
-    try {
-      gitStatus = await exec('git status --porcelain', { cwd: dataProject.path })
-    } catch (err) {
-      gitStatus.stderr = err.message
-    }
-
-    if (gitStatus?.stderr.includes('command not found')) {
-      return this.html`
-        <tonic-toaster-inline
-          id="git-not-installed"
-          dismiss="false"
-          display="true"
-        >Git is not installed and is required to use this program.
-        </tonic-toaster-inline>
-      `
-    }
-
-    return this.html`
-      <tonic-textarea
-        id="git-status"
-        rows="10"
-        label="Git Status"
-        readonly="true"
-        resize="none"
-      >${gitStatus.stderr || gitStatus.stdout}</tonic-textarea>
-    `
-  }
-}
-
-Tonic.add(ViewGitStatus)
 
 class ViewProjectSummary extends Tonic {
   show () {
@@ -163,10 +118,13 @@ class ViewProjectSummary extends Tonic {
             data-event="publish"
             width="100%"
             class="pull-right"
-          >Publish</tonic-button>
+          >Commit & Publish</tonic-button>
 
-          <view-git-status id="git-status" app=${app} parent=${this}>
-          </view-git-status>
+          <git-status id="git-status" app=${app} parent=${this}>
+          </git-status>
+
+          <patch-requests id="patch-requests" app=${app} parent=${this}>
+          </patch-requests>
         </div>
       `
     }

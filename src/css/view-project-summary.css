@@ -12,6 +12,13 @@ view-project-summary.show {
   z-index: 30;
 }
 
+view-project-summary h2 {
+  font-size: 20px;
+  text-transform: uppercase;
+  color: var(--tonic-info);
+  font-weight: 100;
+}
+
 view-project-summary header span {
   width: 100%;
   text-align: center;
@@ -42,7 +49,7 @@ view-project-summary .sharing {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   gap: 20px;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto auto 1fr;
   align-items: end;
 }
 
@@ -62,7 +69,12 @@ view-project-summary #publish {
   grid-area: 2 / 4;
 }
 
-view-project-summary view-git-status {
+view-project-summary git-status {
   grid-area: 3 / span 4;
+  align-self: start;
+}
+
+view-project-summary patch-requests {
+  grid-area: 4 / span 4;
   align-self: start;
 }

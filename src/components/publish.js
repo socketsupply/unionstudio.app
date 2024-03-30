@@ -19,26 +19,10 @@ export class DialogPublish extends TonicDialog {
     }
   }
 
-  async getProject () {
-    const app = this.props.parent
-    const currentProject = app.state.currentProject
-    if (!currentProject) return
-
-    let config = new Config(currentProject.id)
-    let bundleId = await config.get('meta', 'bundle_identifier')
-    bundleId = bundleId.replace(/"/g, '')
-
-    const { data: hasProject } = await app.db.projects.has(bundleId)
-
-    if (hasProject) {
-      const { data: dataProject } = await app.db.projects.get(bundleId)
-      return dataProject
-    }
-  }
-
   async publish (type, value) {
     const app = this.props.parent
-    const dataProject = await this.getProject()
+    const currentProject = app.state.currentProject
+    const { data: dataProject } = await app.db.projects.get(currentProject.bundleId)
 
     const opts = {
       // TODO(@heapwolf): probably chain with previousId
@@ -197,8 +181,8 @@ export class DialogPublish extends TonicDialog {
         this.publish('patch', Buffer.from(output.stdout)) // into the background
       }
 
-      const coProperties = document.querySelector('app-properties')
-      coProperties.reRender()
+      const coProjectSummary = document.querySelector('view-project-summary')
+      coProjectSummary.reRender()
     }
 
     return this.html`

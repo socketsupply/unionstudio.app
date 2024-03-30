@@ -1,0 +1,31 @@
+patch-requests table {
+  font-family: var(--tonic-monospace);
+  width: 100%;
+}
+
+patch-requests table thead {
+  text-align: left;
+}
+
+patch-requests table tr th {
+  height: 40px;
+  border-bottom: 1px solid var(--tonic-border);
+  color: var(--tonic-medium, #999);
+  font-weight: 500;
+  font: 12px/14px var(--tonic-subheader,  'Arial', sans-serif);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+patch-requests table td {
+  padding: 8px 0px;
+  border-bottom: 1px solid var(--tonic-border);
+}
+
+patch-requests table td {
+  min-width: 120px;
+}
+
+patch-requests table tr:last-of-type td {
+  border-bottom: none;
+}
