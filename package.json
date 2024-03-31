@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "@socketsupply/components": "^14.0.13",
-    "@socketsupply/indexed": "^1.0.2",
+    "@socketsupply/indexed": "^1.0.3",
     "@socketsupply/tonic": "^15.1.2",
     "esbuild": "^0.20.0",
     "monaco-editor": "^0.46.0",
