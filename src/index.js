@@ -297,7 +297,7 @@ class AppView extends Tonic {
         if (hasPacket) return
 
         const patch = Buffer.from(value.data).toString()
-        const headers = patch.split('---')[0]
+        const headers = patch.split('---')[0]?.split('\n')
         const subjectHeader = headers.find(s => s.includes('Subject:'))
         const branchingHash = subjectHeader.split(/\[PATCH]\s*/)[0]
 
