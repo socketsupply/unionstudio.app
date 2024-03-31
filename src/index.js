@@ -296,14 +296,10 @@ class AppView extends Tonic {
         const { data: hasPacket } = await this.db.patches.has(key)
         if (hasPacket) return
 
-        const patch = Buffer.from(value.data).toString()
-        const headers = patch.split('---')[0]?.split('\n')
-        const subjectHeader = headers.find(s => s.includes('Subject:'))
-        const branchingHash = subjectHeader.split(/\[PATCH]\s*/)[1]
+        const message = Buffer.from(value.data).toString()
+        const patch = new Patch(message)
 
-        if (branchingHash) {
-          await this.db.patches.put(branchingHash.trim(), patch)
-        }
+        await this.db.patches.put(patch.parent, patch)
       })
 
       subcluster.on('clone', async (value, packet) => {
