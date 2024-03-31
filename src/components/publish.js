@@ -1,6 +1,6 @@
 import fs from 'socket:fs'
 import path from 'socket:path'
-import { exec } from 'socket:child_process'
+import { exec, execSync } from 'socket:child_process'
 
 import Tonic from '@socketsupply/tonic'
 import { TonicDialog } from '@socketsupply/components/dialog'
@@ -131,7 +131,7 @@ export class DialogPublish extends TonicDialog {
       }
 
       try {
-        output = await exec(`git commit -m '${JSON.stringify(msg)}'`, { cwd })
+        output = await exec(`git commit -m "${currentHash}" -m "${commitMessage}"`, { cwd })
       } catch (err) {
         output.stderr = err.message
       }
@@ -165,20 +165,15 @@ export class DialogPublish extends TonicDialog {
         //
         // Just publish the diff
         //
+        let output
         try {
-          output = await exec('git format-patch -1 HEAD --stdout', { cwd })
+          output = await execSync('git format-patch -1 HEAD --stdout', { cwd })
         } catch (err) {
-          output.stderr = err.message
+          console.log(err)
         }
 
-        if (output.stderr) {
-          coTerminal.error(output.stderr)
-          await this.hide()
-          return this.html``
-        }
-
-        coTerminal.info('Publishing patch')
-        this.publish('patch', Buffer.from(output.stdout)) // into the background
+        coTerminal.info(output.toString())
+        this.publish('patch', Buffer.from(output)) // into the background
       }
 
       const coProjectSummary = document.querySelector('view-project-summary')

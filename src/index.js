@@ -269,6 +269,8 @@ class AppView extends Tonic {
           await sub.join()
         }
       })
+
+      socket.on('#data', (...args) => console.log)
     } else {
       // If the user has changed the clusterId and or subclusterId, we need to tell the peer about it
       // TODO(@heapwolf): we need a nice way to send config updates to the peer worker.
@@ -277,12 +279,13 @@ class AppView extends Tonic {
     const { data: dataProjects } = await this.db.projects.readAll()
 
     for (const [projectId, project] of dataProjects.entries()) {
-      if (socket.subclusters.get(project.subclusterId)) continue
+      if (socket.subclusters.get(project.subclusterId)) {
+        continue
+      }
 
       const subcluster = await socket.subcluster({ sharedKey: project.sharedKey })
 
       subcluster.on('patch', async (value, packet) => {
-        console.log('GOT PATCH!', value, packet)
         if (!packet.verified) return // gtfoa
         if (packet.index !== -1) return // not interested
 
@@ -293,6 +296,14 @@ class AppView extends Tonic {
         const { data: hasPacket } = await this.db.patches.has(key)
         if (hasPacket) return
 
+        const patch = Buffer.from(value.data).toString()
+        const headers = patch.split('---')[0]
+        const subjectHeader = headers.find(s => s.includes('Subject:'))
+        const branchingHash = subjectHeader.split(/\[PATCH]\s*/)[0]
+
+        if (branchingHash) {
+          await this.db.patches.put(branchingHash.trim(), patch)
+        }
       })
 
       subcluster.on('clone', async (value, packet) => {
