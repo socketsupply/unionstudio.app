@@ -299,7 +299,7 @@ class AppView extends Tonic {
         const patch = Buffer.from(value.data).toString()
         const headers = patch.split('---')[0]?.split('\n')
         const subjectHeader = headers.find(s => s.includes('Subject:'))
-        const branchingHash = subjectHeader.split(/\[PATCH]\s*/)[0]
+        const branchingHash = subjectHeader.split(/\[PATCH]\s*/)[1]
 
         if (branchingHash) {
           await this.db.patches.put(branchingHash.trim(), patch)
