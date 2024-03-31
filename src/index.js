@@ -9,8 +9,9 @@ import { spawn, exec } from 'socket:child_process'
 
 import Tonic from '@socketsupply/tonic'
 import components from '@socketsupply/components'
+import Indexed from '@socketsupply/indexed'
 
-import Database from './db/index.js'
+import { Patch } from './git-data.js'
 
 import { ViewHome } from './views/home.js'
 import { ViewImagePreview } from './views/image-preview.js'
@@ -356,27 +357,27 @@ class AppView extends Tonic {
   async initData () {
     if (process.env.DEBUG === '1') {
       const databases = await window.indexedDB.databases()
-      for (const { name } of databases) await Database.drop(name)
+      for (const { name } of databases) await Indexed.drop(name)
     }
 
     this.db = {
-      projects: await Database.open('projects'),
+      projects: await Indexed.open('projects'),
       // patches are the primary type of data associated with a
       // channel a patch can be reviewed, applied or discarded.
       // in the future this could include other things like build
       // artifacts, messages, comments, etc.
-      patches: await Database.open('patches'),
+      patches: await Indexed.open('patches'),
       // state contains state data for the underlying peer.
-      state: await Database.open('state')
+      state: await Indexed.open('state')
     }
 
-    Database.onerror = err => {
+    Indexed.onerror = err => {
       console.error(err)
 
       const notifications = document.querySelector('#notifications')
       notifications?.create({
         type: 'error',
-        title: 'Unhandled Database Error',
+        title: 'Unhandled Indexed Error',
         message: err.message
       })
     }
