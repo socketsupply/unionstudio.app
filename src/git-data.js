@@ -71,12 +71,7 @@ export class Patch {
       }
     }
 
-    if (currentHeader && headerBuffer.length > 0) {
-      if (currentHeader === 'subject') {
-        const firstLineOfSubject = headerBuffer[0].replace(/\[PATCH\]\s*/i, '')
-        this.headers.parent = firstLineOfSubject.trim()
-      }
-      this.headers[currentHeader] = headerBuffer.join(' ')
-    }
+    this.headers.parent = this.headers.subject.split(' ')[1].trim()
+    this.headers.subject = this.headers.subject.replace(this.headers.parent, '')
   }
 }

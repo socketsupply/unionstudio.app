@@ -32,6 +32,7 @@ view-project-summary .container {
   bottom: 0;
   display: grid;
   padding: 6%;
+  overflow: auto;
 }
 
 view-project-summary .empty-state {

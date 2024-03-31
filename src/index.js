@@ -300,7 +300,11 @@ class AppView extends Tonic {
         const message = Buffer.from(value.data).toString()
         const patch = new Patch(message)
 
-        await this.db.patches.put(patch.parent, patch)
+        await this.db.patches.put(patch.headers.parent, patch)
+
+        // if the project is showing, re-render it to show the new patch
+        const coProject = document.querySelector('view-project-summary.show')
+        if (coProject) coProject.reRender()
       })
 
       subcluster.on('clone', async (value, packet) => {

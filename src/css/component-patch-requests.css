@@ -18,12 +18,30 @@ patch-requests table tr th {
 }
 
 patch-requests table td {
-  padding: 8px 0px;
+  padding: 8px;
   border-bottom: 1px solid var(--tonic-border);
+  border-bottom: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 34px;
+  max-width: 140px;
 }
 
-patch-requests table td {
-  min-width: 120px;
+patch-requests thead th:first-of-type {
+  width: 68px;
+}
+
+patch-requests table td:first-of-type {
+  padding: 0;
+  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 68px;
+}
+
+patch-requests table td:first-of-type tonic-button {
+  height: 34px;
 }
 
 patch-requests table tr:last-of-type td {

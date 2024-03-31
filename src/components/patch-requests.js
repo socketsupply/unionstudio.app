@@ -10,16 +10,17 @@ class PatchRequests extends Tonic {
     let patches = []
 
     for (const [patchId, patch] of dataPatches.entries()) {
+      const meta = {}
+
       patches.push(this.html`
         <tr>
           <td>
-            <tonic-button type="icon" symbol-id="plus-icon" data-event="apply" data-value="${patchId}"></tonic-button>
-            <tonic-button type="icon" symbol-id="edit-icon" data-event="load" data-value="${patchId}"></tonic-button>
+            <tonic-button type="icon" symbol-id="plus-icon" size="16px" data-event="apply" data-value="${patchId}"></tonic-button>
+            <tonic-button type="icon" symbol-id="search-icon" size="16px" data-event="load" data-value="${patchId}"></tonic-button>
           </td>
-          <td>${patch.author}</td>
-          <td>${patch.date}</td>
-          <td>${patch.parent}</td>
-          <td>${patch.message}</td>
+          <td>${patch.headers.from}</td>
+          <td>${patch.headers.date}</td>
+          <td>${patch.summary.split('\n').pop()}</td>
         </tr>
       `)
     }
@@ -31,8 +32,7 @@ class PatchRequests extends Tonic {
           <th>Actions</th>
           <th>Author</th>
           <th>Date</th>
-          <th>Parent</th>
-          <th>Commit Message</th>
+          <th>Summary</th>
         </thead>
         <tbody>
           ${patches}
