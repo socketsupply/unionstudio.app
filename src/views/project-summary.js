@@ -113,14 +113,7 @@ class ViewProjectSummary extends Tonic {
             value="union://${dataProject.sharedSecret}?id=${encodeURIComponent(dataProject.bundleId)}&org=${dataProject.org}"
           ></tonic-input>
 
-          <tonic-button
-            id="publish"
-            data-event="publish"
-            width="100%"
-            class="pull-right"
-          >Commit & Publish</tonic-button>
-
-          <git-status id="git-status" app=${app} parent=${this}>
+          <git-status id="publish" app=${app} parent=${this}>
           </git-status>
 
           <patch-requests id="patch-requests" app=${app} parent=${this}>

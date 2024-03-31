@@ -1,9 +1,18 @@
 import Tonic from '@socketsupply/tonic'
 import { exec } from 'socket:child_process'
 
-// TODO(@heapwolf): this should be a component
 class GitStatus extends Tonic {
-  async render () {
+  async * render () {
+    yield this.html`
+      <tonic-button
+        id="publish"
+        async="true"
+        disabled="true"
+        data-event="publish"
+        width="100%"
+      >Update</tonic-button>
+    `
+
     const app = this.props.app
     const currentProject = app.state.currentProject
 
@@ -23,24 +32,24 @@ class GitStatus extends Tonic {
 
     if (gitStatus?.stderr.includes('command not found')) {
       return this.html`
-        <tonic-toaster-inline
-          id="git-not-installed"
-          dismiss="false"
-          display="true"
-        >Git is not installed and is required to use this program.
-        </tonic-toaster-inline>
+        <tonic-button
+          id="publish"
+          disabled="true"
+          data-event="publish"
+          title="${gitStatus.stderr}"
+          width="100%"
+        >Update</tonic-button>
       `
     }
 
     return this.html`
-      <h2>Git Integration</h2>
-      <tonic-textarea
-        id="git-status"
-        rows="10"
-        label="Git Status"
-        readonly="true"
-        resize="none"
-      >${gitStatus.stderr || gitStatus.stdout}</tonic-textarea>
+      <tonic-button
+        id="publish"
+        data-event="publish"
+        class="green"
+        width="100%"
+        title="There have been changes to this project"
+      >Update</tonic-button>
     `
   }
 }

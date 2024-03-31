@@ -68,11 +68,21 @@ view-project-summary #project-link {
 
 view-project-summary #publish {
   grid-area: 2 / 4;
+  display: inline;
+}
+
+view-project-summary #publish tonic-button.green button {
+  background-color: var(--tonic-success);
+  color: white;
+}
+
+view-project-summary #publish tonic-button.green button:hover {
+  background-color: rgba(100, 150, 80, 1) !important;
 }
 
 view-project-summary git-status {
   grid-area: 3 / span 4;
-  align-self: start;
+  align-self: end;
 }
 
 view-project-summary patch-requests {

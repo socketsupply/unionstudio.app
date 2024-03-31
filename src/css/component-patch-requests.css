@@ -1,15 +1,20 @@
-patch-requests table {
-  font-family: var(--tonic-monospace);
-  width: 100%;
+patch-requests {
+  cursor: default;
 }
 
-patch-requests table thead {
-  text-align: left;
-}
-
-patch-requests table tr th {
-  height: 40px;
+patch-requests .thead,
+patch-requests .tbody .row {
+  display: grid;
+  grid-template-columns: 20% 60px 1fr 102px;
+  grid-template-rows: 1fr;
+  gap: 10px;
+  padding: 0 4px;
+  height: 42px;
   border-bottom: 1px solid var(--tonic-border);
+}
+
+patch-requests .thead span {
+  height: 40px;
   color: var(--tonic-medium, #999);
   font-weight: 500;
   font: 12px/14px var(--tonic-subheader,  'Arial', sans-serif);
@@ -17,33 +22,38 @@ patch-requests table tr th {
   letter-spacing: 1px;
 }
 
-patch-requests table td {
-  padding: 8px;
-  border-bottom: 1px solid var(--tonic-border);
-  border-bottom: none;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  height: 34px;
-  max-width: 140px;
-}
-
-patch-requests thead th:first-of-type {
-  width: 68px;
-}
-
-patch-requests table td:first-of-type {
-  padding: 0;
-  align-items: center;
+patch-requests .tbody .row .actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  width: 68px;
+  width: 102px;
+  height: 100%;
+  grid-template-columns: 34px 34px 34px;
 }
 
-patch-requests table td:first-of-type tonic-button {
+patch-requests .tbody .row .actions tonic-button {
   height: 34px;
 }
 
-patch-requests table tr:last-of-type td {
-  border-bottom: none;
+patch-requests .tbody .row:hover {
+  background-color: var(--tonic-dark);
 }
+
+patch-requests .thead span,
+patch-requests .tbody .row span {
+  align-content: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+patch-requests [symbol-id="info-icon"] use {
+  color: var(--tonic-success);
+}
+
+patch-requests [symbol-id="danger-icon"] use {
+  color: var(--tonic-error);
+}
+
+patch-requests [symbol-id="warning-icon"] use {
+  color: var(--tonic-warning);
+}
+

@@ -225,15 +225,15 @@ class AppSprite extends Tonic {
               l37.2-22.3v44.6L51.1,94.7z"/>
         </symbol>
 
-        <symbol id="info" viewBox="0 0 100 100">
+        <symbol id="info-icon" viewBox="0 0 100 100">
           <path fill="currentColor" d="M50.1,6.7C26.3,6.7,6.9,26.2,6.9,50s19.4,43.2,43.2,43.2c23.8,0,43.2-19.5,43.2-43.3C93.3,26.1,74,6.7,50.1,6.7z M53.9,76.4h-7.6V68h7.6V76.4z M53.9,60.5h-7.6V25.6h7.6V60.5z"></path>
         </symbol>
 
-        <symbol id="danger" viewBox="0 0 100 100">
+        <symbol id="danger-icon" viewBox="0 0 100 100">
           <path fill="currentColor" d="M50.1,6.7C26.3,6.7,6.9,26.2,6.9,50s19.4,43.2,43.2,43.2c23.8,0,43.2-19.5,43.2-43.3C93.3,26.1,74,6.7,50.1,6.7z M53.9,76.4h-7.6V68h7.6V76.4z M53.9,60.5h-7.6V25.6h7.6V60.5z"></path>
         </symbol>
 
-        <symbol id="warning" viewBox="0 0 100 100">
+        <symbol id="warning-icon" viewBox="0 0 100 100">
           <path fill="currentColor" d="M98.6,86.6l-46-79.7c-1.2-2-4-2-5.2,0l-46,79.7c-1.2,2,0.3,4.5,2.6,4.5h92C98.3,91.1,99.8,88.6,98.6,86.6z M53.9,80.4h-7.6V72h7.6V80.4z M53.9,64.5h-7.6V29.6h7.6V64.5z"></path>
         </symbol>
     `

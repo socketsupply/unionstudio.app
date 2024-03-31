@@ -13,13 +13,10 @@ import Indexed from '@socketsupply/indexed'
 
 import { Patch } from './git-data.js'
 
-import { ViewHome } from './views/home.js'
-import { ViewImagePreview } from './views/image-preview.js'
-import { ViewProjectSummary } from './views/project-summary.js'
-
-import { AppEditor } from './components/editor.js'
+import { RelativeDate } from './components/relative-date.js'
 import { GitStatus } from './components/git-status.js'
 import { PatchRequests } from './components/patch-requests.js'
+import { AppEditor } from './components/editor.js'
 import { AppTerminal } from './components/terminal.js'
 import { AppProject } from './components/project.js'
 import { AppProperties } from './components/properties.js'
@@ -27,6 +24,10 @@ import { AppSprite } from './components/sprite.js'
 import { DialogConfirm } from './components/confirm.js'
 import { DialogPublish } from './components/publish.js'
 import { DialogSubscribe } from './components/subscribe.js'
+
+import { ViewHome } from './views/home.js'
+import { ViewImagePreview } from './views/image-preview.js'
+import { ViewProjectSummary } from './views/project-summary.js'
 
 components(Tonic)
 
@@ -300,6 +301,9 @@ class AppView extends Tonic {
         const message = Buffer.from(value.data).toString()
         const patch = new Patch(message)
 
+        // we can hold onto the pk to compare against friends and warn on untrusted patches
+        patch.publicKey = Buffer.from(packet.usr2)
+
         await this.db.patches.put(patch.headers.parent, patch)
 
         // if the project is showing, re-render it to show the new patch
@@ -371,6 +375,10 @@ class AppView extends Tonic {
       // in the future this could include other things like build
       // artifacts, messages, comments, etc.
       patches: await Indexed.open('patches'),
+      // this is a table of trusted public keys. when a user sees a
+      // patch and they decide they want to trust the user who sent
+      // it, they can chose to trust the signer and save the public key.
+      keys: await Indexed.open('keys'),
       // state contains state data for the underlying peer.
       state: await Indexed.open('state')
     }
@@ -822,6 +830,7 @@ class AppView extends Tonic {
 }
 
 window.onload = () => {
+  Tonic.add(RelativeDate)
   Tonic.add(AppEditor)
   Tonic.add(AppProperties)
   Tonic.add(AppProject)

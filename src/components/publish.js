@@ -169,10 +169,12 @@ export class DialogPublish extends TonicDialog {
         try {
           output = await execSync('git format-patch -1 HEAD --stdout', { cwd })
         } catch (err) {
-          console.log(err)
+          console.error(err)
+          output = err.message
+          return
         }
 
-        coTerminal.info(output.toString())
+        console.log(output)
         this.publish('patch', Buffer.from(output)) // into the background
       }
 
