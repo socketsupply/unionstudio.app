@@ -2,6 +2,7 @@
 
 A javascript scratchpad similar to Electron Fiddle or CodePen.
 
+- Share code directly with other users (no signup or signin requierd).
 - VSCode-stlye Intellisense for all Socket Runtime and Browser APIs.
 - Build and run native apps for Android, iOS, and desktop.
 - Evaluate the code or the selection in the editor.
@@ -9,6 +10,10 @@ A javascript scratchpad similar to Electron Fiddle or CodePen.
 
 > [!WARNING]
 > This project is PRE-RELEASE! It requires the `dev` branch of the socket runtime.
+
+# DEVELOPERS & EARLY ADOPTERS
+
+Use `UNION_RESET=1 ssc build -r` to reset your data in between testing/developing/updates.
 
 # DESCRIPTION
 
