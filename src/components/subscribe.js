@@ -26,16 +26,15 @@ export class DialogSubscribe extends TonicDialog {
       const coInput = this.querySelector('#subscribe-shared-secret')
       const url = new URL(coInput.value.trim())
 
-      const cId = url.searchParams.get('org')
       const bundleId = url.searchParams.get('id')
 
       // union://foo?id=com.demo.project&org=test
 
-      if (!bundleId || !cId) {
+      if (!bundleId) {
         notifications.create({
           type: 'error',
           title: 'Error',
-          message: 'Invalid Project Link'
+          message: 'Invalid Project Link: expected property "id".'
         })
 
         super.hide()
@@ -43,7 +42,7 @@ export class DialogSubscribe extends TonicDialog {
       }
 
       const sharedSecret = url.hostname
-      const clusterId = await sha256(cId, { bytes: true })
+      const clusterId = await sha256('union-app-studio', { bytes: true })
       const sharedKey = await Encryption.createSharedKey(sharedSecret)
       const derivedKeys = await Encryption.createKeyPair(sharedKey)
       const subclusterId = Buffer.from(derivedKeys.publicKey)

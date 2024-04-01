@@ -1,4 +1,7 @@
 import Tonic from '@socketsupply/tonic'
+import path from 'socket:path'
+import fs from 'socket:fs'
+import { exec } from 'socket:child_process'
 
 class PatchRequests extends Tonic {
   async click (e) {
@@ -29,11 +32,25 @@ class PatchRequests extends Tonic {
     }
 
     if (event === 'apply') {
-      console.log('APPLY', patch)
+      const { err: errApply } = await this.applyPatch(patch)
+
+      if (!errApply) {
+        await app.db.keys.del(patch.patchId)
+        this.reRender()
+      } else {
+        const notifications = document.querySelector('#notifications')
+
+        return notifications.create({
+          type: 'error',
+          title: 'Unable to apply patch',
+          message: errApply.message
+        })
+      }
     }
 
     if (event === 'trash') {
-      console.log('TRASH', patch)
+      await app.db.keys.del(patch.patchId)
+      this.reRender()
     }
 
     if (event === 'trust') {
@@ -47,6 +64,49 @@ class PatchRequests extends Tonic {
 
       await app.db.keys.del(patch.headers.from)
       this.reRender()
+    }
+  }
+
+  async applyPatch (patch) {
+    const coEditor = document.querySelector('app-editor')
+    const coProject = document.querySelector('app-project')
+    const app = this.props.app
+
+    const currentProject = app.state.currentProject
+    let output = {}
+
+    const name = (patch.patchId || patch.headers.parent.slice(6)) + '.patch'
+    const tmpFile = path.join(currentProject.id, name)
+    let error
+
+    try {
+      await fs.promises.writeFile(tmpFile, patch.src)
+    } catch (err) {
+      console.error(err)
+      return { err }
+    }
+
+    try {
+      output = await exec(`git am "${tmpFile}"`, { cwd: currentProject.id })
+    } catch (err) {
+      await fs.promises.unlink(tmpFile)
+      return { err }
+    }
+
+    await fs.promises.unlink(tmpFile)
+
+    if (output?.stderr) {
+      try {
+        await exec(`git am --abort"`, { cwd: currentProject.id })
+      } catch {}
+
+      return {
+        err: new Error('The patch can not be applied because the data in the patch does not match the data in the index.')
+      }
+    }
+
+    return {
+      data: output.stdout
     }
   }
 

@@ -12,6 +12,7 @@ import components from '@socketsupply/components'
 import Indexed from '@socketsupply/indexed'
 
 import { Patch } from './git-data.js'
+import { cp, rm } from './lib/fs.js'
 
 import { RelativeDate } from './components/relative-date.js'
 import { GitStatus } from './components/git-status.js'
@@ -308,7 +309,7 @@ class AppView extends Tonic {
   async createProject (opts = {}) {
     const name = opts.name || 'project.' + Math.random().toString(16).slice(2, 6)
     const bundleId = 'com.' + name
-    const org = opts.clusterId || 'union-app-studio'
+    const org = 'union-app-studio'
     const sharedSecret = opts.sharedSecret || (await Encryption.createId()).toString('base64')
     const sharedKey = await Encryption.createSharedKey(sharedSecret)
     const derivedKeys = await Encryption.createKeyPair(sharedKey)
@@ -341,7 +342,8 @@ class AppView extends Tonic {
   }
 
   async initData () {
-    if (process.env.DEBUG === '1') {
+    if (process.env.UNION_RESET === '1') {
+      await rm(path.DATA)
       const databases = await window.indexedDB.databases()
       for (const { name } of databases) await Indexed.drop(name)
     }

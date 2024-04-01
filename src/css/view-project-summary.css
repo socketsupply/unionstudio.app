@@ -54,7 +54,7 @@ view-project-summary .sharing {
   align-items: end;
 }
 
-view-project-summary #org-name {
+view-project-summary #project-path {
   grid-area: 1 / span 2;
 }
 

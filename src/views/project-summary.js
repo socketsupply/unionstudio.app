@@ -44,21 +44,14 @@ class ViewProjectSummary extends Tonic {
 
     const { data: dataProject } = await app.db.projects.get(currentProject.projectId)
 
-    if (event === 'org' || event === 'shared-secret') {
-      if (event === 'org') {
-        dataProject.org = el.value
-        dataProject.clusterId = await sha256(el.value, { bytes: true })
-      }
+    if (event === 'shared-secret') {
+      const sharedKey = await Encryption.createSharedKey(el.value)
+      const derivedKeys = await Encryption.createKeyPair(sharedKey)
+      const subclusterId = Buffer.from(derivedKeys.publicKey)
 
-      if (event === 'shared-secret') {
-        const sharedKey = await Encryption.createSharedKey(el.value)
-        const derivedKeys = await Encryption.createKeyPair(sharedKey)
-        const subclusterId = Buffer.from(derivedKeys.publicKey)
-
-        dataProject.sharedKey = sharedKey
-        dataProject.sharedSecret = el.value
-        dataProject.subclusterId = subclusterId
-      }
+      dataProject.sharedKey = sharedKey
+      dataProject.sharedSecret = el.value
+      dataProject.subclusterId = subclusterId
 
       await app.db.projects.put(currentProject.projectId, dataProject)
       await app.initNetwork()
@@ -88,11 +81,15 @@ class ViewProjectSummary extends Tonic {
       items = this.html`
         <div class="sharing">
           <tonic-input
-            label="Organization"
-            id="org-name"
-            data-event="org"
+            label="Location"
+            id="project-path"
+            data-event="project-path"
             spellcheck="false"
-            value="${dataProject.org}"
+            readonly="true"
+            symbol-id="settings-icon"
+            position="right"
+            spellcheck="false"
+            value="${dataProject.path}"
           ></tonic-input>
 
           <tonic-input

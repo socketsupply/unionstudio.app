@@ -2,6 +2,7 @@ import application from 'socket:application'
 import fs from 'socket:fs'
 import path from 'socket:path'
 import { lookup } from 'socket:mime'
+import { cp, rm } from '../lib/fs.js'
 
 import Tonic from '@socketsupply/tonic'
 
@@ -9,38 +10,6 @@ const EXPANDED_STATE = 1
 const CLOSED_STATE = 0
 const NOT_SELECTED = 0
 const IS_SELECTED = 1
-
-async function rm (directory) {
-  const files = await fs.promises.readdir(directory, { withFileTypes: true })
-
-  for (const file of files) {
-    const filePath = path.join(directory, file.name)
-
-    if (file.isDirectory()) {
-      await rm(filePath)
-    } else {
-      await fs.promises.unlink(filePath)
-    }
-  }
-
-  await fs.promises.rmdir(directory)
-}
-
-async function cp (srcDir, destDir) {
-  await fs.promises.mkdir(destDir, { recursive: true })
-  const files = await fs.promises.readdir(srcDir, { withFileTypes: true })
-
-  for (const file of files) {
-    const srcPath = path.join(srcDir, file.name)
-    const destPath = path.join(destDir, file.name)
-
-    if (file.isDirectory()) {
-      await cp(srcPath, destPath)
-    } else {
-      await fs.promises.copyFile(srcPath, destPath, fs.constants.COPYFILE_FICLONE)
-    }
-  }
-}
 
 class AppProject extends Tonic {
   createCount = 0
@@ -195,7 +164,6 @@ class AppProject extends Tonic {
             await fs.promises.copyFile(srcNode.id, destDir, fs.constants.COPYFILE_FICLONE)
           }
         } catch (err) {
-          console.log(err)
           return notifications.create({
             type: 'error',
             title: 'Unable to copy files',
@@ -623,6 +591,10 @@ class AppProject extends Tonic {
   }
 
   async connected () {
+    this.load()
+  }
+
+  async reload () {
     this.load()
   }
 
