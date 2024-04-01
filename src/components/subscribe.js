@@ -26,22 +26,22 @@ export class DialogSubscribe extends TonicDialog {
       const coInput = this.querySelector('#subscribe-shared-secret')
       const url = new URL(coInput.value.trim())
 
-      const bundleId = url.searchParams.get('id')
+      const sharedSecret = url.searchParams.get('secret')
 
-      // union://foo?id=com.demo.project&org=test
+      // union://com.demo.project&secret=foo
 
-      if (!bundleId) {
+      if (!sharedSecret) {
         notifications.create({
           type: 'error',
           title: 'Error',
-          message: 'Invalid Project Link: expected property "id".'
+          message: 'Invalid Project Link: expected property "secret".'
         })
 
         super.hide()
         return
       }
 
-      const sharedSecret = url.hostname
+      const bundleId = url.hostname
       const clusterId = await sha256('union-app-studio', { bytes: true })
       const sharedKey = await Encryption.createSharedKey(sharedSecret)
       const derivedKeys = await Encryption.createKeyPair(sharedKey)
@@ -87,13 +87,13 @@ export class DialogSubscribe extends TonicDialog {
       </header>
       <main>
         <p>
-          Enter the unique link for the project you want to subscribe to. You will receive updates as "patch requests".
+          Enter the unique link for the project you want to subscribe to. It may take up to several minutes to acquire all updates. Future updates may arrive in the form of "patch requests".
         </p>
 
         <tonic-input
           id="subscribe-shared-secret"
           label="Project Link"
-          placeholder="union://foo?id=com.beep.boop&org=bar"
+          placeholder="union://com.beep.boop&secret=d3adc0de..."
           spellcheck="false"
           value=""
           width="100%"

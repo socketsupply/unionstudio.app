@@ -93,93 +93,87 @@ class ViewHome extends Tonic {
 
     return this.html`
       <header class="component">
+        <tonic-tabs selected="tab-news" id="home-tabs">
+          <tonic-tab
+            id="tab-news"
+            for="tab-panel-news"
+          >What's New</tonic-tab>
+          <tonic-tab
+            id="tab-docs"
+            for="tab-panel-docs"
+          >Docs</tonic-tab>
+          <tonic-tab
+            id="tab-profile"
+            for="tab-panel-profile"
+          >Profile</tonic-tab>
+        </tonic-tabs>
       </header>
 
       <div class="content">
-        <section class="hero">
-          <h1><b>Union</b> App Studio</h1>
-        </section>
-        <section class="main">
-          <tonic-tabs selected="tab-news" id="home-tabs">
-            <tonic-tab
-              id="tab-news"
-              for="tab-panel-news"
-            >What's New</tonic-tab>
-            <tonic-tab
-              id="tab-docs"
-              for="tab-panel-docs"
-            >Docs</tonic-tab>
-            <tonic-tab
-              id="tab-profile"
-              for="tab-panel-profile"
-            >Profile</tonic-tab>
-          </tonic-tabs>
+        <tonic-tab-panel id="tab-panel-news">
+          <div class="empty-state">
+            <span>No new items...</span>
+          </div>
+        </tonic-tab-panel>
 
-          <tonic-tab-panel id="tab-panel-news">
-            <section>
-              Content One
-            </section>
-          </tonic-tab-panel>
+        <tonic-tab-panel id="tab-panel-docs">
+          <section>
+            <tonic-input
+              width="100%"
+              placeholder="Search..."
+              id="docs-search"
+              symbol-id="search-icon"
+              position="right"
+            ></tonic-input>
+          </section>
+        </tonic-tab-panel>
 
-          <tonic-tab-panel id="tab-panel-docs">
-            <section>
-              <tonic-input
-                width="100%"
-                placeholder="Search..."
-                id="docs-search"
-                symbol-id="search-icon"
-                position="right"
-              ></tonic-input>
-            </section>
-          </tonic-tab-panel>
+        <tonic-tab-panel id="tab-panel-profile">
+          <section>
+            <tonic-profile-image
+              id="profile-image-example-editable"
+              size="120px"
+              src="${avatar}"
+              data-event="change-avatar"
+              editable="true"
+            >
+            </tonic-profile-image>
 
-          <tonic-tab-panel id="tab-panel-profile">
-            <section>
-              <tonic-profile-image
-                id="profile-image-example-editable"
-                size="120px"
-                src="${avatar}"
-                data-event="change-avatar"
-                editable="true"
-              >
-              </tonic-profile-image>
+            <div class="buttons">
+              <tonic-button
+                id="profile-regenerate-keypair"
+                data-event="regenerate-keypair"
+                width="180px"
+              >Regenerate Keys</tonic-button>
+              <!-- tonic-button
+                id="profile-upgrade"
+                data-event="upgrade"
+                width="140px"
+              >Upgrade</tonic-button -->
+            </div>
 
-              <div class="buttons">
-                <tonic-button
-                  id="profile-regenerate-keypair"
-                  data-event="regenerate-keypair"
-                  width="180px"
-                >Regenerate Keys</tonic-button>
-                <!-- tonic-button
-                  id="profile-upgrade"
-                  data-event="upgrade"
-                  width="140px"
-                >Upgrade</tonic-button -->
-              </div>
+            <tonic-textarea
+              label="Bio"
+              rows="4"
+              resize="none"
+              value="${bio}"
+              maxlength="512"
+              data-event="change-bio"
+              placeholder="Hi. I'm a hacker..."
+              id="profile-bio"
+            ></tonic-textarea>
 
-              <tonic-textarea
-                label="Bio"
-                rows="4"
-                resize="none"
-                value="${bio}"
-                maxlength="512"
-                data-event="change-bio"
-                placeholder="Hi. I'm a hacker..."
-                id="profile-bio"
-              ></tonic-textarea>
-
-              <tonic-textarea
-                label="Public Key (base64)"
-                rows="4"
-                resize="none"
-                value="${publicKey}"
-                readonly="true"
-                data-event-"copy-public-key"
-                id="profile-public-key"
-              ></tonic-textarea>
-            </section>
-          </tonic-tab-panel>
-        </section>
+            <tonic-textarea
+              label="Public Key (base64)"
+              rows="4"
+              resize="none"
+              value="${publicKey}"
+              readonly="true"
+              data-event-"copy-public-key"
+              id="profile-public-key"
+            ></tonic-textarea>
+          </section>
+        </tonic-tab-panel>
       </div>
     `
   }

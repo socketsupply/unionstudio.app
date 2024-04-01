@@ -334,6 +334,7 @@ class AppView extends Tonic {
     try {
       await exec('ssc init', { cwd: project.path })
       await exec('git init', { cwd: project.path })
+      await exec('git add .; git commit -m "first" -a;', { cwd: project.path })
     } catch (err) {
       console.error(err)
     }
@@ -744,15 +745,15 @@ class AppView extends Tonic {
               <tonic-split id="split-input" type="horizontal">
                 <tonic-split-top height="80%">
                   <app-editor id="editor" parent=${this}></app-editor>
+
+                  <view-home id="view-home" parent=${this}></view-home>
+                  <view-project-summary id="project-summary" parent=${this}></view-project-summary>
+                  <view-image-preview id="image-preview" parent=${this}></view-image-preview>
                 </tonic-split-top>
                 <tonic-split-bottom height="20%">
                   <app-terminal id="app-terminal" parent=${this}></app-terminal>
                 </tonic-split-bottom>
               </tonic-split>
-
-              <view-home id="view-home" parent=${this}></view-home>
-              <view-image-preview id="image-preview" parent=${this}></view-image-preview>
-              <view-project-summary id="project-summary" parent=${this}></view-project-summary>
             </tonic-split-right>
           </tonic-split>
         </tonic-split-left>

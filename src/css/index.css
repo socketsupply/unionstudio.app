@@ -22,6 +22,17 @@ body.no-labels label {
   display: none;
 }
 
+.empty-state {
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
 tonic-accordion h3 {
   text-transform: uppercase;
   margin: 16px 14px 6px;
@@ -85,15 +96,12 @@ tonic-split-top {
 
 tonic-tab-panel {
   position: absolute;
-  top: 2px;
-  left: 2px;
-  bottom: 2px;
-  right: 2px;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
   background-color: var(--tonic-background);
-}
-
-tonic-tab-panel {
-  top: 40px;
+  padding: 6%
 }
 
 #options .option {

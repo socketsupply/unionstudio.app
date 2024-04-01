@@ -23,6 +23,23 @@ class ViewProjectSummary extends Tonic {
 
     const { event } = el.dataset
 
+    if (event === 'project-path') {
+      const dirHandle = await window.showDirectoryPicker({})
+      if (!dirHandle) return
+
+      console.log(dirHandle)
+
+      const app = this.props.parent
+      const currentProject = app.state.currentProject
+
+      const editor = document.querySelector('app-editor')
+      const project = document.querySelector('app-project')
+
+      const { data: dataProject } = await app.db.projects.get(currentProject.projectId)
+
+      // TODO(@heapwolf): set the path on the project object and refresh the project and editor components.
+    }
+
     if (event === 'publish') {
       const coDialogPublish = document.querySelector('dialog-publish')
       if (coDialogPublish) coDialogPublish.show()
@@ -107,7 +124,7 @@ class ViewProjectSummary extends Tonic {
             position="right"
             spellcheck="false"
             readonly="true"
-            value="union://${dataProject.sharedSecret}?id=${encodeURIComponent(dataProject.bundleId)}&org=${dataProject.org}"
+            value="union://${encodeURIComponent(dataProject.bundleId)}?secret=${dataProject.sharedSecret}"
           ></tonic-input>
 
           <git-status id="publish" app=${app} parent=${this}>

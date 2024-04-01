@@ -19,6 +19,11 @@ view-home.show {
   opacity: 1;
 }
 
+view-home header span {
+  width: 100%;
+  text-align: center;
+}
+
 view-home iframe {
   border: none;
   height: 280px;
@@ -79,7 +84,7 @@ view-home section.hero {
 }
 
 view-home tonic-tabs {
-  margin-left: -6px;
+  margin: auto;
 }
 
 view-home tonic-tab a {
