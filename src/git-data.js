@@ -1,6 +1,7 @@
+// import fs from 'fs'
 /**
  * Represents a parsed Git patch, including its headers, summary, and body.
- * The `Patch` class takes a raw patch string as input and parses it into
+ * The \`Patch\` class takes a raw patch string as input and parses it into
  * distinct components. It specifically looks for the headers section at the
  * beginning of the patch, followed by a summary section indicating files
  * changed, insertions, and deletions, and finally the diff content as the body.
@@ -74,4 +75,50 @@ export class Patch {
     this.headers.parent = this.headers.subject.split(' ')[1].trim()
     this.headers.subject = this.headers.subject.replace(this.headers.parent, '')
   }
+
+  extractHunks (filePath) {
+    const hunks = []
+    const lines = this.src.split('\n')
+    let capturingFile = false
+    let currentHunk = null
+
+    // Adjusted regex for file section detection
+    const fileSectionRegex = new RegExp(`^diff --git a/${filePath.replace(/\./g, '\\.')} b/${filePath.replace(/\./g, '\\.')}`)
+
+    // Adjusted regex for hunk header detection
+    const hunkHeaderRegex = /^@@ -\d+(,\d+)? \+\d+(,\d+)? @@/
+
+    lines.forEach(line => {
+      if (fileSectionRegex.test(line)) {
+        capturingFile = true
+        return // Skip the diff --git line itself
+      } else if (capturingFile && line.startsWith('diff --git')) {
+        capturingFile = false // Stop capturing when a new file section starts
+      }
+
+      if (capturingFile) {
+        const match = hunkHeaderRegex.exec(line)
+        if (match) {
+          // Start of a new hunk
+          currentHunk = { headers: [match[0]], changes: [] }
+          hunks.push(currentHunk)
+          // Check if there's additional content on the same line following the hunk header
+          if (match[0].length < line.length) {
+            // Add the remaining part of the line to the changes
+            currentHunk.changes.push(' ' + line.substring(match[0].length).trim())
+          }
+        } else if (currentHunk) {
+          // Add non-header lines to the current hunk's changes
+          currentHunk.changes.push(line)
+        }
+      }
+    })
+
+    return hunks
+  }
 }
+
+// const p = new Patch(fs.readFileSync('0001-wip-ui.patch', 'utf8'))
+// const di = p.extractHunks('src/components/git-status.js')
+
+// console.log(di)

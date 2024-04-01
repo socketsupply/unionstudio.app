@@ -1,24 +1,51 @@
 import Tonic from '@socketsupply/tonic'
-import { exec } from 'socket:child_process'
 
 class PatchRequests extends Tonic {
   async click (e) {
     const el = Tonic.match(e.target, '[data-event]')
     if (!el) return
 
-    const { event, value } = el.dataset
     const app = this.props.app
+    const row = el.closest('.row')
+    const value = row.dataset.value
+
+    const { data: patch } = await app.db.patches.get(value)
+
+    const { event } = el.dataset
+
+    if (event === 'view') {
+      const coProjectSummary = document.querySelector('view-project-summary')
+      const coEditor = document.querySelector('app-editor')
+      const name = (patch.patchId || patch.headers.parent.slice(6)) + '.patch'
+
+      coEditor.loadProjectNode({
+        isReadOnly: true,
+        id: name,
+        label: name,
+        value: patch.src
+      })
+
+      coProjectSummary.hide()
+    }
+
+    if (event === 'apply') {
+      console.log('APPLY', patch)
+    }
+
+    if (event === 'trash') {
+      console.log('TRASH', patch)
+    }
 
     if (event === 'trust') {
-      const { data: hasKey } = await app.db.keys.has(value.headers.from)
+      const { data: hasKey } = await app.db.keys.has(patch.headers.from)
 
       if (!hasKey) {
-        await app.db.keys.put(value.headers.from, value.publicKey)
+        await app.db.keys.put(patch.headers.from, patch.publicKey)
         this.reRender()
         return
       }
 
-      await app.db.keys.del(value.headers.from)
+      await app.db.keys.del(patch.headers.from)
       this.reRender()
     }
   }
@@ -28,17 +55,18 @@ class PatchRequests extends Tonic {
 
     const { data: dataPatches } = await app.db.patches.readAll()
 
-    let patches = []
+    const patches = []
 
     for (const [patchId, patch] of dataPatches.entries()) {
       const ts = (new Date(patch.headers.date)).getTime()
       let statusIcon = 'warning'
       let statusTitle = 'This patch is not associated with a trusted public key. Click here to trust it.'
+      const { data: hasKey } = await app.db.keys.has(patch.headers.from)
 
-      if (patch.publicKey) {
+      if (hasKey && patch.publicKey && patch.headers.from) {
         const { data: dataKey } = await app.db.keys.get(patch.headers.from)
 
-        const savedB64pk = Buffer.from(dataKey).toString('base64')
+        const savedB64pk = Buffer.from(dataKey || '').toString('base64')
         const thisB64pk = Buffer.from(patch.publicKey || '').toString('base64')
 
         if (dataKey && savedB64pk === thisB64pk) {
@@ -51,14 +79,14 @@ class PatchRequests extends Tonic {
       }
 
       patches.push(this.html`
-        <div class="row" data-event="view-patch" data-value="${patchId}">
+        <div class="row" data-event="view" data-value=${patchId}>
           <span>${patch.headers.from}</span>
           <span><relative-date ts="${ts}"></relative-date></span>
           <span>${patch.summary.split('\n').pop()}</span>
           <span class="actions">
-            <tonic-button type="icon" symbol-id="plus-icon" title="Apply the patch" size="16px" data-event="load" data-value="${patchId}"></tonic-button>
-            <tonic-button type="icon" symbol-id="${statusIcon}-icon" title="${statusTitle}" size="16px" data-event="trust" data-value="${patch}"></tonic-button>
-            <tonic-button type="icon" symbol-id="trash-icon" title="Discard this patch" size="16px" data-event="trash" data-value="${patchId}"></tonic-button>
+            <tonic-button type="icon" symbol-id="plus-icon" title="Apply the patch" size="16px" data-event="apply"></tonic-button>
+            <tonic-button type="icon" symbol-id="${statusIcon}-icon" title="${statusTitle}" size="16px" data-event="trust"></tonic-button>
+            <tonic-button type="icon" symbol-id="trash-icon" title="Discard this patch" size="16px" data-event="trash"></tonic-button>
           </span>
         </div>
       `)

@@ -2,7 +2,7 @@ import fs from 'socket:fs'
 import path from 'socket:path'
 import process from 'socket:process'
 import application from 'socket:application'
-import { network, Encryption, sha256 } from 'socket:network'
+import { network, Encryption } from 'socket:network'
 import vm from 'socket:vm'
 import { inspect, format } from 'socket:util'
 import { spawn, exec } from 'socket:child_process'
@@ -101,7 +101,7 @@ class AppView extends Tonic {
 
     clearTimeout(this.debounce)
     this.debounce = setTimeout(() => {
-      const currentProjectPath = this.getCurrentProjectPath() 
+      const currentProjectPath = this.getCurrentProjectPath()
 
       for (const w of Object.values(this.previewWindows)) {
         const indexParams = new URLSearchParams({
@@ -167,7 +167,7 @@ class AppView extends Tonic {
         zoom: this.state.zoom[index] || '1'
       }).toString()
 
-      let currentProjectPath = this.getCurrentProjectPath()
+      const currentProjectPath = this.getCurrentProjectPath()
       if (!currentProjectPath) return
 
       const opts = {
@@ -181,7 +181,7 @@ class AppView extends Tonic {
           webview_service_worker_frame: false
         },
         path: [currentProjectPath, indexParams].join('?'),
-        index: index,
+        index,
         frameless: preview.frameless,
         closable: true,
         maximizable: false,
@@ -242,13 +242,6 @@ class AppView extends Tonic {
     const { data: dataPeer } = await this.db.state.get('peer')
     const { data: dataUser } = await this.db.state.get('user')
 
-    //
-    // once awaited, we know that we have discovered our nat type and advertised
-    // to the network that we can accept inbound connections from other peers
-    // the socket is now ready to be read from and written to.
-    //
-    const pk = Buffer.from(dataUser.publicKey).toString('base64')
-
     const signingKeys = {
       publicKey: dataUser.publicKey,
       privateKey: dataUser.privateKey
@@ -292,7 +285,6 @@ class AppView extends Tonic {
         if (packet.index !== -1) return // not interested
 
         const pid = Buffer.from(packet.packetId).toString('hex')
-        const scid = Buffer.from(packet.subclusterId).toString('base64')
         const key = [projectId, pid].join('\xFF')
 
         const { data: hasPacket } = await this.db.patches.has(key)
@@ -301,28 +293,14 @@ class AppView extends Tonic {
         const message = Buffer.from(value.data).toString()
         const patch = new Patch(message)
 
-        // we can hold onto the pk to compare against friends and warn on untrusted patches
         patch.publicKey = Buffer.from(packet.usr2)
+        patch.patchId = pid
 
-        await this.db.patches.put(patch.headers.parent, patch)
+        await this.db.patches.put(pid, patch)
 
         // if the project is showing, re-render it to show the new patch
         const coProject = document.querySelector('view-project-summary.show')
         if (coProject) coProject.reRender()
-      })
-
-      subcluster.on('clone', async (value, packet) => {
-        console.log('GOT CLONE!', value, packet)
-        if (!packet.verified) return // gtfoa
-        if (packet.index !== -1) return // not interested
-
-        const pid = Buffer.from(packet.packetId).toString('hex')
-        const scid = Buffer.from(packet.subclusterId).toString('base64')
-        const key = [projectId, pid].join('\xFF')
-
-        const { data: hasPacket } = await this.db.patches.has(key)
-        if (hasPacket) return
-
       })
     }
   }
@@ -418,14 +396,12 @@ class AppView extends Tonic {
   }
 
   async initApplication () {
-    const notifications = document.querySelector('#notifications')
     const userSettingsFile = path.join(path.DATA, 'settings.json')
 
-    let exists
     let settings
 
     try {
-      exists = await fs.promises.stat(userSettingsFile)
+      await fs.promises.stat(userSettingsFile)
     } catch (err) {
       const settings = await fs.promises.readFile('settings.json')
       await fs.promises.writeFile(userSettingsFile, settings)
@@ -452,14 +428,13 @@ class AppView extends Tonic {
     const coPreviewModeButton = document.querySelector('#toggle-preview-mode')
     coPreviewModeButton.classList.toggle('selected')
 
-    const coProperties = document.querySelector('app-properties')
     this.state.settings.previewMode = !this.state.settings.previewMode
     this.saveSettingsFile()
   }
 
   async saveSettingsFile () {
-    const currentProject = this.state.currentProject
     const pathToSettingsFile = path.join(path.DATA, 'settings.json')
+    const notifications = document.querySelector('#notifications')
     const coTabs = document.querySelector('editor-tabs')
     const coEditor = document.querySelector('app-editor')
 
@@ -492,9 +467,6 @@ class AppView extends Tonic {
   // this app must bundle the platform-specific ssc binary
   //
   async exportProject () {
-    const project = document.querySelector('app-project')
-    const node = project.getNodeByProperty('id', 'project')
-
     const args = [
       'build',
       '-r'

@@ -81,7 +81,7 @@ class EditorTabs extends Tonic {
       index: this.index++
     }
 
-    tab.model.onDidChangeContent((...args) => editor.changes(tab, ...args))
+    tab.model.onDidChangeContent((...args) => parent.editor.changes(tab, ...args))
 
     this.state.tabs.set(node.id, tab)
     parent.editor.setModel(tab.model)
@@ -94,7 +94,7 @@ class EditorTabs extends Tonic {
     if (this.state.tabs.has(id)) {
       this.state.tabs.delete(id)
     }
-    
+
     this.reRender()
   }
 
@@ -265,7 +265,7 @@ class AppEditor extends Tonic {
     const coTabs = document.querySelector('editor-tabs')
     const coEditor = document.querySelector('app-editor')
 
-    if (!coTabs.tab) return
+    if (!coTabs.tab || coTabs.tab.isReadOnly) return
 
     const app = this.props.parent
     const value = this.editor.getValue()
@@ -290,10 +290,14 @@ class AppEditor extends Tonic {
       coTabs.tab.unsaved = false
       coTabs.reRender()
     } catch (err) {
-      console.error(`Unable to write to ${pathToFile}`, err)
+      console.error(`Unable to write to ${coTabs.tab.path}`, err)
     }
 
     app.reloadPreviewWindows()
+  }
+
+  async reload () {
+    this.loadProjectNode(this.state.projectNode)
   }
 
   async loadProjectNode (projectNode) {
@@ -313,7 +317,7 @@ class AppEditor extends Tonic {
       const mappings = app.state.settings.extensionLanguageMappings
       const lang = mappings[ext] || ext.slice(1)
       monaco.editor.setModelLanguage(this.editor.getModel(), lang)
-      let data = await fs.promises.readFile(projectNode.id, 'utf8')
+      let data = projectNode.value || await fs.promises.readFile(projectNode.id, 'utf8')
 
       if (path.extname(projectNode.id) === '.json') {
         try {
@@ -342,7 +346,6 @@ class AppEditor extends Tonic {
       success: rgbaToHex(styles.getPropertyValue('--tonic-success').trim())
     }
 
-
     const userColors = this.props.parent.state.settings?.userColors ?? []
 
     const base = `vs${theme.includes('dark') ? '-dark' : ''}`
@@ -350,6 +353,11 @@ class AppEditor extends Tonic {
       base,
       inherit: true,
       rules: [
+        { token: 'lineFile', foreground: colors.accent }, // Green for added lines
+        { token: 'lineHeader', foreground: colors.info }, // Green for added lines
+        { token: 'lineAdded', foreground: colors.success }, // Green for added lines
+        { token: 'lineRemoved', foreground: colors.error }, // Red for removed lines
+
         { token: 'identifier', foreground: colors.primary },
         { token: 'keyword', foreground: colors.accent },
         { token: 'punctuation', foreground: colors.primary },
@@ -471,7 +479,6 @@ class AppEditor extends Tonic {
 
   connected () {
     let theme
-    const app = this.props.parent
 
     this.editor = monaco.editor.create(this.querySelector('.editor'), {
       value: '',
@@ -485,6 +492,78 @@ class AppEditor extends Tonic {
     })
 
     this.updateSettings()
+
+    monaco.languages.registerFoldingRangeProvider('patch', {
+      provideFoldingRanges: function (model, context, token) {
+        const hunkStartRegex = /^@@ -\d+(,\d+)? \+\d+(,\d+)? @@.*/
+        const diffStartRegex = /^diff --git a\/.+ b\/.+/
+        const foldingRanges = []
+        let currentHunkStart = -1
+
+        for (let i = 0; i < model.getLineCount(); i++) {
+          const lineContent = model.getLineContent(i + 1)
+
+          if (hunkStartRegex.test(lineContent)) {
+            if (currentHunkStart !== -1) {
+              foldingRanges.push({
+                start: currentHunkStart,
+                end: i,
+                kind: monaco.languages.FoldingRangeKind.Region
+              })
+            }
+            currentHunkStart = i + 1
+          } else if (diffStartRegex.test(lineContent) && currentHunkStart !== -1) {
+            foldingRanges.push({
+              start: currentHunkStart,
+              end: i,
+              kind: monaco.languages.FoldingRangeKind.Region
+            })
+            currentHunkStart = -1
+          }
+        }
+
+        if (currentHunkStart !== -1) {
+          foldingRanges.push({
+            start: currentHunkStart,
+            end: model.getLineCount(),
+            kind: monaco.languages.FoldingRangeKind.Region
+          })
+        }
+
+        return foldingRanges
+      }
+    })
+
+    monaco.languages.register({ id: 'patch' })
+
+    monaco.languages.setMonarchTokensProvider('patch', {
+      tokenizer: {
+        root: [
+          [/^index \w+\.\.\w+( \d+)?/, 'lineHeader'],
+          [/^---.*/, 'lineHeader'],
+          [/^\+\+\+.*/, 'lineHeader'],
+          [/^@@ -\d+(,\d+)? \+\d+(,\d+)? @@.*/, 'lineHeader'],
+          [/^diff --git a\/.+ b\/.+/, 'lineFile'],
+          [/^From:.*<[^>]+>/, 'lineHeader'],
+          [/^Date:.+/, 'lineHeader'],
+          [/^Subject: \[PATCH\].+/, 'lineHeader'],
+          [/^From [0-9a-fA-F]+ Mon .+/, 'lineHeader'],
+
+          [/^\+(?!\+\+).*/, 'lineAdded'],
+          [/^-(?!-).*/, 'lineRemoved']
+        ]
+      }
+    })
+
+    this.editor.onDidChangeModelContent(event => {
+      const coTabs = document.querySelector('editor-tabs')
+      this.editor.updateOptions({ readOnly: false })
+
+      if (coTabs.tab?.label.endsWith('.patch')) {
+        this.editor.updateOptions({ readOnly: true })
+        this.editor.getAction('editor.foldAll').run()
+      }
+    })
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
       this.refreshColors(event)

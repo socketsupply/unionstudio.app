@@ -502,7 +502,6 @@ class AppProject extends Tonic {
 
   async onSelection (node, isToggle) {
     if (!isToggle) {
-      const app = this.props.parent
       const projectNode = this.getProjectNode(node)
       const coImagePreview = document.querySelector('view-image-preview')
       const coProjectSummary = document.querySelector('view-project-summary')
@@ -629,7 +628,7 @@ class AppProject extends Tonic {
 
   async load () {
     const app = this.props.parent
-    let oldState = this.state.tree
+    const oldState = this.state.tree
     let oldChild = this.getNodeByProperty('id', 'home', oldState)
 
     const tree = {

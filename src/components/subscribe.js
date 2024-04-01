@@ -1,7 +1,6 @@
 import fs from 'socket:fs'
 import path from 'socket:path'
 import { Encryption, sha256 } from 'socket:network'
-import { spawn, exec } from 'socket:child_process'
 
 import Tonic from '@socketsupply/tonic'
 import { TonicDialog } from '@socketsupply/components/dialog'
@@ -83,22 +82,6 @@ export class DialogSubscribe extends TonicDialog {
   }
 
   async render () {
-    const app = this.props.parent
-    const { data: dataProjects } = await app.db.projects.readAll()
-
-    /* const existingProjects
-
-    for (const [projectId, project] of dataProjects.entries()) {
-
-      tree.children.push({
-        id: project.bundleId,
-        label: project.bundleId,
-        isDirectory: false,
-        icon: 'package',
-        children: []
-      })
-    } */
-
     return this.html`
       <header>
         Create Subscription

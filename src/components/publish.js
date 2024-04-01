@@ -5,8 +5,6 @@ import { exec, execSync } from 'socket:child_process'
 import Tonic from '@socketsupply/tonic'
 import { TonicDialog } from '@socketsupply/components/dialog'
 
-import Config from '../lib/config.js'
-
 export class DialogPublish extends TonicDialog {
   click (e) {
     super.click(e)
@@ -125,10 +123,6 @@ export class DialogPublish extends TonicDialog {
       //
       // Try to commit the changes.
       //
-      const msg = {
-        parent: currentHash,
-        message: commitMessage
-      }
 
       try {
         output = await exec(`git commit -m "${currentHash}" -m "${commitMessage}"`, { cwd })

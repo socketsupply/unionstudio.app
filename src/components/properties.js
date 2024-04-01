@@ -1,6 +1,4 @@
 import Tonic from '@socketsupply/tonic'
-import fs from 'socket:fs'
-import path from 'socket:path'
 import process from 'socket:process'
 
 import Config from '../lib/config.js'
@@ -14,8 +12,6 @@ class AppProperties extends Tonic {
 
     const app = this.props.parent
     const notifications = document.querySelector('#notifications')
-    const editor = document.querySelector('app-editor')
-    const project = document.querySelector('app-project')
     const config = new Config(app.state.currentProject?.id)
 
     //
@@ -37,12 +33,17 @@ class AppProperties extends Tonic {
     //
     if (event === 'property') {
       await config.set(section, el.id, el.value)
-      editor.loadProjectNode(node)
+      const coTabs = document.querySelector('editor-tabs')
+      const coEditor = document.querySelector('app-editor')
+
+      if (coTabs.tab && coTabs.tab.isRootSettingsFile) {
+        coEditor.reload()
+      }
 
       notifications?.create({
         type: 'info',
         title: 'Note',
-        message: 'A restart of the app your building may be required.'
+        message: 'A rebuild of your app may be required.'
       })
     }
   }
