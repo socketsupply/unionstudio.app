@@ -68,6 +68,7 @@ class EditorTabs extends Tonic {
 
   add (node) {
     const parent = this.props.parent
+    const editor = document.querySelector('app-editor')
 
     const tab = {
       label: node.label,
@@ -81,7 +82,7 @@ class EditorTabs extends Tonic {
       index: this.index++
     }
 
-    tab.model.onDidChangeContent((...args) => parent.editor.changes(tab, ...args))
+    tab.model.onDidChangeContent((...args) => editor.changes(tab, ...args))
 
     this.state.tabs.set(node.id, tab)
     parent.editor.setModel(tab.model)
