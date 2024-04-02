@@ -494,6 +494,39 @@ class AppEditor extends Tonic {
 
     this.updateSettings()
 
+    monaco.languages.registerFoldingRangeProvider('ini', {
+      provideFoldingRanges: function (model, context, token) {
+        const sectionStartRegex = /^\[.*]$/
+        const foldingRanges = []
+        let lastSectionStart = -1
+
+        for (let i = 0; i < model.getLineCount(); i++) {
+          const lineContent = model.getLineContent(i + 1)
+
+          if (sectionStartRegex.test(lineContent)) {
+            if (lastSectionStart !== -1) {
+              foldingRanges.push({
+                start: lastSectionStart,
+                end: i,
+                kind: monaco.languages.FoldingRangeKind.Region
+              })
+            }
+            lastSectionStart = i + 1
+          }
+        }
+
+        if (lastSectionStart !== -1 && lastSectionStart <= model.getLineCount()) {
+          foldingRanges.push({
+            start: lastSectionStart,
+            end: model.getLineCount(),
+            kind: monaco.languages.FoldingRangeKind.Region
+          })
+        }
+
+        return foldingRanges
+      }
+    })
+
     monaco.languages.registerFoldingRangeProvider('patch', {
       provideFoldingRanges: function (model, context, token) {
         const hunkStartRegex = /^@@ -\d+(,\d+)? \+\d+(,\d+)? @@.*/
@@ -560,7 +593,7 @@ class AppEditor extends Tonic {
       const coTabs = document.querySelector('editor-tabs')
       this.editor.updateOptions({ readOnly: false })
 
-      if (coTabs.tab?.label.endsWith('.patch')) {
+      if (coTabs.tab?.label.endsWith('.patch') || coTabs.tab?.label.endsWith('.ini')) {
         this.editor.updateOptions({ readOnly: true })
         this.editor.getAction('editor.foldAll').run()
       }

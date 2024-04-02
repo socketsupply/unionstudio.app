@@ -50,6 +50,7 @@ export class DialogSubscribe extends TonicDialog {
 
       try {
         await fs.promises.mkdir(pathToProject, { recursive: true })
+        await execSync('git init', { cwd: pathToProject })
       } catch (err) {
         notifications.create({
           type: 'error',

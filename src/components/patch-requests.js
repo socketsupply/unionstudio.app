@@ -19,7 +19,7 @@ class PatchRequests extends Tonic {
     if (event === 'view') {
       const coProjectSummary = document.querySelector('view-project-summary')
       const coEditor = document.querySelector('app-editor')
-      const name = (patch.patchId || patch.headers.parent.slice(6)) + '.patch'
+      const name = patch.patchId.slice(0, 8) + '.patch'
 
       coEditor.loadProjectNode({
         isReadOnly: true,
@@ -98,7 +98,11 @@ class PatchRequests extends Tonic {
     if (output?.stderr) {
       try {
         await exec(`git am --abort"`, { cwd: currentProject.id })
-      } catch {}
+      } catch (err) {
+        console.log(err)
+      }
+
+      console.log(output)
 
       return {
         err: new Error('The patch can not be applied because the data in the patch does not match the data in the index.')
@@ -112,8 +116,9 @@ class PatchRequests extends Tonic {
 
   async render () {
     const app = this.props.app
+    const bundleId = app.state.currentProject.bundleId
 
-    const { data: dataPatches } = await app.db.patches.readAll()
+    const { data: dataPatches } = await app.db.patches.readAll({ gte: bundleId, lte: bundleId + '~' })
 
     const patches = []
 
@@ -157,7 +162,7 @@ class PatchRequests extends Tonic {
       <div class="patches">
         <div class="thead">
           <span>Author</span>
-          <span>Date</span>
+          <span>Time</span>
           <span>Summary</span>
         </div>
         <div class="tbody">

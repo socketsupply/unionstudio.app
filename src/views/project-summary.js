@@ -84,18 +84,11 @@ class ViewProjectSummary extends Tonic {
 
     const { data: dataProject } = await app.db.projects.get(currentProject.projectId)
 
-    let items
-
-    if (dataProject.waiting) {
-      items = this.html`
-        <div class="empty-state">
-          <p>Waiting...</p>
-        </div>
-      `
-    }
-
-    if (!dataProject.waiting) {
-      items = this.html`
+    return this.html`
+      <header class="component">
+        <span>${currentProject.label}</span>
+      </header>
+      <div class="container">
         <div class="sharing">
           <tonic-input
             label="Location"
@@ -133,15 +126,6 @@ class ViewProjectSummary extends Tonic {
           <patch-requests id="patch-requests" app=${app} parent=${this}>
           </patch-requests>
         </div>
-      `
-    }
-
-    return this.html`
-      <header class="component">
-        <span>${currentProject.label}</span>
-      </header>
-      <div class="container">
-        ${items}
       </div>
     `
   }

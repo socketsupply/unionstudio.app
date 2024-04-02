@@ -133,8 +133,9 @@ class AppView extends Tonic {
 
     const term = document.querySelector('app-terminal')
     const screenSize = await application.getScreenSize()
+    const len = this.state.settings.previewWindows.length
 
-    for (let i = 0; i < this.state.settings.previewWindows.length; i++) {
+    for (let i = 0; i < len; i++) {
       const index = i + 1
       const preview = this.state.settings.previewWindows[i]
 
@@ -168,9 +169,6 @@ class AppView extends Tonic {
         zoom: this.state.zoom[index] || '1'
       }).toString()
 
-      const currentProjectPath = this.getCurrentProjectPath()
-      if (!currentProjectPath) return
-
       const opts = {
         __runtime_primordial_overrides__: {
           arch: 'arm64',
@@ -181,8 +179,8 @@ class AppView extends Tonic {
           webview_auto_register_service_workers: false,
           webview_service_worker_frame: false
         },
-        path: [currentProjectPath, indexParams].join('?'),
         index,
+        path: '',
         frameless: preview.frameless,
         closable: true,
         maximizable: false,
@@ -196,6 +194,11 @@ class AppView extends Tonic {
         aspectRatio: preview.aspectRatio, // ie '9:19.5'
         width: Math.floor(width / scale),
         height: Math.floor(height / scale)
+      }
+
+      const currentProjectPath = this.getCurrentProjectPath()
+      if (currentProjectPath) {
+        opts.path = [currentProjectPath, indexParams].join('?')
       }
 
       opts.userScript = this.state.userScript
@@ -272,21 +275,24 @@ class AppView extends Tonic {
       // TODO(@heapwolf): we need a nice way to send config updates to the peer worker.
     }
 
+    const coTerminal = document.querySelector('app-terminal')
     const { data: dataProjects } = await this.db.projects.readAll()
 
-    for (const [projectId, project] of dataProjects.entries()) {
+    for (const [bundleId, project] of dataProjects.entries()) {
       if (socket.subclusters.get(project.subclusterId)) {
         continue
       }
 
       const subcluster = await socket.subcluster({ sharedKey: project.sharedKey })
+      console.log(`Initialized cluster for ${project.label}`)
 
       subcluster.on('patch', async (value, packet) => {
         if (!packet.verified) return // gtfoa
         if (packet.index !== -1) return // not interested
+        coTerminal.info(`Received patch for ${project.label}.`)
 
         const pid = Buffer.from(packet.packetId).toString('hex')
-        const key = [projectId, pid].join('\xFF')
+        const key = [bundleId, pid].join('\xFF')
 
         const { data: hasPacket } = await this.db.patches.has(key)
         if (hasPacket) return
@@ -297,7 +303,7 @@ class AppView extends Tonic {
         patch.publicKey = Buffer.from(packet.usr2)
         patch.patchId = pid
 
-        await this.db.patches.put(pid, patch)
+        await this.db.patches.put(key, patch)
 
         // if the project is showing, re-render it to show the new patch
         const coProject = document.querySelector('view-project-summary.show')
@@ -307,7 +313,7 @@ class AppView extends Tonic {
   }
 
   async createProject (opts = {}) {
-    const name = opts.name || 'project.' + Math.random().toString(16).slice(2, 6)
+    const name = opts.name || 'project.' + Math.random().toString(16).slice(2, 8)
     const bundleId = 'com.' + name
     const org = 'union-app-studio'
     const sharedSecret = opts.sharedSecret || (await Encryption.createId()).toString('base64')
@@ -733,9 +739,21 @@ class AppView extends Tonic {
             <tonic-split-left width="25%">
               <header class="component" id="header-project">
                 <span class="spacer"></span>
-                <tonic-button type="icon" size="18px" symbol-id="plus-icon" title="Create a new project" data-event="create-new-project">
+                <tonic-button
+                  type="icon"
+                  size="18px"
+                  symbol-id="plus-icon"
+                  title="Create a new project"
+                  data-event="create-new-project"
+                >
                 </tonic-button>
-                <tonic-button type="icon" size="24px" symbol-id="collaborate-icon" title="Subscribe to a shared project" data-event="add-shared-project">
+                <tonic-button
+                  type="icon"
+                  size="24px"
+                  symbol-id="collaborate-icon"
+                  title="Subscribe to a shared project"
+                  data-event="add-shared-project"
+                >
                 </tonic-button>
               </header>
               <app-project id="app-project" parent=${this}></app-project>
@@ -761,13 +779,33 @@ class AppView extends Tonic {
         <tonic-split-right width="20%">
           <header class="component" id="header-properties">
 
-            <tonic-button type="icon" size="18px" symbol-id="play-icon" title="Build & Run The Project" data-event="run">
+            <tonic-button
+              type="icon"
+              size="18px"
+              symbol-id="play-icon"
+              title="Build & Run The Project"
+              data-event="run"
+            >
             </tonic-button>
 
-            <tonic-button type="icon" size="22px" symbol-id="run-icon" title="Evalulate The current selection or all code in the editor" data-event="eval">
+            <tonic-button
+              type="icon"
+              size="22px"
+              symbol-id="run-icon"
+              title="Evalulate The current selection or all code in the editor"
+              data-event="eval"
+            >
             </tonic-button>
 
-            <tonic-button type="icon" size="24px" symbol-id="speed-icon" id="toggle-preview-mode" class="${previewMode}" title="Toggle real-time preview mode, save changes as you type" data-event="preview-mode">
+            <tonic-button
+              type="icon"
+              size="24px"
+              symbol-id="speed-icon"
+              id="toggle-preview-mode"
+              class="${previewMode}"
+              title="Toggle real-time preview mode, save changes as you type"
+              data-event="preview-mode"
+            >
             </tonic-button>
 
             <span class="spacer"></span>

@@ -39,7 +39,7 @@
       "aspectRatio": "9:19.5",
       "arch": "arm64",
       "resolution": "1080x2340",
-      "radius": "48.5",
+      "radius": "28",
       "margin": "6.0",
       "active": false,
       "scale": 4

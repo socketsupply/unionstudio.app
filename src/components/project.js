@@ -489,6 +489,7 @@ class AppProject extends Tonic {
       }
 
       this.state.currentProjectId = projectNode.id
+      this.props.parent.activatePreviewWindows()
 
       if (node.type === 'project') {
         await coProjectSummary.reRender()
