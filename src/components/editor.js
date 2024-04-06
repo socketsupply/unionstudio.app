@@ -74,6 +74,7 @@ class EditorTabs extends Tonic {
       label: node.label,
       id: node.id,
       path: node.id,
+      isReadOnly: node.isReadOnly,
       isRootSettingsFile: node.isRootSettingsFile,
       model: monaco.editor.createModel(),
       state: null,
@@ -318,7 +319,17 @@ class AppEditor extends Tonic {
       const mappings = app.state.settings.extensionLanguageMappings
       const lang = mappings[ext] || ext.slice(1)
       monaco.editor.setModelLanguage(this.editor.getModel(), lang)
-      let data = projectNode.value || await fs.promises.readFile(projectNode.id, 'utf8')
+
+      let data = projectNode.value
+
+      if (!data && projectNode.id) {
+        try {
+          data = await fs.promises.readFile(projectNode.id, 'utf8')
+        } catch (err) {
+          console.error(err)
+          return
+        }
+      }
 
       if (path.extname(projectNode.id) === '.json') {
         try {
@@ -461,6 +472,8 @@ class AppEditor extends Tonic {
   async changes (tab, ...args) {
     const value = this.editor.getValue()
     const app = this.props.parent
+
+    if (tab.isReadyOnly) return
 
     if (app.state.settings.previewMode) {
       this.saveCurrentTab()

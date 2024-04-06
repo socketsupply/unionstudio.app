@@ -189,8 +189,8 @@ class AppView extends Tonic {
         title: preview.title,
         titleBarStyle: preview.titleBarStyle, // ie 'hiddenInset'
         trafficLightPosition: preview.trafficLightPosition, // ie '10x26'
-        backgroundColorDark: 'rgba(46, 46, 46, 1)',
-        backgroundColorLight: 'rgba(255, 255, 255, 1)',
+        backgroundColorDark: 'rgba(46, 46, 46, 0.1)',
+        backgroundColorLight: 'rgba(255, 255, 255, 0.1)',
         aspectRatio: preview.aspectRatio, // ie '9:19.5'
         width: Math.floor(width / scale),
         height: Math.floor(height / scale)

@@ -118,7 +118,9 @@ class PatchRequests extends Tonic {
     const app = this.props.app
     const bundleId = app.state.currentProject.bundleId
 
-    const { data: dataPatches } = await app.db.patches.readAll({ gte: bundleId, lte: bundleId + '~' })
+    const opts = { lt: bundleId.slice(0, -1) + '\xFF', gt: bundleId }
+
+    const { data: dataPatches } = await app.db.patches.readAll(opts)
 
     const patches = []
 
