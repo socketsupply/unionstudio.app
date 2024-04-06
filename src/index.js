@@ -340,7 +340,6 @@ class AppView extends Tonic {
     try {
       await exec('ssc init', { cwd: project.path })
       await exec('git init', { cwd: project.path })
-      await exec('git add .; git commit -m "first" -a;', { cwd: project.path })
     } catch (err) {
       console.error(err)
     }
