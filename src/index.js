@@ -349,10 +349,11 @@ class AppView extends Tonic {
   }
 
   async initData () {
-    if (process.env.UNION_RESET === '1') {
+    if (process.env.RESET === '1') {
       await rm(path.DATA)
       const databases = await window.indexedDB.databases()
       for (const { name } of databases) await Indexed.drop(name)
+      process.exit(0)
     }
 
     this.db = {
