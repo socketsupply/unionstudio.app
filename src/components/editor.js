@@ -391,7 +391,7 @@ class AppEditor extends Tonic {
         { token: 'annotation', foreground: 'cc6666' },
         { token: 'type', foreground: '3DC9B0' },
 
-        { token: 'delimiter', foreground: 'DCDCDC' },
+        { token: 'delimiter', foreground: colors.primary },
         { token: 'delimiter.html', foreground: '808080' },
         { token: 'delimiter.xml', foreground: '808080' },
 
@@ -510,7 +510,7 @@ class AppEditor extends Tonic {
 
     monaco.languages.registerFoldingRangeProvider('ini', {
       provideFoldingRanges: function (model, context, token) {
-        const sectionStartRegex = /^\[.*]$/
+        const sectionStartRegex = /^\[.*]\s*$/
         const foldingRanges = []
         let lastSectionStart = -1
 

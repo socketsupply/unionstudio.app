@@ -172,6 +172,8 @@ class ViewHome extends Tonic {
               data-event-"copy-public-key"
               id="profile-public-key"
             ></tonic-textarea>
+
+            <iframe src="pages/account.html" border=0></iframe>
           </section>
         </tonic-tab-panel>
       </div>

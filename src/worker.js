@@ -87,7 +87,8 @@ export default async function (req, env, ctx) {
 
   const headers = {
     'Content-Type': type,
-    'Cache-Control': 'no-cache'
+    'Cache-Control': 'no-cache',
+    'Access-Control-Allow-Origin': '*'
   }
 
   return new Response(html, { status: 200, headers })
