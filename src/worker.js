@@ -14,8 +14,21 @@ export default async function (req, env, ctx) {
 
   const p = path.join(navigatorPath, route.pathname.groups[0])
   const params = url.searchParams
-  const res = await fetch(p)
-  const data = await res.text()
+
+  let data = ''
+
+  try {
+    const res = await fetch(p)
+
+    if (res.ok && res.status === 200) {
+      data = await res.text()
+    } else if (!res.ok || res.status === 404) {
+      data = '<h1>Not Found</h1>'
+    }
+  } catch (err) {
+    data = err.message
+  }
+
   const windows = await application.getWindows()
   const w = Object.values(windows)[0]
 
@@ -86,7 +99,7 @@ export default async function (req, env, ctx) {
   const type = types[0]?.mime ?? ''
 
   const headers = {
-    'Content-Type': type,
+    'Content-Type': type || 'text/html',
     'Cache-Control': 'no-cache',
     'Access-Control-Allow-Origin': '*'
   }

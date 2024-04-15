@@ -99,6 +99,7 @@ class AppView extends Tonic {
 
   async reloadPreviewWindows () {
     if (!this.state.currentProject) return
+    if (this.state.currentProject.id === 'home') return
 
     clearTimeout(this.debounce)
     this.debounce = setTimeout(() => {
@@ -284,7 +285,7 @@ class AppView extends Tonic {
       }
 
       const subcluster = await socket.subcluster({ sharedKey: project.sharedKey })
-      console.log(`Initialized cluster for ${project.label}`)
+      // console.log(`Initialized network cluster for ${project.label}`)
 
       subcluster.on('patch', async (value, packet) => {
         if (!packet.verified) return // gtfoa
