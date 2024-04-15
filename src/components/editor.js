@@ -45,7 +45,6 @@ globalThis.MonacoEnvironment = {
 }
 
 class EditorTabs extends Tonic {
-  selectedTabId = null
   scrollLeft = 0
   index = 0
 
@@ -53,6 +52,8 @@ class EditorTabs extends Tonic {
     super()
 
     this.state = {
+      selectedTabId: null,
+      editingTabId: null,
       tabs: new Map(),
       ...this.state
     }
@@ -606,10 +607,17 @@ class AppEditor extends Tonic {
       const coTabs = document.querySelector('editor-tabs')
       this.editor.updateOptions({ readOnly: false })
 
-      if (coTabs.tab?.label.endsWith('.patch') || coTabs.tab?.label.endsWith('.ini')) {
+      if (coTabs.tab?.label.endsWith('.patch')) {
         this.editor.updateOptions({ readOnly: true })
-        this.editor.getAction('editor.foldAll').run()
       }
+
+      if (coTabs.tab?.label.endsWith('.patch') || coTabs.tab?.label.endsWith('.ini')) {
+        if (coTabs.state.editingTabId !== coTabs.tab.id) {
+          this.editor.getAction('editor.foldAll').run()
+        }
+      }
+
+      coTabs.state.editingTabId = coTabs.tab.id
     })
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {

@@ -108,6 +108,30 @@ class AppProject extends Tonic {
     })
   }
 
+  resetMouse () {
+    this.mouseMoveThreshold = 0
+    this.removeAttribute('dragging')
+    this.mouseIsDragging = false
+    this.mouseIsDown = false
+  }
+
+  async renameNode (node, value) {
+    const dirname = path.dirname(node.id).replace(/%20/g, ' ')
+    const newId = path.join(dirname, value)
+    await fs.promises.rename(node.id, newId)
+
+    const coTabs = document.querySelector('editor-tabs')
+
+    if (coTabs && coTabs.tab?.id === node.id) {
+      coTabs.rename({ oldId: coTabs.tab.id, newId, label: value })
+    }
+
+    node.label = value
+    node.id = newId
+
+    this.load()
+  }
+
   mousedown (e) {
     const el = Tonic.match(e.target, '[data-path]')
     if (!el) return
@@ -123,13 +147,6 @@ class AppProject extends Tonic {
 
     this.mouseIsDown = true
     this.referenceNode = node
-  }
-
-  resetMouse () {
-    this.mouseMoveThreshold = 0
-    this.removeAttribute('dragging')
-    this.mouseIsDragging = false
-    this.mouseIsDown = false
   }
 
   async mouseup (e) {
@@ -270,20 +287,7 @@ class AppProject extends Tonic {
       if (e.key === 'Enter') {
         const value = e.target.value.trim()
         if (this.getNodeByProperty('id', value)) return
-
-        const dirname = path.dirname(node.id).replace(/%20/g, ' ')
-        const newId = path.join(dirname, value)
-        await fs.promises.rename(node.id, newId)
-
-        const coTabs = document.querySelector('editor-tabs')
-        if (coTabs && coTabs.tab.id === node.id) {
-          coTabs.rename({ oldId: coTabs.tab.id, newId, label: value })
-        }
-
-        node.label = value
-        node.id = newId
-
-        this.load()
+        this.renameNode(node, value)
       }
     }
   }
@@ -313,6 +317,10 @@ class AppProject extends Tonic {
     input.addEventListener('blur', () => {
       container.innerHTML = ''
       container.textContent = node.label
+
+      const value = input.value.trim()
+      if (this.getNodeByProperty('id', value)) return
+      this.renameNode(node, value)
     })
 
     container.innerHTML = ''
@@ -489,7 +497,6 @@ class AppProject extends Tonic {
       }
 
       this.state.currentProjectId = projectNode.id
-      this.props.parent.activatePreviewWindows()
 
       if (node.type === 'project') {
         await coProjectSummary.reRender()
