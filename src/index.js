@@ -187,8 +187,8 @@ class AppView extends Tonic {
         radius: preview.radius, // ie '48.5',
         margin: preview.margin, // ie '6.0',
         title: preview.title,
-        titleBarStyle: preview.titleBarStyle, // ie 'hiddenInset'
-        trafficLightPosition: preview.trafficLightPosition, // ie '10x26'
+        titlebarStyle: preview.titlebarStyle, // ie 'hiddenInset'
+        windowConrolOffsets: preview.windowControlOffsets, // ie '10x26'
         // backgroundColorDark: 'rgba(46, 46, 46, 0.1)',
         // backgroundColorLight: 'rgba(255, 255, 255, 0.1)',
         aspectRatio: preview.aspectRatio, // ie '9:19.5'

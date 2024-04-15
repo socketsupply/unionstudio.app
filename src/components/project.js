@@ -523,7 +523,7 @@ class AppProject extends Tonic {
         }
       }
 
-      if (node.label === 'settings.json' && node.parent.id === 'root') {
+      if (node.label === 'Settings' && node.parent.id === 'root') {
         node.isRootSettingsFile = true
       }
 
