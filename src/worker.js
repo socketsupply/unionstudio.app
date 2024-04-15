@@ -14,6 +14,10 @@ export default async function (req, env, ctx) {
 
   const p = path.join(navigatorPath, route.pathname.groups[0])
   const params = url.searchParams
+
+  const types = await lookup(path.extname(url.pathname).slice(1))
+  const type = types[0]?.mime ?? ''
+
   const headers = {
     'Content-Type': type || 'text/html',
     'Cache-Control': 'no-cache',
@@ -100,9 +104,6 @@ export default async function (req, env, ctx) {
     html = html.replace(/<html(?:[^\n\r]*)>/, `<html style="zoom: ${zoom}">`)
     html = html.replace('</head>', `<style>${css}</style></head>`)
   }
-
-  const types = await lookup(path.extname(url.pathname).slice(1))
-  const type = types[0]?.mime ?? ''
 
   return new Response(html, { status: 200, headers })
 }
