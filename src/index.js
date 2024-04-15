@@ -314,7 +314,7 @@ class AppView extends Tonic {
   }
 
   async createProject (opts = {}) {
-    const name = opts.name || 'project.' + Math.random().toString(16).slice(2, 8)
+    const name = opts.name || 'project-' + Math.random().toString(16).slice(2, 8)
     const bundleId = 'com.' + name
     const org = 'union-app-studio'
     const sharedSecret = opts.sharedSecret || (await Encryption.createId()).toString('base64')
@@ -506,7 +506,7 @@ class AppView extends Tonic {
 
     term.info('Running new instance of app')
     const cwd = this.state.currentProject.id
-    const c = this.childprocess = await spawn('ssc', args, { stdin: false, cwd })
+    const c = this.childprocess = await spawn('ssc', args, { cwd })
 
     c.stdout.on('data', data => {
       term.writeln(Buffer.from(data).toString().trim())
@@ -516,12 +516,12 @@ class AppView extends Tonic {
       term.writeln(Buffer.from(data).toString().trim())
     })
 
-    c.on('exit', (code) => {
+    c.once('exit', (code) => {
       term.writeln(`OK! ${code}`)
       this.childprocess = null
     })
 
-    c.on('error', (code) => {
+    c.once('error', (code) => {
       term.writeln(`NOT OK! ${code}`)
       this.childprocess = null
     })
