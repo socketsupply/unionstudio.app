@@ -1,0 +1,32 @@
+{
+  "include": [
+    "src/*.js",
+    "src/**/*.js",
+    "src/**/**/*.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "types",
+    "build"
+  ],
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "target": "es2022",
+    "module": "es2022",
+    "lib": ["es2022", "dom"],
+    "types": ["@socketsupply/socket"],
+    "removeComments": false,
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "allowSyntheticDefaultImports": true,
+    "alwaysStrict": true,
+    "strictNullChecks": false,
+    "declaration": true,
+    "declarationMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "npm:*": ["node_modules/*"]
+    }
+  }
+}

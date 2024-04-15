@@ -5,7 +5,8 @@ const sharedKeys = {
 
 window.addEventListener('DOMContentLoaded', e => {
   setTimeout(() => {
-    const key = !!globalThis.__args.env.DEV ? sharedKeys.test : sharedKeys.live
+    const url = new URL(globalThis.location.href)
+    const key = url.searchParams.get('dev') === 'true' ? sharedKeys.test : sharedKeys.live
     const stripe = Stripe(key)
 
     const elements = stripe.elements()

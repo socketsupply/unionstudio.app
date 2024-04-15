@@ -14,6 +14,11 @@ export default async function (req, env, ctx) {
 
   const p = path.join(navigatorPath, route.pathname.groups[0])
   const params = url.searchParams
+  const headers = {
+    'Content-Type': type || 'text/html',
+    'Cache-Control': 'no-cache',
+    'Access-Control-Allow-Origin': '*'
+  }
 
   let data = ''
 
@@ -24,6 +29,7 @@ export default async function (req, env, ctx) {
       data = await res.text()
     } else if (!res.ok || res.status === 404) {
       data = '<h1>Not Found</h1>'
+      headers['Runtime-Preload-Injection'] = 'disabled'
     }
   } catch (err) {
     data = err.message
@@ -97,12 +103,6 @@ export default async function (req, env, ctx) {
 
   const types = await lookup(path.extname(url.pathname).slice(1))
   const type = types[0]?.mime ?? ''
-
-  const headers = {
-    'Content-Type': type || 'text/html',
-    'Cache-Control': 'no-cache',
-    'Access-Control-Allow-Origin': '*'
-  }
 
   return new Response(html, { status: 200, headers })
 }
