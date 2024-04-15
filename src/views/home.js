@@ -25,7 +25,7 @@ class ViewHome extends Tonic {
           webview_auto_register_service_workers: false,
           webview_service_worker_frame: false
         },
-        path: 'pages/account.html',
+        path: `pages/account.html?dev=${process.env.DEV ? 'true' : 'false'}`,
         index: 14,
         closable: true,
         maximizable: false,
@@ -173,7 +173,7 @@ class ViewHome extends Tonic {
               id="profile-public-key"
             ></tonic-textarea>
 
-            <iframe src="pages/account.html" border=0></iframe>
+            <iframe src="pages/account.html?dev=${process.env.DEV ? 'true' : 'false'}" border=0></iframe>
           </section>
         </tonic-tab-panel>
       </div>

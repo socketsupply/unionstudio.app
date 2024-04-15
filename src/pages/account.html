@@ -1,14 +1,13 @@
 <!doctype html>
 <html>
   <head>
-    <script src="https://js.stripe.com/v3/"></script>
-    <script src="account.js" type="module"></script>
     <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="runtime-preload-injection" content="disabled">
     <meta
       http-equiv="Content-Security-Policy"
       content="
         connect-src https://js.stripe.com;
-         script-src https://js.stripe.com 'unsafe-eval';
+         script-src https://js.stripe.com socket://co.socketsupply.union/pages/account.js 'unsafe-eval';
             img-src https://js.stripe.com;
           child-src https://js.stripe.com;
          object-src 'none';
@@ -16,6 +15,8 @@
     >
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/page-account.css">
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="account.js" type="module"></script>
   </head>
 
   <body>
