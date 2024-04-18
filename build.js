@@ -56,6 +56,10 @@ async function main (argv) {
   }
 
   const target = process.env.PREFIX
+  if (!target) {
+    console.log('This script should not be run directly. It will be run by the SSC command.')
+    process.exit(0)
+  }
 
   const opts = {
     ...params,

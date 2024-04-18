@@ -480,7 +480,6 @@ class AppView extends Tonic {
     const args = [
       'build',
       '-r'
-      // TODO allow config for -w
     ]
 
     const coDevice = document.querySelector('#device')
@@ -506,7 +505,8 @@ class AppView extends Tonic {
 
     term.info('Running new instance of app')
     const cwd = this.state.currentProject.id
-    const c = this.childprocess = await spawn('ssc', args, { cwd })
+    const env = { SSC_PARENT_LOG_SOCKET: process.env.SSC_LOG_SOCKET }
+    const c = this.childprocess = await spawn('ssc', args, { cwd, env })
 
     c.stdout.on('data', data => {
       term.writeln(Buffer.from(data).toString().trim())
@@ -638,7 +638,22 @@ class AppView extends Tonic {
       }
 
       case 'Toggle Project': {
-        document.querySelector('#split-editor').toggle('left')
+        const coSplit = document.querySelector('#split-editor')
+        coSplit.toggle('left')
+
+        //
+        // if the project has been closed, we dont want the tabs to
+        // go under the traffic lights.
+        //
+        if (process.platform === 'darwin') {
+          const coTabs = document.querySelector('#editor-tabs')
+          if (coSplit.firstElementChild.style.visibility === 'hidden') {
+            coTabs.classList.add('inset')
+          } else {
+            coTabs.classList.remove('inset')
+          }
+        }
+
         break
       }
 
