@@ -4,7 +4,7 @@ import path from 'socket:path'
 import { lookup } from 'socket:mime'
 import { cp, rm } from '../lib/fs.js'
 
-import Tonic from '@socketsupply/tonic'
+import Tonic from 'npm:@socketsupply/tonic'
 
 const EXPANDED_STATE = 1
 const CLOSED_STATE = 0

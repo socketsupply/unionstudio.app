@@ -1,4 +1,4 @@
-import Tonic from '@socketsupply/tonic'
+import Tonic from 'npm:@socketsupply/tonic'
 
 const T_YEARS = 1000 * 60 * 60 * 24 * 365
 const T_MONTHS = 1000 * 60 * 60 * 24 * 30

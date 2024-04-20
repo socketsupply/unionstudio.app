@@ -7,9 +7,9 @@ import vm from 'socket:vm'
 import { inspect, format } from 'socket:util'
 import { spawn, exec } from 'socket:child_process'
 
-import Tonic from '@socketsupply/tonic'
-import components from '@socketsupply/components'
-import Indexed from '@socketsupply/indexed'
+import Tonic from 'npm:@socketsupply/tonic'
+import components from 'npm:@socketsupply/components'
+import Indexed from 'npm:@socketsupply/indexed'
 
 import { Patch } from './git-data.js'
 import { cp, rm } from './lib/fs.js'

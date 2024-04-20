@@ -2,8 +2,8 @@ import fs from 'socket:fs'
 import path from 'socket:path'
 import { sha256 } from 'socket:network'
 
-import * as monaco from 'monaco-editor'
-import Tonic from '@socketsupply/tonic'
+import * as monaco from 'npm:monaco-editor'
+import Tonic from 'npm:@socketsupply/tonic'
 
 function rgbaToHex (rgbaString) {
   const rgbaValues = rgbaString.match(/\d+/g)

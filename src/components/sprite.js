@@ -1,4 +1,4 @@
-import Tonic from '@socketsupply/tonic'
+import Tonic from 'npm:@socketsupply/tonic'
 
 class AppSprite extends Tonic {
   render () {

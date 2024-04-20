@@ -10,8 +10,7 @@ body {
   display: flex;
   justify-content: center;
   align-content: center;
-  height: 100vh;
-  width: 100vw;
+  overflow: hidden;
 }
 
 form {
@@ -30,8 +29,10 @@ form {
 
 #card-element {
   padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  border: 1px solid var(--tonic-border);
+  border-radius: 4px;
+  width: 100%;
+  height: 42px;
 }
 
 .StripeElement {

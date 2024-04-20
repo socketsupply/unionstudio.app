@@ -2,8 +2,8 @@ import fs from 'socket:fs'
 import path from 'socket:path'
 import { exec, execSync } from 'socket:child_process'
 
-import Tonic from '@socketsupply/tonic'
-import { TonicDialog } from '@socketsupply/components/dialog'
+import Tonic from 'npm:@socketsupply/tonic'
+import { TonicDialog } from 'npm:@socketsupply/components/dialog'
 
 export class DialogPublish extends TonicDialog {
   click (e) {

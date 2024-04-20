@@ -1,4 +1,4 @@
-import Tonic from '@socketsupply/tonic'
+import Tonic from 'npm:@socketsupply/tonic'
 import { exec } from 'socket:child_process'
 
 class GitStatus extends Tonic {

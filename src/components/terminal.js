@@ -1,7 +1,7 @@
-import Tonic from '@socketsupply/tonic'
-import { Terminal } from 'xterm'
-import { FitAddon as Resizer } from 'xterm-addon-fit'
-import { SearchAddon as Search } from 'xterm-addon-search'
+import Tonic from 'npm:@socketsupply/tonic'
+import { Terminal } from 'npm:xterm'
+import { FitAddon as Resizer } from 'npm:xterm-addon-fit'
+import { SearchAddon as Search } from 'npm:xterm-addon-search'
 
 // const SECOND = 1000
 // const MAX_ROWS = 30 * SECOND
