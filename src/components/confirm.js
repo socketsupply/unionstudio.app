@@ -1,4 +1,4 @@
-import { TonicDialog } from 'npm:@socketsupply/components/dialog.js'
+import { TonicDialog } from 'npm:@socketsupply/components/dialog'
 
 class DialogConfirm extends TonicDialog {
   async prompt (opts) {
