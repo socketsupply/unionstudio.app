@@ -2,8 +2,8 @@ import fs from 'socket:fs'
 import path from 'socket:path'
 import { Encryption, sha256 } from 'socket:network'
 
-import Tonic from 'npm:@socketsupply/tonic'
-import { TonicDialog } from 'npm:@socketsupply/components/dialog'
+import Tonic from '@socketsupply/tonic'
+import { TonicDialog } from '@socketsupply/components/dialog'
 
 export class DialogSubscribe extends TonicDialog {
   async show () {

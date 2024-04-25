@@ -1,29 +1,9 @@
 #!/usr/bin/env node
-import path from 'node:path'
-import fs from 'node:fs/promises'
-
+//
+// Most newer modules don't need to be bundled. But the monaco
+// and xterm packages rely on bundler-features heavily.
+//
 import esbuild from 'esbuild'
-
-const __dirname = path.dirname(new URL(import.meta.url).pathname)
-
-const cp = async (a, b) => fs.cp(
-  path.resolve(a),
-  path.join(b, path.basename(a)),
-  { recursive: true, force: true }
-)
-
-async function copy (target) {
-  await cp('src/index.html', target)
-  await cp('src/vm.js', target)
-  await cp('src/preview.js', target)
-  await cp('src/worker.js', target)
-  await cp('icons/icon.png', target)
-  await cp('src/settings.json', target)
-  await cp('src/fonts', target)
-  await cp('src/lib', target)
-  await cp('src/pages', target)
-  await cp('src/css', target)
-}
 
 async function main (argv) {
   const workerEntryPoints = [
@@ -37,25 +17,25 @@ async function main (argv) {
   await esbuild.build({
     entryPoints: workerEntryPoints.map((entry) => `node_modules/monaco-editor/esm/${entry}`),
     bundle: true,
-    minify: false,
+    minify: true,
     format: 'iife',
     outbase: 'node_modules/monaco-editor/esm/',
     outdir: 'src/lib'
   })
 
   const params = {
-    entryPoints: ['src/index.js'],
+    entryPoints: ['src/vendor.js'],
     format: 'esm',
     bundle: true,
-    minify: false,
+    minify: true,
     sourcemap: false,
-    external: ['socket:*', 'node:*'],
     loader: {
       '.ttf': 'file'
     }
   }
 
   const target = process.env.PREFIX
+
   if (!target) {
     console.log('This script should not be run directly. It will be run by the SSC command.')
     process.exit(0)
@@ -65,8 +45,8 @@ async function main (argv) {
     ...params,
     outdir: target
   }
+
   await esbuild.build(opts)
-  await copy(target)
 }
 
 main(process.argv.slice(2))

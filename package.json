@@ -9,15 +9,12 @@
     "type": "git"
   },
   "devDependencies": {
-    "@socketsupply/components": "^14.0.13",
-    "@socketsupply/indexed": "^1.0.3",
-    "@socketsupply/tonic": "^15.1.2",
-    "esbuild": "^0.20.0",
     "monaco-editor": "^0.46.0",
-    "standard": "^17.1.0",
     "xterm": "^5.3.0",
     "xterm-addon-fit": "^0.8.0",
-    "xterm-addon-search": "^0.13.0"
+    "xterm-addon-search": "^0.13.0",
+    "esbuild": "^0.20.0",
+    "standard": "^17.1.0"
   },
   "scripts": {
     "build": "ssc build -r -o",
@@ -27,6 +24,9 @@
   "author": "Socket Supply Co. <hello@socketsupply.co>",
   "license": "MIT",
   "dependencies": {
+    "@socketsupply/indexed": "^1.0.3",
+    "@socketsupply/tonic": "^15.1.2",
+    "@socketsupply/components": "^14.1.0",
     "@socketsupply/socket": "^0.5.4"
   }
 }

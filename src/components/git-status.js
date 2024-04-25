@@ -1,5 +1,6 @@
-import Tonic from 'npm:@socketsupply/tonic'
 import { exec } from 'socket:child_process'
+
+import Tonic from '@socketsupply/tonic'
 
 class GitStatus extends Tonic {
   async * render () {

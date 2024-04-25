@@ -2,11 +2,7 @@
   "imports": {
     "@socketsupply/tonic": "npm:@socketsupply/tonic",
     "@socketsupply/components": "npm:@socketsupply/components",
-    "@socketsupply/components/*": "npm:@socketsupply/components/*",
-    "@socketsupply/indexed": "npm:@socketsupply/indexed",
-    "monaco-editor": "npm:monaco-editor",
-    "xterm": "npm:xterm",
-    "xterm-addon-fit": "npm:xterm-addon-fit",
-    "xterm-addon-search": "npm:xterm-addon-search"
+    "@socketsupply/components/dialog": "npm:@socketsupply/components/dialog",
+    "@socketsupply/indexed": "npm:@socketsupply/indexed"
   }
 }

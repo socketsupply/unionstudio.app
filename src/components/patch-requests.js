@@ -1,7 +1,8 @@
-import Tonic from 'npm:@socketsupply/tonic'
 import path from 'socket:path'
 import fs from 'socket:fs'
 import { exec } from 'socket:child_process'
+
+import Tonic from '@socketsupply/tonic'
 
 class PatchRequests extends Tonic {
   async click (e) {

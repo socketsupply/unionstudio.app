@@ -1,5 +1,6 @@
-import Tonic from 'npm:@socketsupply/tonic'
 import process from 'socket:process'
+
+import Tonic from '@socketsupply/tonic'
 
 import Config from '../lib/config.js'
 
