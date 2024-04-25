@@ -1,13 +1,12 @@
 <!doctype html>
 <html>
   <head>
-    <script src="index.js" type="module"></script>
     <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta
       http-equiv="Content-Security-Policy"
       content="
-        connect-src socket: https: http: blob: ipc: wss: ws: ws://localhost:*;
-         script-src socket: https: http: blob: http://localhost:* 'unsafe-eval' 'unsafe-inline';
+        connect-src socket: npm: https: http: blob: ipc: wss: ws: ws://localhost:*;
+         script-src socket: npm: https: http: blob: http://localhost:* 'unsafe-eval' 'unsafe-inline';
          worker-src socket: https: http: blob: 'unsafe-eval' 'unsafe-inline';
           frame-src socket: https: http: blob: http://localhost:*;
             img-src socket: https: http: blob: data: http://localhost:*;
@@ -15,6 +14,8 @@
          object-src 'none';
       "
     >
+    <script src="index.js" type="module"></script>
+
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/fonts.css">
     <link rel="stylesheet" href="css/monaco.css">

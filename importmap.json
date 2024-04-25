@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@socketsupply/tonic": "npm:@socketsupply/tonic",
+    "@socketsupply/components": "npm:@socketsupply/components",
+    "@socketsupply/components/dialog": "npm:@socketsupply/components/dialog",
+    "@socketsupply/indexed": "npm:@socketsupply/indexed"
+  }
+}
