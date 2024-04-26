@@ -6,6 +6,7 @@ import { network, Encryption } from 'socket:network'
 import vm from 'socket:vm'
 import { inspect, format } from 'socket:util'
 import { spawn, exec } from 'socket:child_process'
+import os from 'socket:os'
 
 import Tonic from '@socketsupply/tonic'
 import components from '@socketsupply/components'
@@ -338,9 +339,18 @@ class AppView extends Tonic {
     await this.db.projects.put(bundleId, project)
     await fs.promises.mkdir(project.path, { recursive: true })
 
+    const runtime = await import(`npm:@socketsupply/socket-${os.platform()}-${os.arch()}`)
+    const ssc = path.join(process.cwd(), runtime.bin.ssc.replace(globalThis.location.origin, ''))
+    console.log({ ssc })
+      try {
+      await fs.promises.access('/Applications/Xcode.app/Contents/Developer/usr/bin/git', fs.constants.X_OK)
+    } catch (err) {
+      console.error(err)
+    }
     try {
-      await exec('ssc init', { cwd: project.path })
-      await exec('git init', { cwd: project.path })
+      await exec(`${ssc} init`, { cwd: project.path })
+
+      console.log(await exec('/Applications/Xcode.app/Contents/Developer/usr/bin/git init', { cwd: project.path }))
     } catch (err) {
       console.error(err)
     }

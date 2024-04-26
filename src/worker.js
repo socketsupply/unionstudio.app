@@ -1,9 +1,7 @@
 import path from 'socket:path'
 import { lookup } from 'socket:mime'
 import application from 'socket:application'
-
-const mount = '/user/home'
-const navigatorPath = path.DATA.replace(path.HOME, mount)
+import fs from 'socket:fs/promises'
 
 export default async function (req, env, ctx) {
   const url = new URL(req.url)
@@ -12,7 +10,7 @@ export default async function (req, env, ctx) {
 
   if (!route) return
 
-  const p = path.join(navigatorPath, route.pathname.groups[0])
+  const p = path.join(path.DATA, route.pathname.groups[0])
   const params = url.searchParams
 
   const types = await lookup(path.extname(url.pathname).slice(1))
@@ -27,11 +25,9 @@ export default async function (req, env, ctx) {
   let data = ''
 
   try {
-    const res = await fetch(p)
-
-    if (res.ok && res.status === 200) {
-      data = await res.text()
-    } else if (!res.ok || res.status === 404) {
+    if (await fs.access(p, fs.constants.R_OK)) {
+      data = await fs.readFile(p, 'utf8')
+    } else {
       data = '<h1>Not Found</h1>'
       headers['Runtime-Preload-Injection'] = 'disabled'
     }
